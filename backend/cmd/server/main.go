@@ -34,6 +34,12 @@ func main() {
 		imagenService = nil
 	}
 
+	visionService, err := service.NewGeminiVisionService()
+	if err != nil {
+		log.Printf("警告: Gemini Vision 服务初始化失败: %v", err)
+		visionService = nil
+	}
+
 	// 初始化 Gin
 	r := gin.Default()
 
@@ -92,6 +98,12 @@ func main() {
 		if imagenService != nil {
 			imageHandler := handler.NewImageHandler(imagenService)
 			apiAuth.POST("/characters/:id/generate-image", imageHandler.GenerateImage)
+		}
+
+		// Mini Me 相关
+		if visionService != nil && imagenService != nil {
+			miniMeHandler := handler.NewMiniMeHandler(visionService, imagenService)
+			apiAuth.POST("/minime/generate", miniMeHandler.UploadAndGenerateMiniMe)
 		}
 	}
 

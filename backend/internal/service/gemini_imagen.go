@@ -58,6 +58,20 @@ type ImagenResponse struct {
 	} `json:"predictions"`
 }
 
+// GenerateMiniMeImage 根据外貌描述生成 Mini Me 图片
+func (s *GeminiImagenService) GenerateMiniMeImage(ctx context.Context, description string) (string, error) {
+	if s.apiKey == "" {
+		log.Println("开发模式: 返回模拟 Mini Me 图片")
+		return "/avatars/placeholders/mini_me.png", nil
+	}
+
+	// 构建 Mini Me 风格提示词
+	// 使用 Pixar/Disney 3D 风格
+	prompt := fmt.Sprintf("A cute 3D Pixar style character avatar of a person with the following features: %s. High quality 3D render, soft lighting, expressive face, vibrant colors, plain background, 4k, octane render.", description)
+
+	return s.doGenerateImageWithPrompt(ctx, prompt)
+}
+
 // GenerateImage 使用 Gemini Imagen 4.0 生成角色图片（带重试机制）
 func (s *GeminiImagenService) GenerateImage(ctx context.Context, character *model.Character) (string, error) {
 	if s.apiKey == "" {
@@ -69,39 +83,18 @@ func (s *GeminiImagenService) GenerateImage(ctx context.Context, character *mode
 		return "/avatars/soulmate-female.jpg", nil
 	}
 
-	var lastErr error
-	for attempt := 1; attempt <= maxRetries; attempt++ {
-		log.Printf("图片生成尝试 %d/%d...", attempt, maxRetries)
-		
-		result, err := s.doGenerateImage(ctx, character)
-		if err == nil {
-			log.Printf("图片生成成功 (尝试 %d)", attempt)
-			return result, nil
-		}
-		
-		lastErr = err
-		log.Printf("图片生成失败 (尝试 %d): %v", attempt, err)
-		
-		if attempt < maxRetries {
-			log.Printf("等待 %v 后重试...", retryDelay)
-			time.Sleep(retryDelay)
-		}
-	}
-	
-	return "", fmt.Errorf("图片生成失败，已重试 %d 次: %v", maxRetries, lastErr)
+	prompt := s.buildImagePrompt(character)
+	return s.doGenerateImageWithPrompt(ctx, prompt)
 }
 
-// doGenerateImage 执行单次图片生成请求
-func (s *GeminiImagenService) doGenerateImage(ctx context.Context, character *model.Character) (string, error) {
+// doGenerateImageWithPrompt 执行单次图片生成请求
+func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, prompt string) (string, error) {
 	// 创建带超时的 context
 	timeoutCtx, cancel := context.WithTimeout(ctx, imagenTimeout)
 	defer cancel()
 
-	// 构建图片生成提示词
-	prompt := s.buildImagePrompt(character)
-
 	// 调用 Imagen 4.0 API
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=%s", s.apiKey)
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=%s", s.apiKey)
 
 	reqBody := ImagenRequest{
 		Instances: []struct {
@@ -137,7 +130,6 @@ func (s *GeminiImagenService) doGenerateImage(ctx context.Context, character *mo
 	}
 	defer resp.Body.Close()
 
-	// 读取完整响应体
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("读取响应失败: %v", err)

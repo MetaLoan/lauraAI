@@ -1,16 +1,67 @@
 'use client'
 
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Camera, ImageIcon } from 'lucide-react'
+import { Camera, ImageIcon, Loader2 } from 'lucide-react'
+import { apiClient } from '@/lib/api'
 
 interface MiniMeUploadProps {
-  onNext: () => void
+  onNext: (character: any) => void
   onBack: () => void
 }
 
 export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
+  const [isUploading, setIsUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file')
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB
+      setError('Image size should be less than 10MB')
+      return
+    }
+
+    setIsUploading(true)
+    setError(null)
+
+    try {
+      const result = await apiClient.generateMiniMe(file)
+      onNext(result.character)
+    } catch (err) {
+      console.error('Mini Me generation failed:', err)
+      setError(err instanceof Error ? err.message : 'Failed to generate Mini Me')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleGalleryClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleCameraClick = () => {
+    // 移动端通常会提示选择相机或文件
+    fileInputRef.current?.click()
+  }
+
   return (
     <div className="h-full flex flex-col">
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handleFileSelect}
+      />
+      
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto px-6 scrollbar-hide">
         <div className="flex flex-col items-center justify-center min-h-full py-8">
@@ -30,13 +81,26 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
           {/* Phone Illustration */}
           <div className="relative mb-8">
             <div className="w-40 h-64 bg-gradient-to-b from-white/10 to-white/5 rounded-3xl border-2 border-white/20 flex items-center justify-center p-2">
-              <div className="w-full h-full rounded-2xl bg-gradient-to-b from-gray-400 to-gray-600 flex items-center justify-center">
-                <div className="text-7xl">👤</div>
+              <div className="w-full h-full rounded-2xl bg-gradient-to-b from-gray-400 to-gray-600 flex items-center justify-center overflow-hidden">
+                {isUploading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-10 h-10 animate-spin text-white" />
+                    <span className="text-xs text-white/70">Analyzing...</span>
+                  </div>
+                ) : (
+                  <div className="text-7xl">👤</div>
+                )}
               </div>
             </div>
             {/* Camera Notch */}
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-6 bg-black rounded-b-3xl border border-white/10" />
           </div>
+
+          {error && (
+            <p className="text-red-400 text-sm text-center mb-4 bg-red-500/10 px-4 py-2 rounded-lg">
+              {error}
+            </p>
+          )}
         </div>
       </div>
 
@@ -44,15 +108,17 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-transparent z-50">
         <div className="max-w-md mx-auto space-y-3">
           <Button
-            onClick={onNext}
-            className="btn-primary flex items-center justify-center gap-2"
+            onClick={handleCameraClick}
+            disabled={isUploading}
+            className="btn-primary flex items-center justify-center gap-2 w-full"
           >
             <Camera className="w-5 h-5" />
             Take a Selfie
           </Button>
           <Button
-            onClick={onNext}
-            className="btn-primary flex items-center justify-center gap-2 !bg-white/10 !text-white hover:!bg-white/20"
+            onClick={handleGalleryClick}
+            disabled={isUploading}
+            className="btn-primary flex items-center justify-center gap-2 w-full !bg-white/10 !text-white hover:!bg-white/20"
           >
             <ImageIcon className="w-5 h-5" />
             Choose from Gallery

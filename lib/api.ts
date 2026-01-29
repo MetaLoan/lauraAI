@@ -167,6 +167,50 @@ class ApiClient {
       method: 'POST',
     }, 60000) // 60秒超时
   }
+
+  // Mini Me 生成
+  async generateMiniMe(file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const url = `${this.baseURL}/minime/generate`
+    let initData = (window as any).Telegram?.WebApp?.initData
+
+    if (!initData && process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+      initData = 'query_id=AAGLk...&user=%7B%22id%22%3A999999999%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22test_user%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1700000000&hash=fake_hash'
+    }
+
+    const headers: HeadersInit = {}
+    if (initData) {
+      headers['X-Telegram-Init-Data'] = initData
+    }
+
+    // 上传和生成可能需要较长时间
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 90000) // 90秒超时
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+
+      const data = await response.json()
+      if (data.code !== 0) {
+        throw new Error(data.message || '生成失败')
+      }
+      return data.data
+    } catch (error) {
+      clearTimeout(timeoutId)
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('请求超时，请检查网络连接')
+      }
+      throw error
+    }
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL)
