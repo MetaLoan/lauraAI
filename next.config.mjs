@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const isGitHubPages = process.env.GITHUB_PAGES === 'true'
+// GitHub Pages basePath 应该与仓库名一致（注意大小写）
 const basePath = isGitHubPages ? '/lauraAI' : ''
 
 const nextConfig = {
