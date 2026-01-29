@@ -9,9 +9,7 @@ import (
 	"lauraai-backend/internal/config"
 	"lauraai-backend/internal/model"
 
-	"github.com/google/generative-ai-go/genai"
-	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
+	"google.golang.org/genai"
 )
 
 type GeminiChatService struct {
@@ -28,7 +26,9 @@ func NewGeminiChatService() (*GeminiChatService, error) {
 	}
 
 	ctx := context.Background()
-	client, err := genai.NewClient(ctx, option.WithAPIKey(config.AppConfig.GeminiAPIKey))
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+		APIKey: config.AppConfig.GeminiAPIKey,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("创建 Gemini 客户端失败: %v", err)
 	}
@@ -38,40 +38,39 @@ func NewGeminiChatService() (*GeminiChatService, error) {
 
 func (s *GeminiChatService) Chat(ctx context.Context, character *model.Character, messages []model.Message, userMessage string) (string, error) {
 	if s.client == nil {
-		// 模拟回复
 		return fmt.Sprintf("[模拟回复] 我收到了你的消息: %s。我是 %s，很高兴认识你！", userMessage, character.Title), nil
 	}
 
-	geminiModel := s.client.GenerativeModel("gemini-2.0-flash")
-
-	// 构建系统提示词
-	systemPrompt := s.buildSystemPrompt(character)
-	if systemPrompt != "" {
-		geminiModel.SystemInstruction = &genai.Content{
-			Parts: []genai.Part{genai.Text(systemPrompt)},
-		}
-	}
-
-	// 创建聊天会话
-	chat := geminiModel.StartChat()
-
-	// 添加历史消息
+	var contents []*genai.Content
 	for _, msg := range messages {
-		if msg.SenderType == model.SenderTypeUser {
-			chat.History = append(chat.History, &genai.Content{
-				Parts: []genai.Part{genai.Text(msg.Content)},
-				Role:  "user",
-			})
-		} else {
-			chat.History = append(chat.History, &genai.Content{
-				Parts: []genai.Part{genai.Text(msg.Content)},
-				Role:  "model",
-			})
+		role := "user"
+		if msg.SenderType != model.SenderTypeUser {
+			role = "model"
 		}
+		contents = append(contents, &genai.Content{
+			Role: role,
+			Parts: []*genai.Part{
+				{Text: msg.Content},
+			},
+		})
+	}
+	contents = append(contents, &genai.Content{
+		Role: "user",
+		Parts: []*genai.Part{
+			{Text: userMessage},
+		},
+	})
+
+	config := &genai.GenerateContentConfig{
+		SystemInstruction: &genai.Content{
+			Parts: []*genai.Part{
+				{Text: s.buildSystemPrompt(character)},
+			},
+		},
+		Temperature: genai.Ptr(float32(0.7)),
 	}
 
-	// 发送消息并获取响应
-	resp, err := chat.SendMessage(ctx, genai.Text(userMessage))
+	resp, err := s.client.Models.GenerateContent(ctx, "gemini-2.0-flash", contents, config)
 	if err != nil {
 		return "", fmt.Errorf("生成响应失败: %v", err)
 	}
@@ -80,25 +79,15 @@ func (s *GeminiChatService) Chat(ctx context.Context, character *model.Character
 		return "", fmt.Errorf("未收到有效响应")
 	}
 
-	// 提取文本响应
-	text := ""
-	for _, part := range resp.Candidates[0].Content.Parts {
-		if textPart, ok := part.(genai.Text); ok {
-			text += string(textPart)
-		}
-	}
-
-	return text, nil
+	return resp.Candidates[0].Content.Parts[0].Text, nil
 }
 
 func (s *GeminiChatService) ChatStream(ctx context.Context, character *model.Character, messages []model.Message, userMessage string) (<-chan string, error) {
 	if s.client == nil {
-		// 模拟流式回复
 		ch := make(chan string, 5)
 		go func() {
 			defer close(ch)
 			response := fmt.Sprintf("[模拟流式回复] 我收到了你的消息: %s。我是 %s，很高兴认识你！", userMessage, character.Title)
-			// 模拟打字效果
 			runes := []rune(response)
 			for i := 0; i < len(runes); i += 5 {
 				end := i + 5
@@ -112,56 +101,49 @@ func (s *GeminiChatService) ChatStream(ctx context.Context, character *model.Cha
 		return ch, nil
 	}
 
-	geminiModel := s.client.GenerativeModel("gemini-2.0-flash")
-
-	// 构建系统提示词
-	systemPrompt := s.buildSystemPrompt(character)
-	if systemPrompt != "" {
-		geminiModel.SystemInstruction = &genai.Content{
-			Parts: []genai.Part{genai.Text(systemPrompt)},
-		}
-	}
-
-	// 创建聊天会话
-	chat := geminiModel.StartChat()
-
-	// 添加历史消息
+	var contents []*genai.Content
 	for _, msg := range messages {
-		if msg.SenderType == model.SenderTypeUser {
-			chat.History = append(chat.History, &genai.Content{
-				Parts: []genai.Part{genai.Text(msg.Content)},
-				Role:  "user",
-			})
-		} else {
-			chat.History = append(chat.History, &genai.Content{
-				Parts: []genai.Part{genai.Text(msg.Content)},
-				Role:  "model",
-			})
+		role := "user"
+		if msg.SenderType != model.SenderTypeUser {
+			role = "model"
 		}
+		contents = append(contents, &genai.Content{
+			Role: role,
+			Parts: []*genai.Part{
+				{Text: msg.Content},
+			},
+		})
+	}
+	contents = append(contents, &genai.Content{
+		Role: "user",
+		Parts: []*genai.Part{
+			{Text: userMessage},
+		},
+	})
+
+	config := &genai.GenerateContentConfig{
+		SystemInstruction: &genai.Content{
+			Parts: []*genai.Part{
+				{Text: s.buildSystemPrompt(character)},
+			},
+		},
+		Temperature: genai.Ptr(float32(0.7)),
 	}
 
-	// 创建流式响应
-	iter := chat.SendMessageStream(ctx, genai.Text(userMessage))
-	
+	iter := s.client.Models.GenerateContentStream(ctx, "gemini-2.0-flash", contents, config)
+
 	ch := make(chan string, 10)
-	
 	go func() {
 		defer close(ch)
-		for {
-			resp, err := iter.Next()
-			if err == iterator.Done {
-				break
-			}
+		for resp, err := range iter {
 			if err != nil {
 				log.Printf("流式响应错误: %v", err)
 				break
 			}
 
-			if resp != nil && len(resp.Candidates) > 0 && resp.Candidates[0].Content != nil && len(resp.Candidates[0].Content.Parts) > 0 {
+			if len(resp.Candidates) > 0 && resp.Candidates[0].Content != nil {
 				for _, part := range resp.Candidates[0].Content.Parts {
-					if textPart, ok := part.(genai.Text); ok {
-						ch <- string(textPart)
-					}
+					ch <- part.Text
 				}
 			}
 		}
@@ -175,7 +157,6 @@ func (s *GeminiChatService) buildSystemPrompt(character *model.Character) string
 		return character.PersonalityPrompt
 	}
 
-	// 更加生动和具体的系统提示词
 	prompt := fmt.Sprintf(`You are %s, a vivid and engaging AI character. 
 	Your identity: %s.
 	Your astrological sign: %s.
@@ -188,15 +169,12 @@ func (s *GeminiChatService) buildSystemPrompt(character *model.Character) string
 	5. If you are a 'Friend', be loyal, fun, and casual.
 	6. Use emojis occasionally to express emotion, but don't overdo it.
 	7. Remember details the user shares and reference them to build a stronger bond.
-	8. Your goal is to make the user feel seen, understood, and special.`, 
-	character.Title, character.Description, character.AstroSign)
-	
+	8. Your goal is to make the user feel seen, understood, and special.`,
+		character.Title, character.Description, character.AstroSign)
+
 	return prompt
 }
 
 func (s *GeminiChatService) Close() error {
-	if s.client != nil {
-		return s.client.Close()
-	}
 	return nil
 }
