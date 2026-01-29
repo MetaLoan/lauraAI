@@ -91,6 +91,8 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       }
       
       // 禁用垂直下拉关闭 Mini App 的行为
+      // 暂时注释掉以修复 Application error
+      /*
       try {
         // 1. 尝试使用最新的 SDK 方法 (添加更多检查)
         if (viewport.isVerticalSwipeAllowed.isAvailable() && 
@@ -110,6 +112,7 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       } catch (err) {
         console.warn('Failed to disable vertical swipe:', err);
       }
+      */
       
       // 只有在 Viewport 挂载并绑定变量后，才认为准备就绪（此时 CSS 变量已生效）
       // 设置一小段延迟确保布局计算完成
