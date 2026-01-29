@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronDown, X, Share2 } from 'lucide-react'
+import { getAssetPath } from '@/lib/utils'
 
 interface SoulmateDetailPageProps {
   character?: {
@@ -101,7 +102,7 @@ export default function SoulmateDetailPage({
               {/* 使用原生 img 标签以支持 base64 图片 */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={image}
+                src={getAssetPath(image)}
                 alt={title}
                 className="w-full h-full object-cover"
               />
