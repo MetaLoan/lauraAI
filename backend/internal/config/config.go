@@ -28,7 +28,7 @@ func LoadConfig() {
 	}
 
 	AppConfig = &Config{
-		Port:             getEnv("PORT", "8080"),
+		Port:             getEnv("PORT", "8081"),
 		TelegramBotToken: getEnv("TELEGRAM_BOT_TOKEN", ""),
 		GeminiAPIKey:     getEnv("GEMINI_API_KEY", ""),
 		PostgresDSN:      dbDSN,

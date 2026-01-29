@@ -20,8 +20,8 @@ export function SelectionButton({
       onClick={onClick}
       className={`w-full p-4 rounded-xl text-left text-lg font-medium transition-all ${
         isSelected
-          ? 'bg-white/20 border border-white/40'
-          : 'bg-white/5 border border-white/10 hover:border-white/20'
+          ? 'bg-white text-black border-white'
+          : 'bg-transparent border border-gray-700 text-white hover:border-gray-500'
       } ${className}`}
     >
       <div className="flex items-center justify-between">

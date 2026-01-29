@@ -21,9 +21,11 @@ import ChatWindow from '@/components/chat-window'
 import Dashboard from '@/components/dashboard'
 import Profile from '@/components/profile'
 import HistoryPage from '@/components/history-page'
+import Preloader from '@/components/ui/preloader'
 import { apiClient } from '@/lib/api'
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(true) // 初始加载状态
   const [step, setStep] = useState(0)
   const [showChat, setShowChat] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
@@ -43,17 +45,31 @@ export default function Home() {
   const [dashboardKey, setDashboardKey] = useState(0) // 用于强制刷新 Dashboard
   const [creatingCharacterType, setCreatingCharacterType] = useState<{ type: string; title: string } | null>(null)
 
-  // 检查用户是否已完成引导流程（后台检查，不阻塞UI）
+  // 在 preloader 阶段检查用户状态并决定跳转
   useEffect(() => {
+    const startTime = Date.now()
+    const minDisplayTime = 1500 // 最小显示时间 1.5 秒
+
     const checkUserStatus = async () => {
       try {
         const user = await apiClient.getMe() as any
         if (user && user.name && user.gender && user.birth_date) {
           // 用户已完成引导，直接跳转到 Dashboard
           setStep(13)
+        } else {
+          // 用户未完成引导，显示 Welcome 页面
+          setStep(0)
         }
       } catch (error) {
-        console.log('用户未登录或未完成引导')
+        // 出错时也显示 Welcome 页面
+        setStep(0)
+      } finally {
+        // 确保至少显示最小时间，然后隐藏 preloader
+        const elapsed = Date.now() - startTime
+        const remaining = Math.max(0, minDisplayTime - elapsed)
+        setTimeout(() => {
+          setIsLoading(false)
+        }, remaining)
       }
     }
     checkUserStatus()
@@ -107,7 +123,6 @@ export default function Home() {
             birth_place: formData.birthPlace || undefined,
             ethnicity: formData.ethnicity || undefined,
           })
-          console.log('用户信息保存成功')
         } catch (error) {
           console.error('保存用户信息失败:', error)
           // 不阻断流程，继续执行
@@ -192,7 +207,6 @@ export default function Home() {
             id: (character as any).id.toString(),
           }
           setSelectedCharacterData(characterData)
-          console.log('角色创建成功:', characterData)
           setIsGenerating(false)
           setStep(12) // 跳转到详情页
         } catch (error) {
@@ -348,6 +362,11 @@ export default function Home() {
     />,
   ]
 
+  // 显示 preloader 时，只显示 preloader
+  if (isLoading) {
+    return <Preloader />
+  }
+
   return (
     <div 
       className="h-full flex flex-col bg-black text-white overflow-hidden"
@@ -378,7 +397,6 @@ export default function Home() {
           </div>
           {showChat && (
             <>
-              {console.log('ChatWindow 打开，selectedCharacterData:', selectedCharacterData)}
               <ChatWindow 
                 characterId={selectedCharacterData?.id?.toString()} 
                 characterTitle={selectedCharacterData?.title || 'Your Soulmate'}

@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api'
+// API URL: 优先使用环境变量，否则使用默认值
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api'
 
 interface ApiResponse<T> {
   code: number
@@ -7,7 +8,7 @@ interface ApiResponse<T> {
 }
 
 class ApiClient {
-  private baseURL: string
+  public readonly baseURL: string
 
   constructor(baseURL: string) {
     this.baseURL = baseURL
@@ -27,6 +28,11 @@ class ApiClient {
       const hash = window.location.hash.slice(1)
       const params = new URLSearchParams(hash)
       initData = params.get('tgWebAppData')
+    }
+
+    // 开发模式：如果未获取到 initData，使用伪造数据（仅开发环境）
+    if (!initData && process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+      initData = 'query_id=AAGLk...&user=%7B%22id%22%3A999999999%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22test_user%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1700000000&hash=fake_hash'
     }
 
     const headers: HeadersInit = {

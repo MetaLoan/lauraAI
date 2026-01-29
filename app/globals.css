@@ -174,12 +174,13 @@
   /* 标准按钮定义 */
   .btn-primary {
     @apply w-full bg-white text-black hover:bg-gray-100 transition-all font-semibold rounded-xl;
-    height: 3.5rem; /* 56px */
-    font-size: 1.125rem; /* 18px */
+    height: 3.5rem !important; /* 56px */
+    font-size: 1.125rem !important; /* 18px (text-lg) */
   }
   
   .btn-disabled {
-    @apply bg-gray-600 text-gray-400 opacity-100 cursor-not-allowed;
+    @apply text-gray-500 opacity-100 cursor-not-allowed border border-gray-700;
+    background-color: #2F3949 !important;
   }
 
   /* 标准 Loading 定义 */

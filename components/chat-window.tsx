@@ -70,9 +70,7 @@ export default function ChatWindow({ characterId, characterTitle = 'Your Soulmat
 
     try {
       // 发送消息并接收流式响应
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api'
-      const url = `${API_BASE_URL}/characters/${characterId}/chat`
-      console.log('聊天请求 URL:', url, 'characterId:', characterId)
+      const url = `${apiClient.baseURL}/characters/${characterId}/chat`
       
       if (!characterId) {
         throw new Error('角色 ID 为空')
@@ -88,7 +86,10 @@ export default function ChatWindow({ characterId, characterTitle = 'Your Soulmat
         initData = params.get('tgWebAppData')
       }
       
-      console.log('initData 长度:', initData?.length || 0)
+      // 开发模式：如果未获取到 initData，使用伪造数据
+      if (!initData && process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+        initData = 'query_id=AAGLk...&user=%7B%22id%22%3A999999999%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22test_user%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1700000000&hash=fake_hash'
+      }
       
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
@@ -96,8 +97,6 @@ export default function ChatWindow({ characterId, characterTitle = 'Your Soulmat
       
       if (initData) {
         headers['X-Telegram-Init-Data'] = initData
-      } else {
-        console.error('无法获取 Telegram initData')
       }
 
       const response = await fetch(url, {

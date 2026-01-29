@@ -17,7 +17,8 @@ const nextConfig = {
   trailingSlash: true,
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
-    NEXT_PUBLIC_API_URL: 'https://lauraai-backend.fly.dev/api',
+    // API URL 由 .env.local 或环境变量控制，生产环境默认使用 fly.dev
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api',
   },
 }
 
