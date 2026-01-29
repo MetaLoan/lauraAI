@@ -306,7 +306,13 @@ export default function Home() {
   // 初始加载时显示加载状态
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div 
+        className="min-h-screen bg-black text-white flex items-center justify-center"
+        style={{
+          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))',
+          paddingBottom: 'calc(var(--tg-safe-area-bottom, 0px) + var(--tg-content-safe-area-bottom, 0px))',
+        }}
+      >
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-white/60">Loading...</p>
@@ -316,7 +322,15 @@ export default function Home() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-black text-white overflow-hidden">
+    <div 
+      className="h-full flex flex-col bg-black text-white overflow-hidden"
+      style={{
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))',
+        paddingBottom: 'calc(var(--tg-safe-area-bottom, 0px) + var(--tg-content-safe-area-bottom, 0px))',
+        paddingLeft: 'var(--tg-safe-area-left, 0px)',
+        paddingRight: 'var(--tg-safe-area-right, 0px)',
+      }}
+    >
       {showProfile ? (
         <Profile
           onBack={handleCloseProfile}
