@@ -1,5 +1,7 @@
 'use client';
 
+import { apiClient } from '@/lib/api';
+
 export default function Preloader() {
   return (
     <div className="fixed inset-0 z-[10000] bg-black flex items-center justify-center overflow-hidden">
@@ -30,6 +32,11 @@ export default function Preloader() {
               style={{ width: '30%' }}
             ></div>
           </div>
+        </div>
+
+        {/* 调试信息：显示当前 API 地址 */}
+        <div className="absolute bottom-[-100px] left-0 right-0 text-[10px] text-gray-500 font-mono opacity-50">
+          API: {apiClient.baseURL}
         </div>
       </div>
     </div>
