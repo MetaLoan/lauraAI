@@ -43,11 +43,12 @@ func (s *GeminiVisionService) AnalyzeImage(ctx context.Context, imageData []byte
 	prompt := `Analyze this person's appearance for creating a high-quality 3D character avatar. 
 	Please provide a detailed description including:
 	1. Gender and approximate age.
-	2. Hair: style, length, color, and texture.
-	3. Eyes: color, shape, and expression.
-	4. Facial Features: face shape, skin tone, any distinctive marks, glasses, or facial hair.
-	5. Clothing: style, color, and any visible accessories.
-	6. Overall Vibe: personality traits reflected in their expression (e.g., warm, mysterious, confident).
+	2. Ethnicity/Race: Identify the person's ethnic background (e.g., East Asian, Caucasian, African, Hispanic, South Asian, etc.).
+	3. Hair: style, length, color, and texture.
+	4. Eyes: color, shape, and expression.
+	5. Facial Features: face shape, skin tone, any distinctive marks, glasses, or facial hair.
+	6. Clothing: style, color, and any visible accessories.
+	7. Overall Vibe: personality traits reflected in their expression (e.g., warm, mysterious, confident).
 	Keep the description vivid but concise, optimized for a text-to-image AI prompt.`
 
 	parts := []*genai.Part{

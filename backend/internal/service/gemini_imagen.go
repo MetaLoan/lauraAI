@@ -42,7 +42,7 @@ func (s *GeminiImagenService) GenerateMiniMeImage(ctx context.Context, descripti
 		return "/avatars/placeholders/mini_me.png", nil
 	}
 
-	prompt := fmt.Sprintf("A stunning 3D digital art portrait of a person with these features: %s. The style should be modern 3D animation (like modern Disney or Riot Games cinematic style), with extremely detailed skin texture, realistic hair rendering, and expressive, soulful eyes. Soft cinematic studio lighting, shallow depth of field, vibrant but natural colors, solid neutral background. 8k resolution, masterpiece, trending on ArtStation, highly detailed, sharp focus.", description)
+	prompt := fmt.Sprintf("A cute 'Mini-Me' 3D chibi-style character avatar based on these features: %s. The style should be adorable low-age mini style (Chibi), with a large head and small body, big expressive soulful eyes, and simplified but high-quality 3D textures. Modern 3D animation aesthetic (like a high-end toy or a stylized game character). Soft cinematic studio lighting, vibrant colors, solid neutral background. 8k resolution, masterpiece, extremely cute, clean lines, sharp focus.", description)
 
 	return s.doGenerateImageWithPrompt(ctx, prompt)
 }
