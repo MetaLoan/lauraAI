@@ -1,6 +1,42 @@
 # 前端部署指南
 
-## 部署到 Vercel（推荐）
+## 部署到 GitHub Pages（推荐）
+
+### 1. 启用 GitHub Pages
+
+1. 访问仓库设置：`Settings > Pages`
+2. 在 "Source" 部分选择：
+   - **Source**: `GitHub Actions`
+3. 保存设置
+
+### 2. 配置环境变量（可选）
+
+如果需要配置后端 API 地址：
+
+1. 访问 `Settings > Secrets and variables > Actions`
+2. 添加 secret：
+   - `NEXT_PUBLIC_API_URL`: 后端 API 地址（例如：`https://your-backend.com/api`）
+
+### 3. 触发部署
+
+- **自动部署**: 推送到 `main` 分支会自动触发部署
+- **手动部署**: 在 Actions 页面选择 "部署到 GitHub Pages" workflow，点击 "Run workflow"
+
+### 4. 访问网站
+
+部署完成后，网站将在以下地址可用：
+- `https://metaloan.github.io/lauraAI/`（如果仓库名是 lauraAI）
+- 或查看 Actions 页面中的部署 URL
+
+### 注意事项
+
+- GitHub Pages 只支持静态网站，Next.js 会自动导出为静态文件
+- 如果使用自定义域名，需要修改 `next.config.mjs` 中的 `basePath` 和 `assetPrefix`
+- 首次部署可能需要几分钟时间
+
+---
+
+## 部署到 Vercel（备选方案）
 
 ### 1. 在 Vercel 创建项目
 
