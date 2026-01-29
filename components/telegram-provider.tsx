@@ -85,19 +85,25 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       
       // 更新安全区 CSS 变量
       const updateSafeAreas = () => {
-        const root = document.documentElement;
-        const sa = viewport.safeAreaInsets();
-        const csa = viewport.contentSafeAreaInsets();
-        
-        root.style.setProperty('--tg-safe-area-top', `${sa.top}px`);
-        root.style.setProperty('--tg-safe-area-bottom', `${sa.bottom}px`);
-        root.style.setProperty('--tg-safe-area-left', `${sa.left}px`);
-        root.style.setProperty('--tg-safe-area-right', `${sa.right}px`);
-        
-        root.style.setProperty('--tg-content-safe-area-top', `${csa.top}px`);
-        root.style.setProperty('--tg-content-safe-area-bottom', `${csa.bottom}px`);
-        root.style.setProperty('--tg-content-safe-area-left', `${csa.left}px`);
-        root.style.setProperty('--tg-content-safe-area-right', `${csa.right}px`);
+        try {
+          const root = document.documentElement;
+          if (!viewport.safeAreaInsets.isAvailable()) return;
+          
+          const sa = viewport.safeAreaInsets();
+          const csa = viewport.contentSafeAreaInsets();
+          
+          root.style.setProperty('--tg-safe-area-top', `${sa.top}px`);
+          root.style.setProperty('--tg-safe-area-bottom', `${sa.bottom}px`);
+          root.style.setProperty('--tg-safe-area-left', `${sa.left}px`);
+          root.style.setProperty('--tg-safe-area-right', `${sa.right}px`);
+          
+          root.style.setProperty('--tg-content-safe-area-top', `${csa.top}px`);
+          root.style.setProperty('--tg-content-safe-area-bottom', `${csa.bottom}px`);
+          root.style.setProperty('--tg-content-safe-area-left', `${csa.left}px`);
+          root.style.setProperty('--tg-content-safe-area-right', `${csa.right}px`);
+        } catch (e) {
+          console.error('Update safe areas error:', e);
+        }
       };
 
       updateSafeAreas();
