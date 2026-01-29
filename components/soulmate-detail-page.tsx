@@ -78,7 +78,7 @@ export default function SoulmateDetailPage({
   }
 
   return (
-    <div className="h-full flex flex-col pb-32 pt-tg-top">
+    <div className="h-full flex flex-col pb-32">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
         <h2 className="text-xl font-semibold">{title}</h2>
@@ -174,7 +174,7 @@ export default function SoulmateDetailPage({
       </div>
 
       {/* Footer Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-black/60 backdrop-blur-md z-50">
+      <div className="fixed bottom-0 left-0 right-0 p-6 bg-transparent z-50">
         <div className="max-w-md mx-auto">
           <Button
             onClick={onNext}
