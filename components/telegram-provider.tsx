@@ -233,25 +233,33 @@ function TelegramInitializer({ children }: PropsWithChildren) {
         // 在 Preloader 阶段轮询获取安全区的值
         // 需要等待 requestFullscreen 生效后才能获取到正确的值
         console.log('[PRELOADER] Starting safe area polling (waiting for fullscreen)...');
+        console.log('[DEBUG] Will NOT proceed until BOTH safeAreaInset AND contentSafeAreaInset are obtained!');
         let attempts = 0;
-        const maxAttempts = 30; // 最多尝试 30 次，每次 100ms，共 3 秒
         
         const pollSafeArea = () => {
           attempts++;
-          const hasValidValues = setupSafeAreaCssVars();
+          const webApp = (window as any).Telegram?.WebApp;
+          const safeAreaInset = webApp?.safeAreaInset;
+          const contentSafeAreaInset = webApp?.contentSafeAreaInset;
           
-          if (hasValidValues) {
-            console.log(`[PRELOADER] Safe area values obtained after ${attempts} attempts`);
-            setSafeAreaReady(true);
-          } else if (attempts >= maxAttempts) {
-            // 超时，使用默认值
-            console.log('[PRELOADER] Safe area polling timeout, using default values');
-            document.documentElement.style.setProperty('--tg-content-safe-area-top', '100px'); // 增加默认值
-            document.documentElement.style.setProperty('--tg-safe-area-bottom', '34px');
+          console.log(`[POLL ${attempts}] safeAreaInset:`, JSON.stringify(safeAreaInset));
+          console.log(`[POLL ${attempts}] contentSafeAreaInset:`, JSON.stringify(contentSafeAreaInset));
+          console.log(`[POLL ${attempts}] isFullscreen:`, webApp?.isFullscreen);
+          
+          // 必须同时获取到两个值才算成功
+          const hasSafeArea = safeAreaInset && (safeAreaInset.top > 0 || safeAreaInset.bottom > 0);
+          const hasContentSafeArea = contentSafeAreaInset && contentSafeAreaInset.top > 0;
+          
+          if (hasSafeArea && hasContentSafeArea) {
+            console.log(`[PRELOADER] ✅ BOTH values obtained after ${attempts} attempts!`);
+            console.log(`[PRELOADER] safeAreaInset.top: ${safeAreaInset.top}px`);
+            console.log(`[PRELOADER] contentSafeAreaInset.top: ${contentSafeAreaInset.top}px`);
+            setupSafeAreaCssVars();
             setSafeAreaReady(true);
           } else {
-            // 继续轮询
-            setTimeout(pollSafeArea, 100);
+            // 继续轮询，不设超时，一直等待
+            console.log(`[POLL ${attempts}] ❌ Still waiting... (hasSafeArea: ${hasSafeArea}, hasContentSafeArea: ${hasContentSafeArea})`);
+            setTimeout(pollSafeArea, 500); // 每 500ms 检查一次
           }
         };
         
