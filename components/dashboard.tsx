@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Clock, User, MoreVertical, Plus } from 'lucide-react'
+import { Clock, User, Plus } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 import { getAssetPath } from '@/lib/utils'
 
@@ -76,6 +76,7 @@ export default function Dashboard({
 }) {
   const [userCharacters, setUserCharacters] = useState<CharacterCard[]>([])
   const [loading, setLoading] = useState(true)
+  const [language, setLanguage] = useState<'en' | 'ru'>('en') // 语言状态：en=英语, ru=俄语
 
   // 从后端加载用户已创建的角色列表
   useEffect(() => {
@@ -202,8 +203,14 @@ export default function Dashboard({
             <User className="w-6 h-6" />
           </button>
         </div>
-        <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
-          <MoreVertical className="w-6 h-6" />
+        <button 
+          onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
+          title={language === 'en' ? 'Switch to Russian' : 'Switch to English'}
+        >
+          <span className="text-2xl leading-none">
+            {language === 'en' ? '🇬🇧' : '🇷🇺'}
+          </span>
         </button>
       </div>
 

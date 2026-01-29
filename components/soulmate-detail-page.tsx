@@ -78,19 +78,15 @@ export default function SoulmateDetailPage({
   }
 
   return (
-    <div className="h-full flex flex-col pb-32">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
-        <h2 className="text-title-md font-semibold">{title}</h2>
-        <button className="p-3 rounded-full border border-white/30 hover:border-white/50 transition-colors">
-          <Share2 className="w-6 h-6" />
-        </button>
-      </div>
-
+    <div className="h-full flex flex-col">
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto px-6 pt-4 space-y-8 scrollbar-hide">
         {/* Portrait Card */}
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Title above image */}
+          <h2 className="text-title-lg text-balance text-center px-2 flex-shrink-0">{title}</h2>
+          
+          {/* Image */}
           <div className="w-full max-w-[280px] aspect-[3/4] rounded-3xl border-4 border-amber-700 p-2 bg-gradient-to-br from-amber-100 to-amber-50 shadow-2xl">
             <div className="w-full h-full bg-amber-200 rounded-2xl flex items-center justify-center overflow-hidden relative">
               {/* 使用原生 img 标签以支持 base64 图片 */}
@@ -102,6 +98,11 @@ export default function SoulmateDetailPage({
               />
             </div>
           </div>
+
+          {/* Share button below image */}
+          <button className="p-3 rounded-full border border-white/30 hover:border-white/50 transition-colors">
+            <Share2 className="w-6 h-6" />
+          </button>
         </div>
 
         {/* Divider */}
@@ -171,6 +172,9 @@ export default function SoulmateDetailPage({
             )}
           </button>
         </div>
+
+        {/* Bottom spacer for fixed button */}
+        <div className="h-32" />
       </div>
 
       {/* Footer Button */}
