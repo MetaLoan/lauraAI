@@ -20,7 +20,15 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`
     
     // 从 Telegram Mini App 获取 initData
-    const initData = (window as any).Telegram?.WebApp?.initData
+    let initData = (window as any).Telegram?.WebApp?.initData
+    
+    // 备用方案：尝试从 URL 获取 initData (有些环境可能需要)
+    if (!initData && typeof window !== 'undefined') {
+      const hash = window.location.hash.slice(1)
+      const params = new URLSearchParams(hash)
+      initData = params.get('tgWebAppData')
+    }
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...(options.headers || {}),
