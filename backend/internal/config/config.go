@@ -8,11 +8,11 @@ import (
 )
 
 type Config struct {
-	Port            string
+	Port             string
 	TelegramBotToken string
-	GeminiAPIKey    string
-	PostgresDSN     string
-	DevMode         bool
+	GeminiAPIKey     string
+	PostgresDSN      string
+	DevMode          bool
 }
 
 var AppConfig *Config
@@ -28,11 +28,11 @@ func LoadConfig() {
 	}
 
 	AppConfig = &Config{
-		Port:            getEnv("PORT", "8080"),
+		Port:             getEnv("PORT", "8080"),
 		TelegramBotToken: getEnv("TELEGRAM_BOT_TOKEN", ""),
-		GeminiAPIKey:    getEnv("GEMINI_API_KEY", ""),
-		PostgresDSN:     dbDSN,
-		DevMode:         getEnv("DEV_MODE", "false") == "true",
+		GeminiAPIKey:     getEnv("GEMINI_API_KEY", ""),
+		PostgresDSN:      dbDSN,
+		DevMode:          getEnv("DEV_MODE", "false") == "true",
 	}
 
 	if AppConfig.TelegramBotToken == "" {

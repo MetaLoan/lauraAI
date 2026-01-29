@@ -137,10 +137,19 @@
 }
 
 /* 基础重置 */
-html, body {
-  height: 100%;
+html {
+  height: 100%; /* Fallback */
+  height: var(--tg-viewport-height, 100vh);
   overflow: hidden; /* 禁止 body 滚动 */
   background-color: black;
+}
+
+body {
+  height: 100%;
+  overflow: hidden;
+  background-color: black;
+  margin: 0;
+  padding: 0;
 }
 
 #__next, #root {

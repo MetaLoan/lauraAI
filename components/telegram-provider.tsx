@@ -82,7 +82,17 @@ function TelegramInitializer({ children }: PropsWithChildren) {
 
   // 绑定 CSS 变量
   useEffect(() => {
-    if (isMiniAppMounted && miniApp.bindCssVars.isAvailable()) miniApp.bindCssVars();
+    if (isMiniAppMounted) {
+      if (miniApp.bindCssVars.isAvailable()) miniApp.bindCssVars();
+      
+      // 设置头部和背景颜色，使其与应用主题一致
+      if (miniApp.setHeaderColor.isAvailable()) {
+        miniApp.setHeaderColor('#000000');
+      }
+      if (miniApp.setBackgroundColor.isAvailable()) {
+        miniApp.setBackgroundColor('#000000');
+      }
+    }
   }, [isMiniAppMounted]);
 
   useEffect(() => {
