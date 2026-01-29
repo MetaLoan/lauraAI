@@ -82,9 +82,15 @@ function TelegramInitializer({ children }: PropsWithChildren) {
   useEffect(() => {
     if (isViewportMounted) {
       if (viewport.bindCssVars.isAvailable()) viewport.bindCssVars();
+      
       // 进入全屏模式
       if (viewport.expand.isAvailable() && !viewport.isExpanded()) {
         viewport.expand();
+      }
+
+      // 禁止下拉收起手势
+      if (viewport.setSwipeAllowed.isAvailable()) {
+        viewport.setSwipeAllowed(false);
       }
     }
   }, [isViewportMounted]);
