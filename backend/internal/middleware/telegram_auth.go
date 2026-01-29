@@ -52,16 +52,19 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 
 		// 生产模式：正常进行 Telegram 验证
 		// 从 Header 或 Query 获取 initData
+		log.Printf("TelegramAuth: 请求路径=%s, 方法=%s", c.Request.URL.Path, c.Request.Method)
 		initData := c.GetHeader("X-Telegram-Init-Data")
 		if initData == "" {
 			initData = c.Query("initData")
 		}
 
 		if initData == "" {
+			log.Printf("TelegramAuth: 缺少 initData")
 			response.Error(c, 401, "缺少 Telegram initData")
 			c.Abort()
 			return
 		}
+		log.Printf("TelegramAuth: 收到 initData 长度=%d", len(initData))
 
 		// 验证 initData
 		telegramUser, err := service.ValidateTelegramInitData(initData)
