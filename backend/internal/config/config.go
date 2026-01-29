@@ -21,11 +21,17 @@ func LoadConfig() {
 	// 尝试加载 .env 文件，如果不存在也不报错
 	_ = godotenv.Load()
 
+	// 优先使用 DATABASE_URL（fly.io 标准），其次使用 POSTGRES_DSN
+	dbDSN := getEnv("DATABASE_URL", "")
+	if dbDSN == "" {
+		dbDSN = getEnv("POSTGRES_DSN", "host=localhost user=lauraai password=password dbname=lauraai port=5432 sslmode=disable")
+	}
+
 	AppConfig = &Config{
 		Port:            getEnv("PORT", "8080"),
 		TelegramBotToken: getEnv("TELEGRAM_BOT_TOKEN", ""),
 		GeminiAPIKey:    getEnv("GEMINI_API_KEY", ""),
-		PostgresDSN:     getEnv("POSTGRES_DSN", "host=localhost user=lauraai password=password dbname=lauraai port=5432 sslmode=disable"),
+		PostgresDSN:     dbDSN,
 		DevMode:         getEnv("DEV_MODE", "false") == "true",
 	}
 
