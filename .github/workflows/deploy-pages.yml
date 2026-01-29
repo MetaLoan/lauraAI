@@ -1,0 +1,73 @@
+name: 部署到 GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+# 设置 GITHUB_TOKEN 权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 允许一个并发部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: 构建项目
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: 安装依赖
+        run: npm ci
+      
+      - name: 运行代码检查
+        run: npm run lint || true
+        continue-on-error: true
+      
+      - name: 构建项目
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api' }}
+      
+      - name: 检查构建输出
+        run: |
+          if [ -d "out" ]; then
+            echo "✅ 构建成功，out 目录已生成"
+            du -sh out
+            ls -la out
+          else
+            echo "❌ 构建失败，out 目录不存在"
+            exit 1
+          fi
+      
+      - name: 上传构建产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  deploy:
+    name: 部署到 GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
