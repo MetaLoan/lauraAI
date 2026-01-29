@@ -3,8 +3,8 @@
 export default function LoadingResults({ onBack }: { onBack?: () => void }) {
   return (
     <div className="h-full bg-black flex flex-col items-center justify-center p-6">
-      <div className="w-full text-center">
-        <h1 className="text-4xl font-bold mb-6">Preparing your results...</h1>
+      <div className="w-full max-w-md text-center px-4">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 text-balance flex-shrink-0">Preparing your results...</h1>
         <p className="text-xl text-gray-400 max-w-md mx-auto text-balance">
           We're matching your details to draw and bring your unique connection to life. Please wait...
         </p>

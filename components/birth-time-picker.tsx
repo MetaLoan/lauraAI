@@ -31,15 +31,15 @@ export default function BirthTimePicker({
   const displayTime = `${pickerValue.hour}:${pickerValue.minute}`
 
   return (
-    <div className="h-full bg-black flex flex-col items-center justify-center p-6">
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-12 text-balance">
+    <div className="h-full bg-black flex flex-col items-center p-6">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-6">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-balance text-center px-2 flex-shrink-0">
           Could you share the exact time you were born?
         </h1>
 
-        <div className="text-6xl font-bold mb-12">{displayTime}</div>
+        <div className="text-5xl sm:text-6xl font-bold">{displayTime}</div>
 
-        <div className="w-full mb-12 relative">
+        <div className="w-full relative">
           {/* 选中项高亮背景 */}
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-12 bg-white/10 rounded-lg pointer-events-none z-0" />
           
@@ -73,7 +73,7 @@ export default function BirthTimePicker({
         </div>
       </div>
 
-      <div className="w-full max-w-md space-y-3">
+      <div className="w-full max-w-md space-y-3 flex-shrink-0">
         <Button
           onClick={() => {
             onChange(pickerValue)
@@ -87,7 +87,7 @@ export default function BirthTimePicker({
           Skip
         </button>
 
-        <p className="text-gray-500 text-xs mt-6 text-center">
+        <p className="text-gray-500 text-xs text-center px-2">
           Your birth time is essential for accurate calculations and personalized guidance. Your privacy is our priority, and this
           information will never be shared with third parties.
         </p>

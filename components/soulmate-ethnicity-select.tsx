@@ -41,7 +41,7 @@ export default function SoulmateEthnicitySelect({
       </div>
 
       {/* Scrollable Options List */}
-      <div className="flex-1 w-full max-w-md mx-auto overflow-y-auto scrollbar-hide mb-6">
+      <div className="flex-1 w-full max-w-md mx-auto overflow-y-auto scrollbar-hide mb-6 pb-20">
         <div className="w-full space-y-3">
           {ethnicities.map((ethnicity) => (
             <SelectionButton
@@ -54,15 +54,17 @@ export default function SoulmateEthnicitySelect({
         </div>
       </div>
 
-      {/* Fixed Footer Button */}
-      <div className="flex-shrink-0 w-full max-w-md mx-auto bg-transparent">
-        <Button
-          onClick={onNext}
-          disabled={!value}
-          className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 rounded-xl text-lg font-semibold"
-        >
-          Continue
-        </Button>
+      {/* Fixed Footer Button - transparent background with gradient */}
+      <div className="fixed bottom-0 left-0 right-0 h-32 z-10 pointer-events-none bg-gradient-to-t from-black via-black/80 to-transparent">
+        <div className="max-w-md mx-auto h-full flex items-center px-6 pointer-events-auto">
+          <Button
+            onClick={onNext}
+            disabled={!value}
+            className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 disabled:opacity-100 disabled:cursor-not-allowed h-14 rounded-xl text-lg font-semibold"
+          >
+            Continue
+          </Button>
+        </div>
       </div>
     </div>
   )

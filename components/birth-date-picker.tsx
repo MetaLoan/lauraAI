@@ -35,18 +35,18 @@ export default function BirthDatePicker({
   const displayDay = pickerValue.day
 
   return (
-    <div className="h-full bg-black flex flex-col items-center justify-center p-6">
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-8 text-balance">
+    <div className="h-full bg-black flex flex-col items-center p-6">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-6">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-balance text-center px-2 flex-shrink-0">
           To align with the universe, could you share your birth date?
         </h1>
 
-        <div className="mb-8 text-center">
+        <div className="text-center">
           <p className="text-gray-400 text-sm mb-2">{displayDate}</p>
-          <p className="text-6xl font-bold">{displayDay}</p>
+          <p className="text-5xl sm:text-6xl font-bold">{displayDay}</p>
         </div>
 
-        <div className="w-full mb-12 relative">
+        <div className="w-full relative">
           {/* 选中项高亮背景 */}
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-10 bg-white/10 rounded-lg pointer-events-none z-0" />
           
@@ -80,7 +80,7 @@ export default function BirthDatePicker({
         </div>
       </div>
 
-      <div className="w-full max-w-md space-y-3">
+      <div className="w-full max-w-md space-y-3 flex-shrink-0">
         <Button
           onClick={() => {
             onChange(pickerValue)

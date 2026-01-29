@@ -56,9 +56,9 @@ export default function BirthPlaceInput({
   }
 
   return (
-    <div className="h-full bg-black flex flex-col items-center justify-center p-6">
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-8 text-balance">
+    <div className="h-full bg-black flex flex-col items-center p-6">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-6">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-balance text-center px-2 flex-shrink-0">
           Could you tell me where you were born?
         </h1>
 
@@ -98,23 +98,22 @@ export default function BirthPlaceInput({
         </div>
       </div>
 
-      <div className="w-full max-w-md space-y-3">
+      <div className="w-full max-w-md space-y-3 flex-shrink-0">
         <Button
           onClick={handleNext}
           disabled={!input.trim()}
-          className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
+          className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 disabled:opacity-100 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
         >
           Continue
         </Button>
         <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-sm">
           Skip
         </button>
+        <p className="text-gray-500 text-xs text-center px-2">
+          Your birth place is essential for accurate calculations and personalized guidance. Your privacy is our priority, and this
+          information will never be shared with third parties.
+        </p>
       </div>
-
-      <p className="text-gray-500 text-xs mt-6 text-center max-w-md">
-        Your birth place is essential for accurate calculations and personalized guidance. Your privacy is our priority, and this
-        information will never be shared with third parties.
-      </p>
     </div>
   )
 }
