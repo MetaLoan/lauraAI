@@ -26,7 +26,7 @@ export default function GenderSelect({
   return (
     <div className="h-full bg-black flex flex-col items-center p-6">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-8">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-balance text-center px-2 flex-shrink-0">{title}</h1>
+        <h1 className="text-title-lg text-balance text-center px-2 flex-shrink-0">{title}</h1>
 
         <div className="w-full space-y-4">
           {options.map((option) => (

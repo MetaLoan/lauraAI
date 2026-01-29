@@ -35,7 +35,7 @@ export default function SoulmateEthnicitySelect({
     <div className="h-full flex flex-col p-6">
       {/* Fixed Header */}
       <div className="flex-shrink-0 w-full max-w-md mx-auto mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-balance text-center">
+        <h1 className="text-title-lg text-balance text-center">
           What ethnic background for your {characterTitle}?
         </h1>
       </div>
@@ -60,7 +60,7 @@ export default function SoulmateEthnicitySelect({
           <Button
             onClick={onNext}
             disabled={!value}
-            className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 disabled:opacity-100 disabled:cursor-not-allowed h-14 rounded-xl text-lg font-semibold"
+            className="btn-primary disabled:btn-disabled"
           >
             Continue
           </Button>

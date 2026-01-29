@@ -68,7 +68,7 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
       <div className="flex items-center justify-between p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
           <MessageSquare className="w-6 h-6 text-white" />
-          <h1 className="text-lg font-bold">Chat History</h1>
+          <h1 className="text-title-md font-bold">Chat History</h1>
         </div>
       </div>
 
@@ -76,7 +76,7 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="animate-spin w-8 h-8 border-2 border-white/20 border-t-white rounded-full" />
+            <div className="loading-spinner" />
           </div>
         ) : characters.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-white/40">
@@ -108,9 +108,9 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="font-bold truncate">{char.title}</h3>
-                    <span className="text-xs text-white/40">{char.last_message_time}</span>
+                    <span className="text-caption text-white/40">{char.last_message_time}</span>
                   </div>
-                  <p className="text-sm text-white/60 truncate">{char.last_message}</p>
+                  <p className="text-body-sm text-white/60 truncate">{char.last_message}</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-white/20" />
               </button>

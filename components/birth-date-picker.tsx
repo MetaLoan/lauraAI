@@ -37,12 +37,12 @@ export default function BirthDatePicker({
   return (
     <div className="h-full bg-black flex flex-col items-center p-6">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-6">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-balance text-center px-2 flex-shrink-0">
+        <h1 className="text-title-lg text-balance text-center px-2 flex-shrink-0">
           To align with the universe, could you share your birth date?
         </h1>
 
         <div className="text-center">
-          <p className="text-gray-400 text-sm mb-2">{displayDate}</p>
+          <p className="text-gray-400 text-body-sm mb-2">{displayDate}</p>
           <p className="text-5xl sm:text-6xl font-bold">{displayDay}</p>
         </div>
 
@@ -65,8 +65,8 @@ export default function BirthDatePicker({
                       <div
                         className={`text-center py-2 transition-all ${
                           selected
-                            ? 'text-white font-semibold text-lg'
-                            : 'text-gray-500 text-sm'
+                            ? 'text-white font-semibold text-body-lg'
+                            : 'text-gray-500 text-body-sm'
                         }`}
                       >
                         {option}
@@ -86,11 +86,11 @@ export default function BirthDatePicker({
             onChange(pickerValue)
             onNext()
           }}
-          className="w-full bg-white text-black hover:bg-gray-100 h-14 text-lg font-semibold rounded-xl"
+          className="btn-primary"
         >
           Continue
         </Button>
-        <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-sm">
+        <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-body-sm">
           Skip
         </button>
       </div>

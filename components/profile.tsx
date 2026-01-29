@@ -133,15 +133,15 @@ export default function Profile({
     <div className="h-full bg-black text-white pb-8 pt-tg-top overflow-y-auto">
       {/* Header */}
       <div className="px-6 py-6 border-b border-white/10">
-        <h1 className="text-2xl font-bold mb-2">Profile</h1>
-        <h2 className="text-4xl font-bold">{name || 'User'}</h2>
+        <h1 className="text-title-md font-bold mb-2">Profile</h1>
+        <h2 className="text-title-xl font-bold">{name || 'User'}</h2>
       </div>
 
       {/* Content */}
       <div className="px-6 pt-6 space-y-6">
         {/* Birth Info Card */}
         <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-          <h3 className="text-xl font-bold mb-6">Birth Info</h3>
+          <h3 className="text-title-md font-bold mb-6">Birth Info</h3>
           
           <div className="space-y-6">
             {/* Birth Date */}
@@ -195,7 +195,7 @@ export default function Profile({
             <Trash2 className="w-5 h-5" />
             {isDeleting ? 'Deleting...' : 'Delete Account'}
           </button>
-          <p className="text-center text-xs text-white/40 mt-3 px-4">
+          <p className="text-center text-caption text-white/40 mt-3 px-4">
             Warning: This action is permanent and will delete all your information, characters, and chat history.
           </p>
         </div>

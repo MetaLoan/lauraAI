@@ -19,12 +19,12 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
       </button>
 
       <div className="flex-1 flex flex-col items-center justify-center text-center">
-        <h1 className="text-4xl font-bold mb-4">
-          Let's bring your Mini Me to life <span className="text-2xl">✨</span>
+        <h1 className="text-title-xl font-bold mb-4">
+          Let's bring your Mini Me to life <span className="text-title-md">✨</span>
         </h1>
-        <h2 className="text-4xl font-bold mb-8">Upload Your Selfie</h2>
+        <h2 className="text-title-xl font-bold mb-8">Upload Your Selfie</h2>
 
-        <p className="text-gray-400 mb-12 max-w-md text-lg">
+        <p className="text-gray-400 mb-12 max-w-md text-body-lg">
           For the best results, upload a clear close-up selfie where your face is fully visible.
         </p>
 
@@ -43,14 +43,14 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
       <div className="w-full space-y-3">
         <Button
           onClick={onNext}
-          className="w-full bg-white text-black hover:bg-gray-100 py-6 rounded-xl text-lg font-semibold flex items-center justify-center gap-2"
+          className="btn-primary flex items-center justify-center gap-2"
         >
           <Camera className="w-5 h-5" />
           Take a Selfie
         </Button>
         <Button
           onClick={onNext}
-          className="w-full bg-white text-black hover:bg-gray-100 py-6 rounded-xl text-lg font-semibold flex items-center justify-center gap-2"
+          className="btn-primary flex items-center justify-center gap-2"
         >
           <ImageIcon className="w-5 h-5" />
           Choose from Gallery
