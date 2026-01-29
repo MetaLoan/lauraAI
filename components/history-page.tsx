@@ -63,7 +63,13 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
   }, [])
 
   return (
-    <div className="fixed inset-0 bg-black z-[9999] flex flex-col overflow-hidden pt-tg-top pb-tg-bottom h-full">
+    <div 
+      className="fixed inset-0 bg-black z-[9999] flex flex-col overflow-hidden h-full"
+      style={{
+        paddingTop: 'max(20px, calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px)))',
+        paddingBottom: 'var(--tg-safe-area-bottom, 0px)',
+      }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
