@@ -60,7 +60,7 @@ func (s *GeminiVisionService) AnalyzeImage(ctx context.Context, imageData []byte
 		},
 	}
 
-	resp, err := s.client.Models.GenerateContent(ctx, "gemini-2.0-flash", []*genai.Content{{Parts: parts}}, nil)
+	resp, err := s.client.Models.GenerateContent(ctx, "gemini-1.5-flash", []*genai.Content{{Parts: parts}}, nil)
 	if err != nil {
 		return "", fmt.Errorf("生成描述失败: %v", err)
 	}
