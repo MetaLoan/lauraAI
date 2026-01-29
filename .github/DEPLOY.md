@@ -25,8 +25,10 @@
 ### 4. 访问网站
 
 部署完成后，网站将在以下地址可用：
-- `https://metaloan.github.io/lauraAI/`（如果仓库名是 lauraAI）
+- `https://metaloan.github.io/lauraAI/`
 - 或查看 Actions 页面中的部署 URL
+
+**重要：** 如果您的 GitHub Pages URL 路径不同（例如 `/lauraAl/`），需要修改 `next.config.mjs` 中的 `basePath` 值以匹配实际路径。
 
 ## 注意事项
 
