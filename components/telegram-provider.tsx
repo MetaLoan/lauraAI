@@ -92,16 +92,19 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       
       // 禁用垂直下拉关闭 Mini App 的行为
       try {
-        // 1. 尝试使用最新的 SDK 方法
-        if (viewport.isVerticalSwipeAllowed.isAvailable()) {
+        // 1. 尝试使用最新的 SDK 方法 (添加更多检查)
+        if (viewport.isVerticalSwipeAllowed.isAvailable() && 
+            typeof viewport.allowVerticalSwipe === 'function') {
           viewport.allowVerticalSwipe(false);
         }
         
         // 2. 尝试直接调用原生 WebApp API (作为备选)
         const webApp = (window as any).Telegram?.WebApp;
-        if (webApp && typeof webApp.disableVerticalSwipe === 'function') {
-          webApp.disableVerticalSwipe();
-        } else if (webApp) {
+        if (webApp) {
+          if (typeof webApp.disableVerticalSwipe === 'function') {
+            webApp.disableVerticalSwipe();
+          }
+          // 某些版本可能通过属性控制
           webApp.isVerticalSwipeAllowed = false;
         }
       } catch (err) {
