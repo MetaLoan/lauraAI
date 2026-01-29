@@ -346,7 +346,7 @@ export default function Home() {
         />
       ) : (
         <>
-          <div className={`flex-1 overflow-y-auto overscroll-contain -webkit-overflow-scrolling-touch ${showChat ? 'pointer-events-none opacity-50' : ''}`}>
+          <div className={`flex-1 overflow-hidden ${showChat ? 'pointer-events-none opacity-50' : ''}`}>
             {steps[Math.min(Math.floor(step), steps.length - 1)]}
           </div>
           {showChat && (
