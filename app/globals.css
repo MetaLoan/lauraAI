@@ -37,6 +37,14 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --tg-safe-area-top: 0px;
+  --tg-safe-area-bottom: 0px;
+  --tg-safe-area-left: 0px;
+  --tg-safe-area-right: 0px;
+  --tg-content-safe-area-top: 0px;
+  --tg-content-safe-area-bottom: 0px;
+  --tg-content-safe-area-left: 0px;
+  --tg-content-safe-area-right: 0px;
 }
 
 .dark {
@@ -113,6 +121,10 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --spacing-tg-top: var(--tg-safe-area-top);
+  --spacing-tg-bottom: var(--tg-safe-area-bottom);
+  --spacing-tg-content-top: var(--tg-content-safe-area-top);
+  --spacing-tg-content-bottom: var(--tg-content-safe-area-bottom);
 }
 
 @layer base {

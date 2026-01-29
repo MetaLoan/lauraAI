@@ -42,7 +42,7 @@ export default function EthnicitySelect({
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md pb-32">
         <h1 className="text-3xl font-bold mb-8 text-balance">
           Last question, could you share your ethnic background?
         </h1>
@@ -57,17 +57,21 @@ export default function EthnicitySelect({
             />
           ))}
         </div>
+      </div>
 
-        <Button
-          onClick={() => {
-            onChange(value)
-            onNext()
-          }}
-          disabled={!value}
-          className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
-        >
-          Continue
-        </Button>
+      <div className="fixed bottom-0 left-0 right-0 p-6 bg-black/60 backdrop-blur-md z-50">
+        <div className="max-w-md mx-auto">
+          <Button
+            onClick={() => {
+              onChange(value)
+              onNext()
+            }}
+            disabled={!value}
+            className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
+          >
+            Continue
+          </Button>
+        </div>
       </div>
     </div>
   )

@@ -58,10 +58,10 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
 
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md">
         <h1 className="text-3xl font-bold mb-4 text-balance">{slides[currentSlide].title}</h1>
-        <p className="text-gray-400 mb-12 text-balance">{slides[currentSlide].description}</p>
+        <p className="text-gray-400 mb-12 text-balance text-center">{slides[currentSlide].description}</p>
 
         {/* Polaroid card */}
-        <div className="mb-8 transform transition-all">
+        <div className="mb-8 transform transition-all w-full max-w-[280px]">
           <div className="bg-amber-100 p-4 rounded-sm shadow-2xl" style={{ aspectRatio: '3/4' }}>
             <div className="w-full h-full bg-amber-200 rounded-sm flex items-center justify-center border-2 border-amber-300 overflow-hidden relative">
               <Image
@@ -72,7 +72,6 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
               />
             </div>
           </div>
-          <div className="bg-amber-50 h-8 mt-4 rounded-sm" />
         </div>
 
         {/* Slide indicators */}
@@ -87,7 +86,9 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
             />
           ))}
         </div>
+      </div>
 
+      <div className="w-full max-w-md">
         <Button
           onClick={handleNext}
           className="w-full bg-white text-black hover:bg-gray-100 h-14 text-lg font-semibold rounded-xl"

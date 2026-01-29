@@ -9,11 +9,13 @@ export default function SoulmateGenderSelect({
   onChange,
   onNext,
   onBack,
+  characterTitle = 'Soulmate',
 }: {
   value: string
   onChange: (val: string) => void
   onNext: () => void
   onBack: () => void
+  characterTitle?: string
 }) {
   const options = ['Male', 'Female', 'Other']
 
@@ -35,7 +37,7 @@ export default function SoulmateGenderSelect({
 
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md">
         <h1 className="text-3xl font-bold mb-4 text-balance">
-          Let's bring your Soulmate to life 🔮 What is their gender?
+          Let's bring your {characterTitle} to life 🔮 What is their gender?
         </h1>
 
         <div className="w-full space-y-4 mt-8">
@@ -48,16 +50,18 @@ export default function SoulmateGenderSelect({
             />
           ))}
         </div>
+      </div>
 
+      <div className="w-full max-w-md">
         <Button
           onClick={() => {
             onChange(value)
             onNext()
           }}
           disabled={!value}
-          className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl mt-8"
+          className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
         >
-          Create Soulmate
+          Create {characterTitle}
         </Button>
       </div>
     </div>

@@ -88,7 +88,9 @@ export default function BirthDatePicker({
             ))}
           </Picker>
         </div>
+      </div>
 
+      <div className="w-full max-w-md space-y-3">
         <Button
           onClick={() => {
             onChange(pickerValue)
@@ -98,7 +100,7 @@ export default function BirthDatePicker({
         >
           Continue
         </Button>
-        <button onClick={onNext} className="mt-4 text-gray-400 hover:text-gray-200">
+        <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-sm">
           Skip
         </button>
       </div>
