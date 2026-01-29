@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { TelegramProvider } from '@/components/telegram-provider'
+import Preloader from '@/components/ui/preloader'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -45,7 +46,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans antialiased`}>
         <TelegramProvider>
-          {children}
+          <Preloader>
+            {children}
+          </Preloader>
         </TelegramProvider>
       </body>
     </html>
