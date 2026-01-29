@@ -47,13 +47,13 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
 
   return (
     <div className="h-full bg-black flex flex-col items-center justify-center p-4">
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-3">
-        <h1 className="text-xl md:text-2xl font-bold text-balance text-center px-2">{slides[currentSlide].title}</h1>
-        <p className="text-sm md:text-base text-gray-400 text-balance text-center px-2">{slides[currentSlide].description}</p>
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-4 md:space-y-6">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-balance text-center px-2">{slides[currentSlide].title}</h1>
+        <p className="text-sm sm:text-base md:text-lg text-gray-400 text-balance text-center px-2">{slides[currentSlide].description}</p>
 
         {/* Polaroid card */}
-        <div className="transform transition-all w-full max-w-[200px] md:max-w-[240px]">
-          <div className="bg-amber-100 p-3 md:p-4 rounded-sm shadow-2xl" style={{ aspectRatio: '3/4' }}>
+        <div className="transform transition-all w-full max-w-[220px] sm:max-w-[260px] md:max-w-[300px]">
+          <div className="bg-amber-100 p-3 sm:p-4 rounded-sm shadow-2xl" style={{ aspectRatio: '3/4' }}>
             <div className="w-full h-full bg-amber-200 rounded-sm flex items-center justify-center border-2 border-amber-300 overflow-hidden relative">
               <Image
                 src={getAssetPath(slides[currentSlide].image || "/placeholder.svg")}
@@ -79,10 +79,10 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
         </div>
       </div>
 
-      <div className="w-full max-w-md pb-2">
+      <div className="w-full max-w-md pb-4">
         <Button
           onClick={handleNext}
-          className="w-full bg-white text-black hover:bg-gray-100 h-12 md:h-14 text-base md:text-lg font-semibold rounded-xl"
+          className="w-full bg-white text-black hover:bg-gray-100 h-12 sm:h-14 text-base sm:text-lg font-semibold rounded-xl"
         >
           Next
         </Button>

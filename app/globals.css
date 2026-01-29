@@ -150,6 +150,20 @@ body {
   background-color: black;
   margin: 0;
   padding: 0;
+  /* 禁止长按选择文字和弹出菜单 */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* 允许输入框正常使用 */
+input, textarea {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 #__next, #root {

@@ -54,7 +54,7 @@ export default function EthnicitySelect({
       </div>
 
       {/* Fixed Footer Button */}
-      <div className="flex-shrink-0 w-full max-w-md mx-auto">
+      <div className="flex-shrink-0 w-full max-w-md mx-auto bg-transparent">
           <Button
             onClick={() => {
               onChange(value)
