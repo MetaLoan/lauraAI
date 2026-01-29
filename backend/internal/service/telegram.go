@@ -56,8 +56,6 @@ func ValidateTelegramInitData(initData string) (*TelegramUser, error) {
 	}
 	dataCheckString := strings.Join(pairs, "\n")
 
-	fmt.Printf("DEBUG: dataCheckString (quoted): %q\n", dataCheckString)
-
 	// 计算 secret_key = HMAC_SHA256(bot_token, key="WebAppData")
 	botToken := strings.TrimSpace(config.AppConfig.TelegramBotToken)
 	botToken = strings.Trim(botToken, `"'`)
@@ -68,15 +66,9 @@ func ValidateTelegramInitData(initData string) (*TelegramUser, error) {
 		hmacSHA256([]byte(dataCheckString), secretKey),
 	)
 
-	fmt.Printf("DEBUG: calculatedHash: %s\n", calculatedHash)
-	fmt.Printf("DEBUG: receivedHash: %s\n", hash)
-
 	if calculatedHash != hash {
-		fmt.Printf("DEBUG: 签名验证失败\n")
 		return nil, fmt.Errorf("签名验证失败")
 	}
-
-	fmt.Printf("DEBUG: 签名验证成功！\n")
 
 	// 解析用户信息
 	userStr := params.Get("user")
