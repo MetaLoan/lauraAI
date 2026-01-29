@@ -316,7 +316,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white relative pt-tg-top pb-tg-bottom">
+    <div className="min-h-screen bg-black text-white relative pt-tg-top pb-tg-bottom flex flex-col">
       {showProfile ? (
         <Profile
           onBack={handleCloseProfile}
