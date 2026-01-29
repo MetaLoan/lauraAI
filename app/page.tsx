@@ -30,6 +30,7 @@ export default function Home() {
   const [showChat, setShowChat] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  const [showMiniMe, setShowMiniMe] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     gender: '',
@@ -58,14 +59,11 @@ export default function Home() {
           setStep(0)
         }
       } catch (error) {
-        console.error('检查用户状态失败:', error)
         // 出错时也显示 Welcome 页面
         setStep(0)
       } finally {
-        // 延迟一小会儿隐藏 preloader，确保状态已切换
-        setTimeout(() => {
-          setIsLoading(false)
-        }, 500)
+        // 立即隐藏 preloader（TelegramProvider 已经处理了最小显示时间）
+        setIsLoading(false)
       }
     }
     checkUserStatus()
@@ -146,12 +144,7 @@ export default function Home() {
     // 清空之前的角色数据
     updateFormData('soulmateGender', '')
     updateFormData('soulmateEthnicity', '')
-    
-    if (charType.type === 'mini_me') {
-      setStep(8.5) // 跳转到 Mini Me 上传步骤
-    } else {
-      setStep(9) // 跳转到性别选择步骤
-    }
+    setStep(9) // 跳转到性别选择步骤
   }
 
   const handleNext = () => {
@@ -292,6 +285,14 @@ export default function Home() {
     setShowHistory(false)
   }
 
+  const handleOpenMiniMe = () => {
+    setShowMiniMe(true)
+  }
+
+  const handleCloseMiniMe = () => {
+    setShowMiniMe(false)
+  }
+
   // Handle Telegram Back Button
   useEffect(() => {
     const webApp = (window as any).Telegram?.WebApp
@@ -309,6 +310,8 @@ export default function Home() {
         handleCloseProfile()
       } else if (showHistory) {
         handleCloseHistory()
+      } else if (showMiniMe) {
+        handleCloseMiniMe()
       } else if (step === 12) {
         // 在角色详情页（生成图片后）返回时，直接回到 Dashboard
         handleGoToDashboard()
@@ -325,8 +328,9 @@ export default function Home() {
     // 1. Chat is open
     // 2. Profile is open
     // 3. History is open
-    // 4. Step > 0 (except specific intermediate steps and Dashboard)
-    const shouldShowBack = showChat || showProfile || showHistory || (step > 0 && step !== 8.5 && step !== 10.5 && step !== 13)
+    // 4. Mini Me is open
+    // 5. Step > 0 (except specific intermediate steps and Dashboard)
+    const shouldShowBack = showChat || showProfile || showHistory || showMiniMe || (step > 0 && step !== 8.5 && step !== 10.5 && step !== 13)
 
     if (shouldShowBack) {
       backButton.show()
@@ -343,7 +347,7 @@ export default function Home() {
     return () => {
       backButton.offClick(handleTelegramBack)
     }
-  }, [step, showChat, showProfile, showHistory, creatingCharacterType])
+  }, [step, showChat, showProfile, showHistory, showMiniMe, creatingCharacterType])
 
   const steps = [
     <Welcome key="welcome" onNext={handleNext} />,
@@ -357,7 +361,6 @@ export default function Home() {
     <ResultsCard key="results" onNext={handleNext} onBack={handleBack} />,
     <SoulmateGenderSelect key="soulmateGender" value={formData.soulmateGender} onChange={(val) => updateFormData('soulmateGender', val)} onNext={handleNext} onBack={creatingCharacterType ? handleGoToDashboard : handleBack} characterTitle={creatingCharacterType?.title || 'Soulmate'} />,
     <SoulmateEthnicitySelect key="soulmateEthnicity" value={formData.soulmateEthnicity} onChange={(val) => updateFormData('soulmateEthnicity', val)} onNext={handleNext} onBack={handleBack} characterTitle={creatingCharacterType?.title || 'Soulmate'} />,
-    <MiniMeUpload key="miniMeUpload" onNext={handleNext} onBack={handleGoToDashboard} />,
     <DrawingLoading key="drawing" onBack={handleBack} error={generationError} onRetry={() => { setIsGenerating(false); setGenerationError(null); }} />,
     <SoulmateDetailPage key="detail" character={selectedCharacterData} onNext={handleOpenChat} onBack={handleGoToDashboard} />,
     <Dashboard 
@@ -366,6 +369,7 @@ export default function Home() {
       onOpenProfile={handleOpenProfile} 
       onCreateCharacter={handleStartCreateCharacter}
       onOpenHistory={handleOpenHistory}
+      onOpenMiniMe={handleOpenMiniMe}
     />,
   ]
 
@@ -404,6 +408,15 @@ export default function Home() {
             handleOpenDetail(char)
             handleCloseHistory()
           }}
+        />
+      ) : showMiniMe ? (
+        <MiniMeUpload
+          onNext={() => {
+            // TODO: 处理 Mini Me 上传后的逻辑
+            handleCloseMiniMe()
+            handleGoToDashboard()
+          }}
+          onBack={handleCloseMiniMe}
         />
       ) : (
         <>

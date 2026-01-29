@@ -67,12 +67,14 @@ export default function Dashboard({
   onSelectCharacter,
   onOpenProfile,
   onCreateCharacter,
-  onOpenHistory
+  onOpenHistory,
+  onOpenMiniMe
 }: { 
   onSelectCharacter?: (char: CharacterCard) => void
   onOpenProfile?: () => void
   onCreateCharacter?: (charType: { type: string; title: string }) => void
   onOpenHistory?: () => void
+  onOpenMiniMe?: () => void
 }) {
   const [userCharacters, setUserCharacters] = useState<CharacterCard[]>([])
   const [loading, setLoading] = useState(true)
@@ -128,9 +130,11 @@ export default function Dashboard({
 
   // 点击添加按钮，创建新角色
   const handleCreateNewCharacter = (charType: CharacterType) => {
-    if (charType.type === 'mini_me' && onCreateCharacter) {
-      // Mini Me 特殊处理，跳转到上传页面
-      onCreateCharacter({ type: 'mini_me', title: 'Mini Me' })
+    if (charType.requiresUpload) {
+      // Mini Me requires upload
+      if (onOpenMiniMe) {
+        onOpenMiniMe()
+      }
     } else if (onCreateCharacter) {
       // 使用父组件的创建流程
       onCreateCharacter({ type: charType.type, title: charType.title })
