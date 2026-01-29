@@ -45,8 +45,9 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 
 	// 验证文件类型
 	mimeType := header.Header.Get("Content-Type")
-	if mimeType != "image/jpeg" && mimeType != "image/png" && mimeType != "image/webp" {
-		response.Error(c, 400, "仅支持 JPG, PNG, WEBP 格式")
+	// 增加对 image/heic 的支持（虽然前端应该已经转换了，但后端保持鲁棒性）
+	if mimeType != "image/jpeg" && mimeType != "image/png" && mimeType != "image/webp" && mimeType != "image/heic" {
+		response.Error(c, 400, "仅支持 JPG, PNG, WEBP, HEIC 格式")
 		return
 	}
 

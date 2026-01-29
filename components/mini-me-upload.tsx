@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Camera, ImageIcon, Loader2 } from 'lucide-react'
 import { apiClient } from '@/lib/api'
+import imageCompression from 'browser-image-compression'
 
 interface MiniMeUploadProps {
   onNext: (character: any) => void
@@ -12,34 +13,62 @@ interface MiniMeUploadProps {
 
 export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    let file = e.target.files?.[0]
     if (!file) return
-
-    if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file')
-      return
-    }
-
-    if (file.size > 10 * 1024 * 1024) { // 10MB
-      setError('Image size should be less than 10MB')
-      return
-    }
 
     setIsUploading(true)
     setError(null)
+    setUploadStatus('Processing image...')
 
     try {
-      const result = await apiClient.generateMiniMe(file)
+      // 1. 处理 iOS 特有的 HEIC 格式
+      if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic') {
+        setUploadStatus('Converting HEIC format...')
+        const heic2any = (await import('heic2any')).default
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: 'image/jpeg',
+          quality: 0.8
+        })
+        
+        // heic2any 可能返回数组或单个 blob
+        const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob
+        file = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), {
+          type: 'image/jpeg'
+        })
+      }
+
+      // 2. 压缩图片
+      setUploadStatus('Compressing image...')
+      const options = {
+        maxSizeMB: 0.8,          // 进一步减小到 0.8MB 以提高稳定性
+        maxWidthOrHeight: 800,   // 减小到 800px，对分析特征足够了
+        useWebWorker: true,
+        initialQuality: 0.7,     // 降低初始质量
+        fileType: 'image/jpeg'   // 强制转换为 jpeg
+      }
+
+      const compressedFile = await imageCompression(file, options)
+      
+      // 检查压缩后的文件大小
+      console.log('Original size:', file.size / 1024 / 1024, 'MB')
+      console.log('Compressed size:', compressedFile.size / 1024 / 1024, 'MB')
+      
+      // 3. 上传并生成
+      setUploadStatus('Analyzing your features...')
+      const result = await apiClient.generateMiniMe(compressedFile)
       onNext(result.character)
     } catch (err) {
       console.error('Mini Me generation failed:', err)
       setError(err instanceof Error ? err.message : 'Failed to generate Mini Me')
     } finally {
       setIsUploading(false)
+      setUploadStatus(null)
     }
   }
 
@@ -85,7 +114,9 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
                 {isUploading ? (
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="w-10 h-10 animate-spin text-white" />
-                    <span className="text-xs text-white/70">Analyzing...</span>
+                    <span className="text-xs text-white/70 px-4 text-center">
+                      {uploadStatus || 'Analyzing...'}
+                    </span>
                   </div>
                 ) : (
                   <div className="text-7xl">👤</div>
