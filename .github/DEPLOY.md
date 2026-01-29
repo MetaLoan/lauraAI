@@ -11,11 +11,14 @@
 
 ### 2. 配置环境变量（可选）
 
-如果需要配置后端 API 地址：
+**默认配置：** workflow 已配置默认使用 ngrok API 地址：`https://nathalie-clothlike-urgently.ngrok-free.dev/api`
+
+如果需要更改后端 API 地址：
 
 1. 访问 `Settings > Secrets and variables > Actions`
 2. 添加 secret：
    - `NEXT_PUBLIC_API_URL`: 后端 API 地址（例如：`https://your-backend.com/api`）
+3. 如果设置了 secret，会优先使用 secret 中的值
 
 ### 3. 触发部署
 

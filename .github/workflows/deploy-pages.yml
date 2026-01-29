@@ -41,7 +41,7 @@ jobs:
       - name: 构建项目
         run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api' }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://nathalie-clothlike-urgently.ngrok-free.dev/api' }}
           GITHUB_PAGES: 'true'
       
       - name: 检查构建输出
