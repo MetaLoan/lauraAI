@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"io"
-	"net/http"
 
 	"lauraai-backend/internal/middleware"
 	"lauraai-backend/internal/model"
