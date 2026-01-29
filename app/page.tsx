@@ -286,7 +286,10 @@ export default function Home() {
 
     const handleTelegramBack = () => {
       if (showChat) {
-        handleCloseChat()
+        // 聊天页面返回时，直接回到 Dashboard (step 13)
+        setShowChat(false)
+        setStep(13)
+        setDashboardKey(prev => prev + 1) // 刷新 Dashboard
       } else if (showProfile) {
         handleCloseProfile()
       } else if (showHistory) {
