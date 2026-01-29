@@ -151,8 +151,6 @@ export default function ChatWindow({ characterId, characterTitle = 'Your Soulmat
       setMessages(prev => prev.filter(msg => msg.id !== characterMessageId))
     } finally {
       setLoading(false)
-      // 重新加载消息以同步数据库
-      loadMessages()
     }
   }
 
