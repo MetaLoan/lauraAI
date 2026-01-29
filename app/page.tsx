@@ -326,7 +326,7 @@ export default function Home() {
       className="h-full flex flex-col bg-black text-white overflow-hidden"
       style={{
         paddingTop: 'max(100px, calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px)))',
-        paddingBottom: 'max(34px, calc(var(--tg-safe-area-bottom, 0px) + var(--tg-content-safe-area-bottom, 0px)))',
+        paddingBottom: 'calc(var(--tg-safe-area-bottom, 0px) + var(--tg-content-safe-area-bottom, 0px))', // 移除 max 限制，让其自然适应
         paddingLeft: 'var(--tg-safe-area-left, 0px)',
         paddingRight: 'var(--tg-safe-area-right, 0px)',
       }}
