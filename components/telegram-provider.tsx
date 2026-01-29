@@ -83,6 +83,28 @@ function TelegramInitializer({ children }: PropsWithChildren) {
     if (isViewportMounted) {
       if (viewport.bindCssVars.isAvailable()) viewport.bindCssVars();
       
+      // 更新安全区 CSS 变量
+      const updateSafeAreas = () => {
+        const root = document.documentElement;
+        const sa = viewport.safeAreaInsets();
+        const csa = viewport.contentSafeAreaInsets();
+        
+        root.style.setProperty('--tg-safe-area-top', `${sa.top}px`);
+        root.style.setProperty('--tg-safe-area-bottom', `${sa.bottom}px`);
+        root.style.setProperty('--tg-safe-area-left', `${sa.left}px`);
+        root.style.setProperty('--tg-safe-area-right', `${sa.right}px`);
+        
+        root.style.setProperty('--tg-content-safe-area-top', `${csa.top}px`);
+        root.style.setProperty('--tg-content-safe-area-bottom', `${csa.bottom}px`);
+        root.style.setProperty('--tg-content-safe-area-left', `${csa.left}px`);
+        root.style.setProperty('--tg-content-safe-area-right', `${csa.right}px`);
+      };
+
+      updateSafeAreas();
+      
+      // 监听视口变化（包括安全区）
+      const off = viewport.on('change', updateSafeAreas);
+
       // 进入全屏模式
       if (viewport.expand.isAvailable() && !viewport.isExpanded()) {
         viewport.expand();
@@ -92,6 +114,8 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       if (viewport.setSwipeAllowed.isAvailable()) {
         viewport.setSwipeAllowed(false);
       }
+
+      return off;
     }
   }, [isViewportMounted]);
 
