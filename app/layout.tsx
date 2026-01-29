@@ -44,7 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark h-full">
       <head>
-        <script src="https://telegram.org/js/telegram-web-app.js" async></script>
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
       </head>
       <body className={`font-sans antialiased bg-black text-white h-full overflow-hidden`}>
         <TelegramProvider>
