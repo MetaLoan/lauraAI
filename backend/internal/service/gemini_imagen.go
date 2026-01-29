@@ -89,12 +89,15 @@ func (s *GeminiImagenService) GenerateImage(ctx context.Context, character *mode
 
 // doGenerateImageWithPrompt 执行单次图片生成请求
 func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, prompt string) (string, error) {
+	log.Printf("[Imagen] 开始生成图片，提示词: %s", prompt)
+	
 	// 创建带超时的 context
 	timeoutCtx, cancel := context.WithTimeout(ctx, imagenTimeout)
 	defer cancel()
 
 	// 调用 Imagen 3.0 API (更新为稳定版模型名称)
 	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=%s", s.apiKey)
+	log.Printf("[Imagen] 请求 URL: %s", url)
 
 	reqBody := ImagenRequest{
 		Instances: []struct {
@@ -124,18 +127,25 @@ func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, pro
 	client := &http.Client{
 		Timeout: imagenTimeout,
 	}
+	
+	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("[Imagen] 请求发生错误 (耗时 %v): %v", time.Since(start), err)
 		return "", fmt.Errorf("请求失败: %v", err)
 	}
 	defer resp.Body.Close()
 
+	// 读取完整响应体
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("读取响应失败: %v", err)
 	}
 
+	log.Printf("[Imagen] API 响应状态码: %d (耗时 %v)", resp.StatusCode, time.Since(start))
+
 	if resp.StatusCode != http.StatusOK {
+		log.Printf("[Imagen] API 返回错误体: %s", string(body))
 		return "", fmt.Errorf("API 返回错误: %d, %s", resp.StatusCode, string(body))
 	}
 
@@ -148,6 +158,8 @@ func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, pro
 		return "", fmt.Errorf("未生成图片")
 	}
 
+	log.Printf("[Imagen] 图片生成成功！")
+
 	// 返回 Base64 编码的图片（前缀 data:image/png;base64,）
 	base64Data := imagenResp.Predictions[0].BytesBase64Encoded
 	mimeType := imagenResp.Predictions[0].MimeType
@@ -159,7 +171,7 @@ func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, pro
 
 func (s *GeminiImagenService) buildImagePrompt(character *model.Character) string {
 	var stylePrompt string
-	
+
 	switch character.Type {
 	case model.CharacterTypeSoulmate:
 		stylePrompt = "A breathtakingly beautiful portrait of a soulmate, "
@@ -172,11 +184,11 @@ func (s *GeminiImagenService) buildImagePrompt(character *model.Character) strin
 	}
 
 	prompt := fmt.Sprintf("%s%s person, %s ethnicity, ", stylePrompt, character.Gender, character.Ethnicity)
-	
+
 	if character.Description != "" {
 		prompt += fmt.Sprintf("with these traits: %s, ", character.Description)
 	}
-	
+
 	if character.AstroSign != "" {
 		prompt += fmt.Sprintf("reflecting the aura of %s zodiac sign, ", character.AstroSign)
 	}
