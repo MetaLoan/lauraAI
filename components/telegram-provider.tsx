@@ -91,8 +91,12 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       }
       
       // 禁用垂直下拉关闭 Mini App 的行为
-      if (viewport.isVerticalSwipeAllowed.isAvailable() && viewport.isVerticalSwipeAllowed()) {
-        viewport.allowVerticalSwipe(false);
+      try {
+        if (viewport.isVerticalSwipeAllowed.isAvailable() && viewport.isVerticalSwipeAllowed()) {
+          viewport.allowVerticalSwipe(false);
+        }
+      } catch (err) {
+        console.warn('Failed to disable vertical swipe:', err);
       }
       
       // 只有在 Viewport 挂载并绑定变量后，才认为准备就绪（此时 CSS 变量已生效）
