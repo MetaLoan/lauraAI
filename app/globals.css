@@ -138,11 +138,13 @@
 
 /* 基础重置 */
 html, body {
-  width: 100%;
   height: 100%;
-  margin: 0;
-  padding: 0;
+  overflow: hidden; /* 禁止 body 滚动 */
   background-color: black;
+}
+
+#__next, #root {
+  height: 100%;
 }
 
 /* 仅在 Telegram 环境下应用特殊滚动处理 */
@@ -152,10 +154,7 @@ html, body {
 
 /* 确保所有容器正确处理溢出 */
 #__next, #root, main {
-  height: 100%;
   width: 100%;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 @layer utilities {

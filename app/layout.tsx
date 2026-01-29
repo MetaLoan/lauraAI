@@ -42,8 +42,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`font-sans antialiased bg-black text-white min-h-[100dvh]`}>
+    <html lang="en" className="dark h-full">
+      <body className={`font-sans antialiased bg-black text-white h-full overflow-hidden`}>
         <TelegramProvider>
           {children}
         </TelegramProvider>

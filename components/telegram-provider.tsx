@@ -100,20 +100,32 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       // 禁用垂直下拉关闭 Mini App 的行为（仅使用原生 API，避免 SDK 兼容性问题）
       try {
         const webApp = (window as any).Telegram?.WebApp;
-        if (webApp?.expand) {
-          webApp.expand();
-        }
-        if (typeof webApp?.disableVerticalSwipe === 'function') {
-          webApp.disableVerticalSwipe();
+        if (webApp) {
+          webApp.expand(); // 再次尝试 expand
+          if (typeof webApp.disableVerticalSwipe === 'function') {
+            webApp.disableVerticalSwipe();
+          }
+          webApp.isVerticalSwipeAllowed = false; // 尝试旧属性
         }
       } catch (err) {
         console.warn('Failed to disable vertical swipe:', err);
       }
       
+      // 定时检查全屏状态（兜底方案）
+      const expandInterval = setInterval(() => {
+        const webApp = (window as any).Telegram?.WebApp;
+        if (webApp && !webApp.isExpanded) {
+          webApp.expand();
+        }
+      }, 2000);
+      
       // 只有在 Viewport 挂载并绑定变量后，才认为准备就绪（此时 CSS 变量已生效）
       // 设置一小段延迟确保布局计算完成
       const timer = setTimeout(() => setIsReady(true), 500);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        clearInterval(expandInterval);
+      };
     }
   }, [isViewportMounted]);
 
