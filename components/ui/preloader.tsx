@@ -11,13 +11,19 @@ export default function Preloader({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // 检查 SDK 组件是否都已挂载并准备就绪
+    // 在非 TMA 环境下，这些 signal 可能是 undefined 或 false
     if (isViewportMounted && isMiniAppMounted && isThemeParamsMounted) {
-      // 额外等待一小段时间确保 CSS 变量生效
       const timer = setTimeout(() => {
         setIsReady(true);
       }, 500);
       return () => clearTimeout(timer);
     }
+
+    // 容错机制：如果 3 秒后还没准备好，强制显示内容（可能是非 TMA 环境）
+    const fallbackTimer = setTimeout(() => {
+      setIsReady(true);
+    }, 3000);
+    return () => clearTimeout(fallbackTimer);
   }, [isViewportMounted, isMiniAppMounted, isThemeParamsMounted]);
 
   if (!isLoaded) {
