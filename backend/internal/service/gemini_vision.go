@@ -77,7 +77,15 @@ func (s *GeminiVisionService) AnalyzeImage(ctx context.Context, imageData []byte
 		}{
 			{
 				Parts: []Part{
-					{Text: "Describe this person's appearance in detail for creating a character avatar. Focus on: gender, approximate age, hair style/color, eye color, facial features (glasses, beard, etc), clothing style and color, and facial expression. Keep it concise and comma-separated."},
+					{Text: `Analyze this person's appearance for creating a high-quality 3D character avatar. 
+					Please provide a detailed description including:
+					1. Gender and approximate age.
+					2. Hair: style, length, color, and texture.
+					3. Eyes: color, shape, and expression.
+					4. Facial Features: face shape, skin tone, any distinctive marks, glasses, or facial hair.
+					5. Clothing: style, color, and any visible accessories.
+					6. Overall Vibe: personality traits reflected in their expression (e.g., warm, mysterious, confident).
+					Keep the description vivid but concise, optimized for a text-to-image AI prompt.`},
 					{
 						InlineData: &InlineData{
 							MimeType: mimeType,
