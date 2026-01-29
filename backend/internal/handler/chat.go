@@ -93,6 +93,8 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 	c.Header("Content-Type", "text/event-stream")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
+	c.Header("X-Accel-Buffering", "no") // 禁用 Nginx 缓存
+	c.Header("Access-Control-Allow-Origin", "*")
 
 	// 使用流式响应
 	ctx := c.Request.Context()
