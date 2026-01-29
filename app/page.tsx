@@ -411,10 +411,11 @@ export default function Home() {
         />
       ) : showMiniMe ? (
         <MiniMeUpload
-          onNext={() => {
-            // TODO: 处理 Mini Me 上传后的逻辑
+          onNext={(character) => {
+            // 处理 Mini Me 上传后的逻辑
             handleCloseMiniMe()
-            handleGoToDashboard()
+            // 跳转到详情页展示生成的 Mini Me
+            handleOpenDetail(character)
           }}
           onBack={handleCloseMiniMe}
         />
