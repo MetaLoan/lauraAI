@@ -81,26 +81,30 @@ function TelegramInitializer({ children }: PropsWithChildren) {
 
   useEffect(() => {
     if (isViewportMounted) {
-      if (viewport.bindCssVars.isAvailable()) viewport.bindCssVars();
+      if (viewport && viewport.bindCssVars && viewport.bindCssVars.isAvailable && viewport.bindCssVars.isAvailable()) {
+        viewport.bindCssVars();
+      }
       
       // 更新安全区 CSS 变量
       const updateSafeAreas = () => {
         try {
           const root = document.documentElement;
-          if (!viewport.safeAreaInsets.isAvailable()) return;
+          // 使用可选链和 isAvailable 检查
+          if (viewport && typeof viewport.safeAreaInsets === 'function' && viewport.safeAreaInsets.isAvailable && viewport.safeAreaInsets.isAvailable()) {
+            const sa = viewport.safeAreaInsets();
+            root.style.setProperty('--tg-safe-area-top', `${sa.top}px`);
+            root.style.setProperty('--tg-safe-area-bottom', `${sa.bottom}px`);
+            root.style.setProperty('--tg-safe-area-left', `${sa.left}px`);
+            root.style.setProperty('--tg-safe-area-right', `${sa.right}px`);
+          }
           
-          const sa = viewport.safeAreaInsets();
-          const csa = viewport.contentSafeAreaInsets();
-          
-          root.style.setProperty('--tg-safe-area-top', `${sa.top}px`);
-          root.style.setProperty('--tg-safe-area-bottom', `${sa.bottom}px`);
-          root.style.setProperty('--tg-safe-area-left', `${sa.left}px`);
-          root.style.setProperty('--tg-safe-area-right', `${sa.right}px`);
-          
-          root.style.setProperty('--tg-content-safe-area-top', `${csa.top}px`);
-          root.style.setProperty('--tg-content-safe-area-bottom', `${csa.bottom}px`);
-          root.style.setProperty('--tg-content-safe-area-left', `${csa.left}px`);
-          root.style.setProperty('--tg-content-safe-area-right', `${csa.right}px`);
+          if (viewport && typeof viewport.contentSafeAreaInsets === 'function' && viewport.contentSafeAreaInsets.isAvailable && viewport.contentSafeAreaInsets.isAvailable()) {
+            const csa = viewport.contentSafeAreaInsets();
+            root.style.setProperty('--tg-content-safe-area-top', `${csa.top}px`);
+            root.style.setProperty('--tg-content-safe-area-bottom', `${csa.bottom}px`);
+            root.style.setProperty('--tg-content-safe-area-left', `${csa.left}px`);
+            root.style.setProperty('--tg-content-safe-area-right', `${csa.right}px`);
+          }
         } catch (e) {
           console.error('Update safe areas error:', e);
         }
@@ -112,12 +116,12 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       const off = viewport.on('change', updateSafeAreas);
 
       // 进入全屏模式
-      if (viewport.expand.isAvailable() && !viewport.isExpanded()) {
+      if (viewport && viewport.expand && viewport.expand.isAvailable && viewport.expand.isAvailable() && !viewport.isExpanded()) {
         viewport.expand();
       }
 
       // 禁止下拉收起手势
-      if (viewport.setSwipeAllowed.isAvailable()) {
+      if (viewport && viewport.setSwipeAllowed && viewport.setSwipeAllowed.isAvailable && viewport.setSwipeAllowed.isAvailable()) {
         viewport.setSwipeAllowed(false);
       }
 
