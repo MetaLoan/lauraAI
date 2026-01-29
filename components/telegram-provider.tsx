@@ -90,6 +90,11 @@ function TelegramInitializer({ children }: PropsWithChildren) {
         viewport.expand();
       }
       
+      // 禁用垂直下拉关闭 Mini App 的行为
+      if (viewport.isVerticalSwipeAllowed.isAvailable() && viewport.isVerticalSwipeAllowed()) {
+        viewport.allowVerticalSwipe(false);
+      }
+      
       // 只有在 Viewport 挂载并绑定变量后，才认为准备就绪（此时 CSS 变量已生效）
       // 设置一小段延迟确保布局计算完成
       const timer = setTimeout(() => setIsReady(true), 500);
