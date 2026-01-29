@@ -14,8 +14,8 @@ export default function DrawingLoading({ onBack, error, onRetry }: DrawingLoadin
       {error ? (
         // 错误状态
         <>
-          <div className="w-full text-center">
-            <h1 className="text-4xl font-bold mb-4 text-red-500">Generation Failed</h1>
+          <div className="w-full max-w-md text-center px-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-red-500 text-balance flex-shrink-0">Generation Failed</h1>
             <p className="text-lg text-gray-400 max-w-md mx-auto">
               {error}
             </p>
@@ -41,8 +41,8 @@ export default function DrawingLoading({ onBack, error, onRetry }: DrawingLoadin
       ) : (
         // 加载状态
         <>
-          <div className="w-full text-center">
-            <h1 className="text-4xl font-bold mb-4">Drawing your Soulmate...</h1>
+          <div className="w-full max-w-md text-center px-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-balance flex-shrink-0">Drawing your Soulmate...</h1>
             <p className="text-lg text-gray-400 max-w-md mx-auto">
               Uncovering the perfect match written in the universe.
             </p>

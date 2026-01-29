@@ -24,9 +24,9 @@ export default function SoulmateGenderSelect({
   }
 
   return (
-    <div className="h-full bg-black flex flex-col items-center justify-center p-6">
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-4 text-balance">
+    <div className="h-full bg-black flex flex-col items-center p-6">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-6">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-balance text-center px-2 flex-shrink-0">
           Let's bring your {characterTitle} to life 🔮 What is their gender?
         </h1>
 
@@ -42,14 +42,14 @@ export default function SoulmateGenderSelect({
         </div>
       </div>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md flex-shrink-0">
         <Button
           onClick={() => {
             onChange(value)
             onNext()
           }}
           disabled={!value}
-          className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
+          className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 disabled:opacity-100 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
         >
           Create {characterTitle}
         </Button>

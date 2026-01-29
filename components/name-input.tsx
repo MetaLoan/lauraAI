@@ -22,9 +22,9 @@ export default function NameInput({
   }
 
   return (
-    <div className="h-full bg-black flex flex-col items-center justify-center p-6">
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md">
-        <h1 className="text-4xl font-bold mb-12 text-balance">
+    <div className="h-full bg-black flex flex-col items-center p-6">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-8">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-balance text-center px-2 flex-shrink-0">
           Let's begin your journey. What's your name?
         </h1>
 
@@ -37,11 +37,11 @@ export default function NameInput({
         />
       </div>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md flex-shrink-0">
         <Button
           onClick={handleNext}
           disabled={!input.trim()}
-          className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
+          className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 disabled:opacity-100 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
         >
           Continue
         </Button>
