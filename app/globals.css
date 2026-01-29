@@ -148,7 +148,6 @@ html, body {
 /* 仅在 Telegram 环境下应用特殊滚动处理 */
 :root {
   overscroll-behavior-y: none;
-  touch-action: pan-y;
 }
 
 /* 确保所有容器正确处理溢出 */
