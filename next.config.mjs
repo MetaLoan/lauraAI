@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+const isGitHubPages = process.env.GITHUB_PAGES === 'true'
+const basePath = isGitHubPages ? '/lauraAI' : ''
+
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
@@ -8,9 +11,9 @@ const nextConfig = {
   },
   // GitHub Pages 部署配置
   output: 'export',
-  // 如果使用自定义域名，取消下面的注释并设置正确的路径
-  // basePath: process.env.NODE_ENV === 'production' ? '/lauraAI' : '',
-  // assetPrefix: process.env.NODE_ENV === 'production' ? '/lauraAI' : '',
+  basePath: basePath,
+  assetPrefix: basePath,
+  trailingSlash: true,
 }
 
 export default nextConfig
