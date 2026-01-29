@@ -70,6 +70,10 @@ func ValidateTelegramInitData(initData string) (*TelegramUser, error) {
 
 	// 验证 hash
 	if calculatedHash != hash {
+		fmt.Printf("DEBUG: 签名验证失败\n")
+		fmt.Printf("DEBUG: dataCheckString: %s\n", dataCheckString.String())
+		fmt.Printf("DEBUG: calculatedHash: %s\n", calculatedHash)
+		fmt.Printf("DEBUG: receivedHash: %s\n", hash)
 		return nil, fmt.Errorf("签名验证失败")
 	}
 

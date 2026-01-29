@@ -46,14 +46,27 @@ function TelegramInitializer({ children }: PropsWithChildren) {
   // 挂载组件
   useEffect(() => {
     if (isReady) {
-      if (!isMiniAppMounted && miniApp.mount.isAvailable()) miniApp.mount();
-      if (!isThemeParamsMounted && themeParams.mount.isAvailable()) themeParams.mount();
+      if (!isMiniAppMounted && miniApp.mount.isAvailable() && !miniApp.isMounting()) {
+        miniApp.mount().catch(err => {
+          if (err.message.includes('already mounting')) return;
+          console.error('miniApp mount error:', err);
+        });
+      }
+      if (!isThemeParamsMounted && themeParams.mount.isAvailable() && !themeParams.isMounting()) {
+        themeParams.mount().catch(err => {
+          if (err.message.includes('already mounting')) return;
+          console.error('themeParams mount error:', err);
+        });
+      }
     }
   }, [isReady, isMiniAppMounted, isThemeParamsMounted]);
 
   useEffect(() => {
-    if (isReady && !isViewportMounted && viewport.mount.isAvailable()) {
-      viewport.mount().catch(console.error);
+    if (isReady && !isViewportMounted && viewport.mount.isAvailable() && !viewport.isMounting()) {
+      viewport.mount().catch(err => {
+        if (err.message.includes('already mounting')) return;
+        console.error('viewport mount error:', err);
+      });
     }
   }, [isReady, isViewportMounted]);
 
