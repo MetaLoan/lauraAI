@@ -116,3 +116,19 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 
 	response.Success(c, updatedUser)
 }
+
+// DeleteMe 删除当前用户及其所有数据
+func (h *UserHandler) DeleteMe(c *gin.Context) {
+	user, exists := middleware.GetUserFromContext(c)
+	if !exists {
+		response.Error(c, 401, "未认证")
+		return
+	}
+
+	if err := h.userRepo.Delete(user.ID); err != nil {
+		response.Error(c, 500, "删除账户失败: "+err.Error())
+		return
+	}
+
+	response.Success(c, gin.H{"message": "账户已删除"})
+}

@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"log"
+
 	"lauraai-backend/internal/config"
 	"lauraai-backend/internal/model"
 	"lauraai-backend/internal/repository"
@@ -22,13 +24,21 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 			userRepo := repository.NewUserRepository()
 			user, err := userRepo.GetByTelegramID(DefaultTestTelegramID)
 			if err != nil {
-				// 测试账号不存在，创建默认测试用户
+				// 测试账号不存在，尝试创建默认测试用户
 				user = &model.User{
 					TelegramID: DefaultTestTelegramID,
 					Name:       "Test User",
 				}
-				if err := userRepo.Create(user); err != nil {
-					response.Error(c, 500, "创建测试用户失败: "+err.Error())
+				// 使用 CreateOrUpdate 避免并发冲突
+				if err := userRepo.CreateOrUpdate(user); err != nil {
+					// 即使 CreateOrUpdate 报错（比如唯一键冲突），也尝试最后查一次
+					log.Printf("CreateOrUpdate 失败: %v，尝试重新获取", err)
+				}
+				
+				// 无论上面是否报错，都重新查一次以确保获取到正确的 User 对象（包含 ID）
+				user, err = userRepo.GetByTelegramID(DefaultTestTelegramID)
+				if err != nil {
+					response.Error(c, 500, "获取/创建测试用户失败: "+err.Error())
 					c.Abort()
 					return
 				}

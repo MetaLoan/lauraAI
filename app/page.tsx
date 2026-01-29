@@ -20,12 +20,14 @@ import SoulmateDetailPage from '@/components/soulmate-detail-page'
 import ChatWindow from '@/components/chat-window'
 import Dashboard from '@/components/dashboard'
 import Profile from '@/components/profile'
+import HistoryPage from '@/components/history-page'
 import { apiClient } from '@/lib/api'
 
 export default function Home() {
   const [step, setStep] = useState(0)
   const [showChat, setShowChat] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     gender: '',
@@ -249,6 +251,35 @@ export default function Home() {
     setStep(13) // 回到 Dashboard 步数
   }
 
+  const handleDeleteAccount = () => {
+    // 重置所有前端状态
+    setStep(0)
+    setShowProfile(false)
+    setShowChat(false)
+    setShowHistory(false)
+    setFormData({
+      name: '',
+      gender: '',
+      birthDate: { month: '', day: '', year: '' },
+      birthTime: { hour: '19', minute: '15' },
+      birthPlace: '',
+      ethnicity: '',
+      soulmateGender: '',
+      soulmateEthnicity: '',
+    })
+    setSelectedCharacterData(null)
+    setCreatingCharacterType(null)
+    setDashboardKey(prev => prev + 1)
+  }
+
+  const handleOpenHistory = () => {
+    setShowHistory(true)
+  }
+
+  const handleCloseHistory = () => {
+    setShowHistory(false)
+  }
+
   const steps = [
     <Welcome key="welcome" onNext={handleNext} />,
     <NameInput key="name" value={formData.name} onChange={(val) => updateFormData('name', val)} onNext={handleNext} onBack={handleBack} />,
@@ -263,7 +294,13 @@ export default function Home() {
     <SoulmateEthnicitySelect key="soulmateEthnicity" value={formData.soulmateEthnicity} onChange={(val) => updateFormData('soulmateEthnicity', val)} onNext={handleNext} onBack={handleBack} characterTitle={creatingCharacterType?.title || 'Soulmate'} />,
     <DrawingLoading key="drawing" onBack={handleBack} error={generationError} onRetry={() => { setIsGenerating(false); setGenerationError(null); }} />,
     <SoulmateDetailPage key="detail" character={selectedCharacterData} onNext={handleOpenChat} onBack={handleGoToDashboard} />,
-    <Dashboard key={`dashboard-${dashboardKey}`} onSelectCharacter={handleOpenDetail} onOpenProfile={handleOpenProfile} onCreateCharacter={handleStartCreateCharacter} />,
+    <Dashboard 
+      key={`dashboard-${dashboardKey}`} 
+      onSelectCharacter={handleOpenDetail} 
+      onOpenProfile={handleOpenProfile} 
+      onCreateCharacter={handleStartCreateCharacter}
+      onOpenHistory={handleOpenHistory}
+    />,
   ]
 
   // 初始加载时显示加载状态
@@ -283,6 +320,15 @@ export default function Home() {
       {showProfile ? (
         <Profile
           onBack={handleCloseProfile}
+          onDeleteAccount={handleDeleteAccount}
+        />
+      ) : showHistory ? (
+        <HistoryPage
+          onClose={handleCloseHistory}
+          onSelectCharacter={(char) => {
+            handleOpenDetail(char)
+            handleCloseHistory()
+          }}
         />
       ) : (
         <>
@@ -295,6 +341,7 @@ export default function Home() {
               <ChatWindow 
                 characterId={selectedCharacterData?.id?.toString()} 
                 characterTitle={selectedCharacterData?.title || 'Your Soulmate'}
+                characterImage={selectedCharacterData?.image_url || selectedCharacterData?.image}
                 onClose={handleCloseChat} 
               />
             </>
