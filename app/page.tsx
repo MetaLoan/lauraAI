@@ -47,9 +47,6 @@ export default function Home() {
 
   // 在 preloader 阶段检查用户状态并决定跳转
   useEffect(() => {
-    const startTime = Date.now()
-    const minDisplayTime = 1500 // 最小显示时间 1.5 秒
-
     const checkUserStatus = async () => {
       try {
         const user = await apiClient.getMe() as any
@@ -64,12 +61,8 @@ export default function Home() {
         // 出错时也显示 Welcome 页面
         setStep(0)
       } finally {
-        // 确保至少显示最小时间，然后隐藏 preloader
-        const elapsed = Date.now() - startTime
-        const remaining = Math.max(0, minDisplayTime - elapsed)
-        setTimeout(() => {
-          setIsLoading(false)
-        }, remaining)
+        // 立即隐藏 preloader（TelegramProvider 已经处理了最小显示时间）
+        setIsLoading(false)
       }
     }
     checkUserStatus()
