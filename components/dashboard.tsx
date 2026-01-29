@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Clock, User, MoreVertical, Plus } from 'lucide-react'
 import { apiClient } from '@/lib/api'
+import { getAssetPath } from '@/lib/utils'
 
 interface CharacterCard {
   id: string
@@ -150,7 +151,7 @@ export default function Dashboard({
           <div className={`w-32 h-32 rounded-2xl ${gradientClass} hover:opacity-90 transition-all flex items-center justify-center overflow-hidden relative`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={existingChar.image}
+              src={getAssetPath(existingChar.image)}
               alt={existingChar.title}
               className="w-full h-full object-cover"
             />
@@ -169,7 +170,7 @@ export default function Dashboard({
           <div className={`w-32 h-32 rounded-2xl overflow-hidden relative hover:opacity-80 transition-all`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={charType.placeholder}
+              src={getAssetPath(charType.placeholder)}
               alt={charType.title}
               className="w-full h-full object-cover"
             />
