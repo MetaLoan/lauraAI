@@ -27,65 +27,62 @@ func ValidateTelegramInitData(initData string) (*TelegramUser, error) {
 		return nil, fmt.Errorf("TELEGRAM_BOT_TOKEN 未配置")
 	}
 
-	// 解析 initData
-	params, err := url.ParseQuery(initData)
-	if err != nil {
-		return nil, fmt.Errorf("无效的 initData: %v", err)
+	// 提取 hash
+	hash := ""
+	var pairs []string
+	for _, part := range strings.Split(initData, "&") {
+		kv := strings.SplitN(part, "=", 2)
+		if len(kv) != 2 {
+			continue
+		}
+		key := kv[0]
+		val := kv[1]
+		if key == "hash" {
+			hash = val
+			continue
+		}
+		if key == "signature" {
+			continue
+		}
+		pairs = append(pairs, key+"="+val)
 	}
 
-	// 提取 hash
-	hash := params.Get("hash")
 	if hash == "" {
 		return nil, fmt.Errorf("缺少 hash 参数")
 	}
 
-	// 移除不需要参与签名验证的参数
-	params.Del("hash")
-	params.Del("signature")
-
 	// 按字母顺序排序参数
-	keys := make([]string, 0, len(params))
-	for k := range params {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
+	sort.Strings(pairs)
 
 	// 构建 data-check-string
-	var dataCheckString strings.Builder
-	for i, k := range keys {
-		if i > 0 {
-			dataCheckString.WriteString("\n")
-		}
-		dataCheckString.WriteString(k)
-		dataCheckString.WriteString("=")
-		dataCheckString.WriteString(params.Get(k))
-	}
+	dataCheckString := strings.Join(pairs, "\n")
 
 	// 计算 secret_key
 	secretKey := hmacSHA256([]byte("WebAppData"), []byte(config.AppConfig.TelegramBotToken))
 
 	// 计算 HMAC-SHA256
 	calculatedHash := hex.EncodeToString(
-		hmacSHA256([]byte(dataCheckString.String()), secretKey),
+		hmacSHA256([]byte(dataCheckString), secretKey),
 	)
 
 	// 验证 hash
 	if calculatedHash != hash {
 		fmt.Printf("DEBUG: 签名验证失败\n")
-		fmt.Printf("DEBUG: dataCheckString: %s\n", dataCheckString.String())
+		fmt.Printf("DEBUG: dataCheckString: %s\n", dataCheckString)
 		fmt.Printf("DEBUG: calculatedHash: %s\n", calculatedHash)
 		fmt.Printf("DEBUG: receivedHash: %s\n", hash)
 		return nil, fmt.Errorf("签名验证失败")
 	}
 
 	// 解析用户信息
+	params, _ := url.ParseQuery(initData)
 	userStr := params.Get("user")
 	if userStr == "" {
 		return nil, fmt.Errorf("缺少 user 参数")
 	}
 
 	// URL 解码
-	userStr, err = url.QueryUnescape(userStr)
+	userStr, err := url.QueryUnescape(userStr)
 	if err != nil {
 		return nil, fmt.Errorf("解码 user 参数失败: %v", err)
 	}
