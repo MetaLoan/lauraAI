@@ -71,6 +71,12 @@ class ApiClient {
     })
   }
 
+  async deleteAccount() {
+    return this.request('/users/me', {
+      method: 'DELETE',
+    })
+  }
+
   // 角色
   async createCharacter(data: {
     type: string

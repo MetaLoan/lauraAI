@@ -65,11 +65,13 @@ const companionTypes: CharacterType[] = [
 export default function Dashboard({ 
   onSelectCharacter,
   onOpenProfile,
-  onCreateCharacter 
+  onCreateCharacter,
+  onOpenHistory
 }: { 
   onSelectCharacter?: (char: CharacterCard) => void
   onOpenProfile?: () => void
   onCreateCharacter?: (charType: { type: string; title: string }) => void
+  onOpenHistory?: () => void
 }) {
   const [userCharacters, setUserCharacters] = useState<CharacterCard[]>([])
   const [loading, setLoading] = useState(true)
@@ -186,7 +188,10 @@ export default function Dashboard({
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-4">
-          <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+          <button 
+            onClick={() => onOpenHistory?.()}
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          >
             <Clock className="w-6 h-6" />
           </button>
           <button 

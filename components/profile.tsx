@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Calendar, MapPin, Clock, ChevronLeft } from 'lucide-react'
+import { Calendar, MapPin, Clock, ChevronLeft, Trash2 } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 
 interface ProfileProps {
@@ -10,6 +10,7 @@ interface ProfileProps {
   birthPlace?: string
   birthTime?: { hour: string; minute: string }
   onBack: () => void
+  onDeleteAccount?: () => void
 }
 
 interface BackendUser {
@@ -36,12 +37,34 @@ export default function Profile({
   birthPlace: propBirthPlace,
   birthTime: propBirthTime,
   onBack,
+  onDeleteAccount,
 }: ProfileProps) {
   const [name, setName] = useState(propName || '')
   const [birthDate, setBirthDate] = useState(propBirthDate || { month: '', day: '', year: '' })
   const [birthPlace, setBirthPlace] = useState(propBirthPlace || '')
   const [birthTime, setBirthTime] = useState(propBirthTime || { hour: '', minute: '' })
   const [loading, setLoading] = useState(!propName) // 如果 props 有数据就不加载
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  // 处理删除账户
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Are you sure you want to delete your account? This will clear all your data and characters.')) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await apiClient.deleteAccount()
+      if (onDeleteAccount) {
+        onDeleteAccount()
+      }
+    } catch (error) {
+      console.error('Failed to delete account:', error)
+      alert('Failed to delete account. Please try again.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   // 从后端加载用户信息
   useEffect(() => {
@@ -168,6 +191,21 @@ export default function Profile({
               <span className="text-white font-medium">{formatTime()}</span>
             </div>
           </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="pt-4">
+          <button
+            onClick={handleDeleteAccount}
+            disabled={isDeleting}
+            className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all font-bold disabled:opacity-50"
+          >
+            <Trash2 className="w-5 h-5" />
+            {isDeleting ? 'Deleting...' : 'Delete Account'}
+          </button>
+          <p className="text-center text-xs text-white/40 mt-3 px-4">
+            Warning: This action is permanent and will delete all your information, characters, and chat history.
+          </p>
         </div>
       </div>
     </div>

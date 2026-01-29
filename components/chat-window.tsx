@@ -8,10 +8,11 @@ import { apiClient } from '@/lib/api'
 interface ChatWindowProps {
   characterId?: string
   characterTitle?: string
+  characterImage?: string
   onClose: () => void
 }
 
-export default function ChatWindow({ characterId, characterTitle = 'Your Soulmate', onClose }: ChatWindowProps) {
+export default function ChatWindow({ characterId, characterTitle = 'Your Soulmate', characterImage, onClose }: ChatWindowProps) {
   const [messages, setMessages] = useState<Array<{
     id: number
     type: 'user' | 'character'
@@ -157,6 +158,20 @@ export default function ChatWindow({ characterId, characterTitle = 'Your Soulmat
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-white/10 flex-shrink-0 relative">
+              {characterImage ? (
+                <Image
+                  src={characterImage}
+                  alt={characterTitle}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900">
+                  <span className="text-white/20 text-xs font-bold">{characterTitle.charAt(0)}</span>
+                </div>
+              )}
+            </div>
             <div>
               <p className="text-sm font-semibold">{characterTitle}</p>
               <p className="text-xs text-gray-400">Online</p>

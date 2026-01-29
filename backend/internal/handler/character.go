@@ -140,3 +140,20 @@ func (h *CharacterHandler) GetByID(c *gin.Context) {
 
 	response.Success(c, character)
 }
+
+// CleanupEmpty 清理没有图片的角色
+func (h *CharacterHandler) CleanupEmpty(c *gin.Context) {
+	user, exists := middleware.GetUserFromContext(c)
+	if !exists {
+		response.Error(c, 401, "未认证")
+		return
+	}
+
+	count, err := h.characterRepo.DeleteEmptyByUserID(user.ID)
+	if err != nil {
+		response.Error(c, 500, "清理失败: "+err.Error())
+		return
+	}
+
+	response.Success(c, gin.H{"deleted": count, "message": fmt.Sprintf("已清理 %d 个无用角色", count)})
+}

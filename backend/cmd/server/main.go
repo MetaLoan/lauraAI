@@ -72,12 +72,14 @@ func main() {
 		userHandler := handler.NewUserHandler()
 		apiAuth.GET("/users/me", userHandler.GetMe)
 		apiAuth.PUT("/users/me", userHandler.UpdateMe)
+		apiAuth.DELETE("/users/me", userHandler.DeleteMe)
 
 		// 角色相关
 		characterHandler := handler.NewCharacterHandler()
 		apiAuth.POST("/characters", characterHandler.Create)
 		apiAuth.GET("/characters", characterHandler.List)
 		apiAuth.GET("/characters/:id", characterHandler.GetByID)
+		apiAuth.DELETE("/characters/cleanup", characterHandler.CleanupEmpty)
 
 		// 聊天相关
 		if chatService != nil {

@@ -45,3 +45,9 @@ func (r *CharacterRepository) Update(character *model.Character) error {
 func (r *CharacterRepository) Delete(id uint64) error {
 	return DB.Delete(&model.Character{}, id).Error
 }
+
+// DeleteEmptyByUserID 删除用户没有图片的角色，返回删除数量
+func (r *CharacterRepository) DeleteEmptyByUserID(userID uint64) (int64, error) {
+	result := DB.Unscoped().Where("user_id = ? AND (image_url IS NULL OR image_url = '')", userID).Delete(&model.Character{})
+	return result.RowsAffected, result.Error
+}
