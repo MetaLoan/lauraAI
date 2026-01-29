@@ -325,8 +325,8 @@ export default function Home() {
     <div 
       className="h-full flex flex-col bg-black text-white overflow-hidden"
       style={{
-        paddingTop: 'max(100px, calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px)))',
-        paddingBottom: '0px', // 彻底移除底部 padding，解决黑条问题
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))', // 移除 max(100px) 限制，让其紧贴顶部安全区
+        paddingBottom: '0px', 
         paddingLeft: 'var(--tg-safe-area-left, 0px)',
         paddingRight: 'var(--tg-safe-area-right, 0px)',
       }}
@@ -346,7 +346,7 @@ export default function Home() {
         />
       ) : (
         <>
-          <div className={`flex-1 overflow-hidden ${showChat ? 'pointer-events-none opacity-50' : ''}`}>
+          <div className={`flex-1 overflow-y-auto overscroll-contain -webkit-overflow-scrolling-touch ${showChat ? 'pointer-events-none opacity-50' : ''}`}>
             {steps[Math.min(Math.floor(step), steps.length - 1)]}
           </div>
           {showChat && (
