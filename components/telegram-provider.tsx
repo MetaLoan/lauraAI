@@ -35,8 +35,47 @@ function TelegramInitializer({ children }: PropsWithChildren) {
         const webApp = (window as any).Telegram?.WebApp;
         if (webApp) {
           webApp.ready();
-          webApp.expand();
-          console.log('Telegram WebApp initialized and expanded immediately');
+          
+          // 尝试调用最新的 requestFullscreen 方法 (Bot API 8.0+)
+          if (typeof webApp.requestFullscreen === 'function') {
+            webApp.requestFullscreen();
+            console.log('Called webApp.requestFullscreen()');
+          } else {
+            // 如果 requestFullscreen 不存在，尝试通过 postEvent 调用
+            // 这是针对某些尚未更新 JS 对象的客户端的后备方案
+            try {
+               // 检查是否支持 postEvent
+               if (window.TelegramWebviewProxy && window.TelegramWebviewProxy.postEvent) {
+                   window.TelegramWebviewProxy.postEvent('web_app_request_fullscreen', '');
+                   console.log('Called web_app_request_fullscreen via postEvent');
+               } else if (window.external && (window.external as any).notify) {
+                   // Windows Phone
+                   (window.external as any).notify(JSON.stringify({ eventType: 'web_app_request_fullscreen', eventData: '' }));
+               } else if (window.parent) {
+                   // Web
+                   window.parent.postMessage(JSON.stringify({ eventType: 'web_app_request_fullscreen', eventData: '' }), '*');
+               }
+            } catch (err) {
+                console.error('Error calling web_app_request_fullscreen via postEvent:', err);
+            }
+            
+            // 同时调用 expand 作为兼容
+            if (webApp.expand) {
+                webApp.expand();
+                console.log('Called webApp.expand()');
+            }
+          }
+
+          // 禁用垂直滑动
+          if (typeof webApp.disableVerticalSwipes === 'function') {
+            webApp.disableVerticalSwipes();
+            console.log('Called webApp.disableVerticalSwipes()');
+          } else if (typeof webApp.disableVerticalSwipe === 'function') {
+            // 兼容旧版本名称
+            webApp.disableVerticalSwipe();
+          }
+          
+          console.log('Telegram WebApp initialized immediately');
         }
         
         setIsSDKInitialized(true);
@@ -109,6 +148,10 @@ function TelegramInitializer({ children }: PropsWithChildren) {
         viewport.expand();
       }
       
+      // 尝试调用 requestFullscreen (如果通过 SDK 暴露)
+      // 目前 @telegram-apps/sdk-react 可能还没完全封装 requestFullscreen，
+      // 所以主要依赖上面的原生调用。
+      
       // 禁用垂直下拉关闭 Mini App 的行为（仅使用原生 API，避免 SDK 兼容性问题）
       try {
         const webApp = (window as any).Telegram?.WebApp;
@@ -127,11 +170,28 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       const expandInterval = setInterval(() => {
         const webApp = (window as any).Telegram?.WebApp;
         if (webApp) {
+            // 优先检查是否支持 requestFullscreen
+            if (typeof webApp.requestFullscreen === 'function') {
+                // 如果支持 requestFullscreen，我们就不重复调用了，除非不在全屏状态
+                // 但是目前没有 isFullscreen 属性，所以我们假设初始化时已经调用过了
+                // 这里主要关注 expand
+            } else {
+                 // 尝试通过 postEvent 再次请求全屏（如果支持）
+                 // 避免过于频繁调用，仅在检查到未展开时尝试
+            }
+            
             if (!webApp.isExpanded) {
                 webApp.expand();
+                // 如果未展开，也尝试请求全屏
+                if (typeof webApp.requestFullscreen === 'function') {
+                    webApp.requestFullscreen();
+                }
             }
+            
             // 持续尝试禁用垂直滑动
-            if (typeof webApp.disableVerticalSwipe === 'function') {
+            if (typeof webApp.disableVerticalSwipes === 'function') {
+                webApp.disableVerticalSwipes();
+            } else if (typeof webApp.disableVerticalSwipe === 'function') {
                 webApp.disableVerticalSwipe();
             }
         }
