@@ -259,7 +259,16 @@ function TelegramInitializer({ children }: PropsWithChildren) {
           } else {
             // 继续轮询，不设超时，一直等待
             console.log(`[POLL ${attempts}] ❌ Still waiting... (hasSafeArea: ${hasSafeArea}, hasContentSafeArea: ${hasContentSafeArea})`);
-            setTimeout(pollSafeArea, 500); // 每 500ms 检查一次
+            
+            // 如果尝试超过 30 次（15秒），还是没有获取到，强制进入
+            if (attempts > 30) {
+                console.log('[PRELOADER] ⚠️ Timeout waiting for safe area, forcing entry with defaults');
+                document.documentElement.style.setProperty('--tg-content-safe-area-top', '100px');
+                document.documentElement.style.setProperty('--tg-safe-area-bottom', '0px');
+                setSafeAreaReady(true);
+            } else {
+                setTimeout(pollSafeArea, 500); // 每 500ms 检查一次
+            }
           }
         };
         
