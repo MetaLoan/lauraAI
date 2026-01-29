@@ -87,8 +87,8 @@ export default function SoulmateDetailPage({
           <h2 className="text-title-lg text-balance text-center px-2 flex-shrink-0">{title}</h2>
           
           {/* Image */}
-          <div className="w-full max-w-[280px] aspect-[3/4] rounded-3xl border-4 border-amber-700 p-2 bg-gradient-to-br from-amber-100 to-amber-50 shadow-2xl">
-            <div className="w-full h-full bg-amber-200 rounded-2xl flex items-center justify-center overflow-hidden relative">
+          <div className="w-full max-w-[280px] aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl">
+            <div className="w-full h-full bg-amber-200 flex items-center justify-center relative">
               {/* 使用原生 img 标签以支持 base64 图片 */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
