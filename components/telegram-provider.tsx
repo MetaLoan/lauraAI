@@ -9,9 +9,11 @@ import {
   isTMA
 } from '@telegram-apps/sdk-react';
 import { type PropsWithChildren, useEffect, useState } from 'react';
+import Preloader from './ui/preloader';
 
 function TelegramInitializer({ children }: PropsWithChildren) {
   const [isReady, setIsReady] = useState(false);
+  const [isSDKInitialized, setIsSDKInitialized] = useState(false);
 
   // 初始化 SDK
   useEffect(() => {
@@ -20,6 +22,7 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       const inTMA = await isTMA();
       if (!inTMA) {
         console.warn('Not in Telegram Mini App environment');
+        setIsSDKInitialized(true);
         setIsReady(true);
         return;
       }
@@ -27,11 +30,11 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       try {
         // init() 会尝试获取启动参数，如果失败会抛出异常
         init();
-        setIsReady(true);
+        setIsSDKInitialized(true);
       } catch (e) {
         console.error('Telegram SDK init error:', e);
-        // 即使失败也标记为就绪，以便在非 TMA 环境下也能运行（或者你可以显示错误 UI）
-        setIsReady(true);
+        // 即使失败也标记为就绪
+        setIsSDKInitialized(true);
       }
     };
 
@@ -45,7 +48,7 @@ function TelegramInitializer({ children }: PropsWithChildren) {
 
   // 挂载组件
   useEffect(() => {
-    if (isReady) {
+    if (isSDKInitialized) {
       if (!isMiniAppMounted && miniApp.mount.isAvailable() && !miniApp.isMounting()) {
         miniApp.mount().catch(err => {
           if (err.message.includes('already mounting')) return;
@@ -59,16 +62,16 @@ function TelegramInitializer({ children }: PropsWithChildren) {
         });
       }
     }
-  }, [isReady, isMiniAppMounted, isThemeParamsMounted]);
+  }, [isSDKInitialized, isMiniAppMounted, isThemeParamsMounted]);
 
   useEffect(() => {
-    if (isReady && !isViewportMounted && viewport.mount.isAvailable() && !viewport.isMounting()) {
+    if (isSDKInitialized && !isViewportMounted && viewport.mount.isAvailable() && !viewport.isMounting()) {
       viewport.mount().catch(err => {
         if (err.message.includes('already mounting')) return;
         console.error('viewport mount error:', err);
       });
     }
-  }, [isReady, isViewportMounted]);
+  }, [isSDKInitialized, isViewportMounted]);
 
   // 绑定 CSS 变量
   useEffect(() => {
@@ -86,8 +89,17 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       if (viewport.expand.isAvailable() && !viewport.isExpanded()) {
         viewport.expand();
       }
+      
+      // 只有在 Viewport 挂载并绑定变量后，才认为准备就绪（此时 CSS 变量已生效）
+      // 设置一小段延迟确保布局计算完成
+      const timer = setTimeout(() => setIsReady(true), 500);
+      return () => clearTimeout(timer);
     }
   }, [isViewportMounted]);
+
+  if (!isReady) {
+    return <Preloader />;
+  }
 
   return <>{children}</>;
 }
