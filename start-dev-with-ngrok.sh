@@ -63,6 +63,7 @@ go build -o server ./cmd/server 2>/dev/null || {
 # 启动后端，开启 DEV 模式
 touch "$TMP_DIR/backend.log"
 export DEV_MODE=true
+export PORT=$BACKEND_PORT
 ./server 2>&1 | tee "$TMP_DIR/backend.log" &
 BACKEND_PID=$!
 cd ..
