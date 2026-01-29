@@ -67,7 +67,7 @@ func (s *GeminiImagenService) GenerateMiniMeImage(ctx context.Context, descripti
 
 	// 构建 Mini Me 风格提示词
 	// 使用 Pixar/Disney 3D 风格
-	prompt := fmt.Sprintf("A cute 3D Pixar style character avatar of a person with the following features: %s. High quality 3D render, soft lighting, expressive face, vibrant colors, plain background, 4k, octane render.", description)
+	prompt := fmt.Sprintf("A high-quality 3D Pixar-style character avatar of a person with these features: %s. The character should have expressive, large eyes, smooth skin textures, and a friendly, charming personality. 3D Disney animation style, vibrant colors, cinematic soft lighting, detailed clothing textures, solid soft-colored background, 8k resolution, masterpiece, trending on ArtStation.", description)
 
 	return s.doGenerateImageWithPrompt(ctx, prompt)
 }
@@ -93,7 +93,7 @@ func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, pro
 	timeoutCtx, cancel := context.WithTimeout(ctx, imagenTimeout)
 	defer cancel()
 
-	// 调用 Imagen 4.0 API
+	// 调用 Imagen 3.0 API (更新为稳定版模型名称)
 	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=%s", s.apiKey)
 
 	reqBody := ImagenRequest{
@@ -158,17 +158,30 @@ func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, pro
 }
 
 func (s *GeminiImagenService) buildImagePrompt(character *model.Character) string {
-	prompt := fmt.Sprintf("A portrait photo of a %s person, %s ethnicity, ", character.Gender, character.Ethnicity)
+	var stylePrompt string
 	
-	if character.Type == model.CharacterTypeSoulmate {
-		prompt += "looking warm and friendly, with a gentle smile, "
+	switch character.Type {
+	case model.CharacterTypeSoulmate:
+		stylePrompt = "A breathtakingly beautiful portrait of a soulmate, "
+	case "future_husband", "future_wife":
+		stylePrompt = "A realistic and romantic wedding-style portrait of a future spouse, "
+	case "future_baby":
+		stylePrompt = "A cute and adorable portrait of a future baby, "
+	default:
+		stylePrompt = "A high-quality professional portrait of a character, "
+	}
+
+	prompt := fmt.Sprintf("%s%s person, %s ethnicity, ", stylePrompt, character.Gender, character.Ethnicity)
+	
+	if character.Description != "" {
+		prompt += fmt.Sprintf("with these traits: %s, ", character.Description)
 	}
 	
 	if character.AstroSign != "" {
-		prompt += fmt.Sprintf("embodying the characteristics of %s zodiac sign, ", character.AstroSign)
+		prompt += fmt.Sprintf("reflecting the aura of %s zodiac sign, ", character.AstroSign)
 	}
 
-	prompt += "high quality, professional photography, natural lighting, realistic, detailed facial features"
+	prompt += "hyper-realistic, highly detailed facial features, soft cinematic lighting, professional photography, 8k resolution, masterpiece, natural skin texture, expressive eyes."
 
 	return prompt
 }
