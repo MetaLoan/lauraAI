@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { TelegramProvider } from '@/components/telegram-provider'
 
@@ -48,7 +47,6 @@ export default function RootLayout({
         <TelegramProvider>
           {children}
         </TelegramProvider>
-        <Analytics />
       </body>
     </html>
   )
