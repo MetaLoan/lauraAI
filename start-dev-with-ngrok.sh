@@ -78,8 +78,13 @@ go build -o server ./cmd/server 2>/dev/null || {
     echo -e "${RED}❌ 后端编译失败${NC}"
     exit 1
 }
+# 同时将日志输出到文件和终端（使用 tail 实时显示）
+touch "$TMP_DIR/backend.log"
 ./server > "$TMP_DIR/backend.log" 2>&1 &
 BACKEND_PID=$!
+# 实时显示后端日志中的 DEBUG 信息
+tail -f "$TMP_DIR/backend.log" | grep --line-buffered "DEBUG" &
+TAIL_PID=$!
 cd ..
 sleep 2
 
@@ -154,7 +159,7 @@ echo ""
 cleanup() {
     echo ""
     echo -e "${YELLOW}正在停止所有服务...${NC}"
-    kill $BACKEND_PID $NGROK_PID 2>/dev/null
+    kill $BACKEND_PID $NGROK_PID $TAIL_PID 2>/dev/null
     pkill -f "ngrok http" 2>/dev/null
     pkill -f "./server" 2>/dev/null
     echo -e "${GREEN}✅ 所有服务已停止${NC}"

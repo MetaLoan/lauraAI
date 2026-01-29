@@ -70,7 +70,8 @@ export default function ChatWindow({ characterId, characterTitle = 'Your Soulmat
 
     try {
       // 发送消息并接收流式响应
-      const url = `http://localhost:8081/api/characters/${characterId}/chat`
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api'
+      const url = `${API_BASE_URL}/characters/${characterId}/chat`
       console.log('聊天请求 URL:', url, 'characterId:', characterId)
       
       if (!characterId) {
