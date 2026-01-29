@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const isGitHubPages = process.env.GITHUB_PAGES === 'true'
-// GitHub Pages basePath 应该与仓库名一致（注意大小写）
-const basePath = isGitHubPages ? '/lauraAI' : ''
+// GitHub Pages basePath 应该与实际的 GitHub Pages URL 路径一致
+// 根据错误信息，实际路径是 /lauraAl/，所以这里需要匹配
+const basePath = isGitHubPages ? '/lauraAl' : ''
 
 const nextConfig = {
   typescript: {
