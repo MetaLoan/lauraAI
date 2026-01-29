@@ -110,8 +110,11 @@ DEV_MODE=true
 使用 ngrok 脚本会自动创建，或手动创建：
 
 ```bash
-NEXT_PUBLIC_API_URL=https://your-ngrok-url.ngrok.io/api
+# 当前 ngrok API 地址
+NEXT_PUBLIC_API_URL=https://nathalie-clothlike-urgently.ngrok-free.dev/api
 ```
+
+**注意：** ngrok 免费版的 URL 每次重启都会变化，如果 URL 变化了，需要更新 `.env.local` 文件。
 
 ## 常见问题
 
