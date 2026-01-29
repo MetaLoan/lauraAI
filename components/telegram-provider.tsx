@@ -100,6 +100,50 @@ function setupSafeAreaCssVars(): boolean {
   return hasValidValues;
 }
 
+// 监听安全区变化事件
+function listenToSafeAreaEvents(callback: () => void) {
+  // 通过 TelegramWebviewProxy 监听事件
+  const handleEvent = (event: MessageEvent) => {
+    try {
+      const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+      if (data.eventType === 'safe_area_changed' || 
+          data.eventType === 'content_safe_area_changed' ||
+          data.eventType === 'fullscreen_changed') {
+        console.log('[EVENT] Received:', data.eventType, data.eventData);
+        callback();
+      }
+    } catch (e) {
+      // 忽略解析错误
+    }
+  };
+  
+  window.addEventListener('message', handleEvent);
+  
+  // 也监听 Telegram 的原生事件（如果有）
+  const webApp = (window as any).Telegram?.WebApp;
+  if (webApp) {
+    // onEvent 是 Telegram WebApp 提供的事件监听方法
+    if (typeof webApp.onEvent === 'function') {
+      webApp.onEvent('safeAreaChanged', () => {
+        console.log('[EVENT] safeAreaChanged');
+        callback();
+      });
+      webApp.onEvent('contentSafeAreaChanged', () => {
+        console.log('[EVENT] contentSafeAreaChanged');
+        callback();
+      });
+      webApp.onEvent('fullscreenChanged', () => {
+        console.log('[EVENT] fullscreenChanged');
+        callback();
+      });
+    }
+  }
+  
+  return () => {
+    window.removeEventListener('message', handleEvent);
+  };
+}
+
 function TelegramInitializer({ children }: PropsWithChildren) {
   const [isReady, setIsReady] = useState(false);
   const [isSDKInitialized, setIsSDKInitialized] = useState(false);
@@ -177,10 +221,20 @@ function TelegramInitializer({ children }: PropsWithChildren) {
         
         setIsSDKInitialized(true);
         
+        // 监听安全区变化事件
+        const cleanupListener = listenToSafeAreaEvents(() => {
+          const hasValidValues = setupSafeAreaCssVars();
+          if (hasValidValues) {
+            console.log('[EVENT] Safe area updated via event');
+            setSafeAreaReady(true);
+          }
+        });
+        
         // 在 Preloader 阶段轮询获取安全区的值
-        console.log('[PRELOADER] Starting safe area polling...');
+        // 需要等待 requestFullscreen 生效后才能获取到正确的值
+        console.log('[PRELOADER] Starting safe area polling (waiting for fullscreen)...');
         let attempts = 0;
-        const maxAttempts = 20; // 最多尝试 20 次，每次 100ms，共 2 秒
+        const maxAttempts = 30; // 最多尝试 30 次，每次 100ms，共 3 秒
         
         const pollSafeArea = () => {
           attempts++;
@@ -192,7 +246,7 @@ function TelegramInitializer({ children }: PropsWithChildren) {
           } else if (attempts >= maxAttempts) {
             // 超时，使用默认值
             console.log('[PRELOADER] Safe area polling timeout, using default values');
-            document.documentElement.style.setProperty('--tg-content-safe-area-top', '56px');
+            document.documentElement.style.setProperty('--tg-content-safe-area-top', '100px'); // 增加默认值
             document.documentElement.style.setProperty('--tg-safe-area-bottom', '34px');
             setSafeAreaReady(true);
           } else {
@@ -201,8 +255,8 @@ function TelegramInitializer({ children }: PropsWithChildren) {
           }
         };
         
-        // 立即开始轮询
-        pollSafeArea();
+        // 延迟 500ms 后开始轮询，给 requestFullscreen 足够的时间生效
+        setTimeout(pollSafeArea, 500);
         
       } catch (e) {
         console.error('Telegram SDK init error:', e);
