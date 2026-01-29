@@ -39,8 +39,9 @@ func ValidateTelegramInitData(initData string) (*TelegramUser, error) {
 		return nil, fmt.Errorf("缺少 hash 参数")
 	}
 
-	// 移除 hash 参数
+	// 移除不需要参与签名验证的参数
 	params.Del("hash")
+	params.Del("signature")
 
 	// 按字母顺序排序参数
 	keys := make([]string, 0, len(params))
