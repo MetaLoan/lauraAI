@@ -166,9 +166,14 @@ export default function ChatWindow({ characterId, characterTitle = 'Your Soulmat
   }
 
   return (
-    <div className="fixed inset-0 bg-black z-[9999] flex flex-col overflow-hidden pt-tg-top pb-tg-bottom">
+    <div className="fixed inset-0 bg-black z-[9999] flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <div 
+        className="flex items-center justify-between p-4 border-b border-white/10"
+        style={{
+          paddingTop: 'max(16px, calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px)))'
+        }}
+      >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full overflow-hidden bg-white/10 flex-shrink-0 relative">
               {characterImage ? (
@@ -212,7 +217,12 @@ export default function ChatWindow({ characterId, characterTitle = 'Your Soulmat
         </div>
 
         {/* Input */}
-        <div className="border-t border-white/10 p-4">
+        <div 
+          className="border-t border-white/10 p-4"
+          style={{
+            paddingBottom: 'max(16px, var(--tg-safe-area-bottom, 0px))'
+          }}
+        >
           <div className="flex gap-2">
             <input
               type="text"
