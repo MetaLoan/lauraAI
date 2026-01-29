@@ -309,8 +309,8 @@ export default function Home() {
       <div 
         className="min-h-screen bg-black text-white flex items-center justify-center"
         style={{
-          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))',
-          paddingBottom: 'calc(var(--tg-safe-area-bottom, 0px) + var(--tg-content-safe-area-bottom, 0px))',
+          paddingTop: 'max(56px, calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px)))',
+          paddingBottom: 'max(20px, calc(var(--tg-safe-area-bottom, 0px) + var(--tg-content-safe-area-bottom, 0px)))',
         }}
       >
         <div className="text-center">
@@ -325,8 +325,8 @@ export default function Home() {
     <div 
       className="h-full flex flex-col bg-black text-white overflow-hidden"
       style={{
-        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))',
-        paddingBottom: 'calc(var(--tg-safe-area-bottom, 0px) + var(--tg-content-safe-area-bottom, 0px))',
+        paddingTop: 'max(56px, calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px)))',
+        paddingBottom: 'max(20px, calc(var(--tg-safe-area-bottom, 0px) + var(--tg-content-safe-area-bottom, 0px)))',
         paddingLeft: 'var(--tg-safe-area-left, 0px)',
         paddingRight: 'var(--tg-safe-area-right, 0px)',
       }}

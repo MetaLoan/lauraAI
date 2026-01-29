@@ -185,12 +185,7 @@ export default function Dashboard({
     }
   }
   return (
-    <div 
-      className="flex-1 pb-8 overflow-y-auto"
-      style={{
-        paddingTop: 'calc(var(--tg-content-safe-area-top, 0px) + 16px)',
-      }}
-    >
+    <div className="flex-1 pb-8 overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-4">
