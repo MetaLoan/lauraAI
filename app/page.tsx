@@ -316,7 +316,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white relative flex flex-col">
+    <div className="min-h-screen min-h-[100dvh] bg-black text-white relative flex flex-col">
       {showProfile ? (
         <Profile
           onBack={handleCloseProfile}
@@ -332,7 +332,7 @@ export default function Home() {
         />
       ) : (
         <>
-          <div className={showChat ? 'pointer-events-none opacity-50' : ''}>
+          <div className={`flex-1 overflow-y-auto overscroll-y-contain ${showChat ? 'pointer-events-none opacity-50' : ''}`}>
             {steps[Math.min(Math.floor(step), steps.length - 1)]}
           </div>
           {showChat && (
