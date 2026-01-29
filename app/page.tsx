@@ -357,7 +357,15 @@ export default function Home() {
 
   // 显示 preloader 时，只显示 preloader
   if (isLoading) {
-    return <Preloader />
+    return (
+      <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center">
+        <Preloader />
+        {/* 调试信息：显示当前 API 地址 */}
+        <div className="absolute bottom-10 text-[10px] text-gray-500 font-mono opacity-30">
+          API: {apiClient.baseURL}
+        </div>
+      </div>
+    )
   }
 
   return (
