@@ -41,7 +41,7 @@ func NewChatHandler(chatService *service.GeminiChatService) *ChatHandler {
 // SendMessage 发送消息（流式响应）
 func (h *ChatHandler) SendMessage(c *gin.Context) {
 	log.Printf("SendMessage: 开始处理请求")
-	
+
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
 		log.Printf("SendMessage: 用户未认证")

@@ -34,7 +34,7 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 					// 即使 CreateOrUpdate 报错（比如唯一键冲突），也尝试最后查一次
 					log.Printf("CreateOrUpdate 失败: %v，尝试重新获取", err)
 				}
-				
+
 				// 无论上面是否报错，都重新查一次以确保获取到正确的 User 对象（包含 ID）
 				user, err = userRepo.GetByTelegramID(DefaultTestTelegramID)
 				if err != nil {
