@@ -101,7 +101,13 @@ sleep 3
 # 获取 ngrok URL
 NGROK_URL=""
 for i in {1..10}; do
-    NGROK_URL=$(curl -s http://localhost:4040/api/tunnels 2>/dev/null | grep -oP '"public_url":"https://[^"]*' | head -1 | cut -d'"' -f4)
+    # 使用 python 解析 JSON（macOS 兼容）
+    if command -v python3 &> /dev/null; then
+        NGROK_URL=$(curl -s http://localhost:4040/api/tunnels 2>/dev/null | python3 -c "import sys, json; data = json.load(sys.stdin); print(data['tunnels'][0]['public_url'] if data.get('tunnels') and len(data['tunnels']) > 0 else '')" 2>/dev/null)
+    else
+        # 备用方案：使用 sed 提取 URL（macOS 兼容）
+        NGROK_URL=$(curl -s http://localhost:4040/api/tunnels 2>/dev/null | sed -n 's/.*"public_url":"\(https:\/\/[^"]*\)".*/\1/p' | head -1)
+    fi
     if [ ! -z "$NGROK_URL" ]; then
         break
     fi
