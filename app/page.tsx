@@ -294,6 +294,9 @@ export default function Home() {
         handleCloseProfile()
       } else if (showHistory) {
         handleCloseHistory()
+      } else if (step === 12) {
+        // 在角色详情页（生成图片后）返回时，直接回到 Dashboard
+        handleGoToDashboard()
       } else if (creatingCharacterType && step === 9) {
         // 如果正在创建角色且在第一步（性别选择），点击返回回到 Dashboard
         handleGoToDashboard()
