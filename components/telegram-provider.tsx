@@ -30,6 +30,13 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       try {
         // init() 会尝试获取启动参数，如果失败会抛出异常
         init();
+        const webApp = (window as any).Telegram?.WebApp;
+        if (webApp?.ready) {
+          webApp.ready();
+        }
+        if (webApp?.expand) {
+          webApp.expand();
+        }
         setIsSDKInitialized(true);
       } catch (e) {
         console.error('Telegram SDK init error:', e);
@@ -90,29 +97,18 @@ function TelegramInitializer({ children }: PropsWithChildren) {
         viewport.expand();
       }
       
-      // 禁用垂直下拉关闭 Mini App 的行为
-      // 暂时注释掉以修复 Application error
-      /*
+      // 禁用垂直下拉关闭 Mini App 的行为（仅使用原生 API，避免 SDK 兼容性问题）
       try {
-        // 1. 尝试使用最新的 SDK 方法 (添加更多检查)
-        if (viewport.isVerticalSwipeAllowed.isAvailable() && 
-            typeof viewport.allowVerticalSwipe === 'function') {
-          viewport.allowVerticalSwipe(false);
-        }
-        
-        // 2. 尝试直接调用原生 WebApp API (作为备选)
         const webApp = (window as any).Telegram?.WebApp;
-        if (webApp) {
-          if (typeof webApp.disableVerticalSwipe === 'function') {
-            webApp.disableVerticalSwipe();
-          }
-          // 某些版本可能通过属性控制
-          webApp.isVerticalSwipeAllowed = false;
+        if (webApp?.expand) {
+          webApp.expand();
+        }
+        if (typeof webApp?.disableVerticalSwipe === 'function') {
+          webApp.disableVerticalSwipe();
         }
       } catch (err) {
         console.warn('Failed to disable vertical swipe:', err);
       }
-      */
       
       // 只有在 Viewport 挂载并绑定变量后，才认为准备就绪（此时 CSS 变量已生效）
       // 设置一小段延迟确保布局计算完成

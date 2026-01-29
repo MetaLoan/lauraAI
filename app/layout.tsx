@@ -43,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`font-sans antialiased bg-black text-white overflow-hidden`}>
+      <body className={`font-sans antialiased bg-black text-white min-h-[100dvh]`}>
         <TelegramProvider>
           {children}
         </TelegramProvider>
