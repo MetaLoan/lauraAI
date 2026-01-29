@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"strconv"
 	"strings"
 
@@ -39,11 +40,15 @@ func NewChatHandler(chatService *service.GeminiChatService) *ChatHandler {
 
 // SendMessage 发送消息（流式响应）
 func (h *ChatHandler) SendMessage(c *gin.Context) {
+	log.Printf("SendMessage: 开始处理请求")
+	
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
+		log.Printf("SendMessage: 用户未认证")
 		response.Error(c, 401, "未认证")
 		return
 	}
+	log.Printf("SendMessage: 用户ID=%d", user.ID)
 
 	idStr := c.Param("id")
 	characterID, err := strconv.ParseUint(idStr, 10, 64)
