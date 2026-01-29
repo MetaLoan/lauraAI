@@ -81,7 +81,7 @@ export default function SoulmateDetailPage({
     <div className="h-full flex flex-col pb-32">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
-        <h2 className="text-xl font-semibold">{title}</h2>
+        <h2 className="text-title-md font-semibold">{title}</h2>
         <button className="p-3 rounded-full border border-white/30 hover:border-white/50 transition-colors">
           <Share2 className="w-6 h-6" />
         </button>
@@ -109,7 +109,7 @@ export default function SoulmateDetailPage({
 
         {/* Compatibility Score */}
         <div className="mb-8">
-          <h3 className="text-center text-2xl font-bold mb-6">Compatibility Score</h3>
+          <h3 className="text-center text-title-md font-bold mb-6">Compatibility Score</h3>
 
           {/* Progress Bar */}
           <div className="mb-4 h-2 rounded-full bg-white/10 overflow-hidden">
@@ -121,7 +121,7 @@ export default function SoulmateDetailPage({
 
           <p className="text-center text-5xl font-bold mb-6">{score}%</p>
 
-          <p className="text-center text-sm text-gray-300 leading-relaxed mb-8">
+          <p className="text-center text-body-sm text-gray-300 leading-relaxed mb-8">
             {description}
           </p>
         </div>
@@ -134,7 +134,7 @@ export default function SoulmateDetailPage({
             className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
           >
             <div className="flex items-center justify-between">
-              <h4 className="text-xl font-bold">Strength</h4>
+              <h4 className="text-title-md font-bold">Strength</h4>
               <ChevronDown
                 className={`w-5 h-5 transition-transform ${
                   expandedSection === 'strength' ? 'rotate-180' : ''
@@ -142,7 +142,7 @@ export default function SoulmateDetailPage({
               />
             </div>
             {expandedSection === 'strength' && (
-              <p className="mt-4 text-sm text-gray-300 leading-relaxed">
+              <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
                 Together you radiate loyalty, passion, and determination. Your bond thrives on
                 honesty, shared goals, and the ability to support each other's dreams.
               </p>
@@ -155,7 +155,7 @@ export default function SoulmateDetailPage({
             className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
           >
             <div className="flex items-center justify-between">
-              <h4 className="text-xl font-bold">Weakness</h4>
+              <h4 className="text-title-md font-bold">Weakness</h4>
               <ChevronDown
                 className={`w-5 h-5 transition-transform ${
                   expandedSection === 'weakness' ? 'rotate-180' : ''
@@ -163,7 +163,7 @@ export default function SoulmateDetailPage({
               />
             </div>
             {expandedSection === 'weakness' && (
-              <p className="mt-4 text-sm text-gray-300 leading-relaxed">
+              <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
                 At times, stubbornness and emotional intensity may create friction. Misunderstandings
                 can arise if space and patience are not given, but awareness helps transform these
                 into growth.
@@ -178,7 +178,7 @@ export default function SoulmateDetailPage({
         <div className="max-w-md mx-auto">
           <Button
             onClick={onNext}
-            className="w-full bg-white text-black hover:bg-gray-100 py-6 rounded-xl text-lg font-semibold"
+            className="btn-primary"
           >
             Say "Hello" to {title}..
           </Button>

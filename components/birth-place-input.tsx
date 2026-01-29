@@ -58,7 +58,7 @@ export default function BirthPlaceInput({
   return (
     <div className="h-full bg-black flex flex-col items-center p-6">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-6">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-balance text-center px-2 flex-shrink-0">
+        <h1 className="text-title-lg text-balance text-center px-2 flex-shrink-0">
           Could you tell me where you were born?
         </h1>
 
@@ -68,7 +68,7 @@ export default function BirthPlaceInput({
             placeholder="Search city..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="w-full bg-transparent border-b border-gray-600 text-2xl placeholder-gray-600 focus:outline-none focus:border-gray-400 pb-2 transition-colors"
+            className="w-full bg-transparent border-b border-gray-600 text-body-lg placeholder-gray-600 focus:outline-none focus:border-gray-400 pb-2 transition-colors"
           />
           
           {loading && (
@@ -85,10 +85,10 @@ export default function BirthPlaceInput({
                   onClick={() => handleSelect(place)}
                   className="w-full text-left p-4 bg-black hover:bg-gray-900 transition-colors border-b border-gray-800 last:border-none text-white"
                 >
-                  <p className="text-white text-sm font-medium truncate">
+                  <p className="text-white text-body-sm font-medium truncate">
                     {place.display_name.split(',')[0]}
                   </p>
-                  <p className="text-gray-400 text-xs truncate">
+                  <p className="text-gray-400 text-caption truncate">
                     {place.display_name.split(',').slice(1).join(',').trim()}
                   </p>
                 </button>
@@ -102,14 +102,14 @@ export default function BirthPlaceInput({
         <Button
           onClick={handleNext}
           disabled={!input.trim()}
-          className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 disabled:opacity-100 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
+          className="btn-primary disabled:btn-disabled"
         >
           Continue
         </Button>
-        <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-sm">
+        <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-body-sm">
           Skip
         </button>
-        <p className="text-gray-500 text-xs text-center px-2">
+        <p className="text-gray-500 text-caption text-center px-2">
           Your birth place is essential for accurate calculations and personalized guidance. Your privacy is our priority, and this
           information will never be shared with third parties.
         </p>

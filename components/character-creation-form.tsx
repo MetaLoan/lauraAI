@@ -72,9 +72,9 @@ export default function CharacterCreationForm({
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-6" />
-        <h1 className="text-2xl font-bold text-center mb-4">Creating {characterName}...</h1>
-        <p className="text-gray-400 text-center max-w-sm">
+        <div className="loading-spinner mb-6" />
+        <h1 className="text-title-md font-bold text-center mb-4">Creating {characterName}...</h1>
+        <p className="text-body-md text-gray-400 text-center max-w-sm">
           Crafting your perfect {characterName} with personalized traits and generating AI portrait.
         </p>
       </div>
@@ -85,8 +85,8 @@ export default function CharacterCreationForm({
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-6">
         <AlertCircle className="w-16 h-16 text-red-500 mb-6" />
-        <h1 className="text-2xl font-bold text-center mb-4 text-red-500">Creation Failed</h1>
-        <p className="text-gray-400 text-center max-w-sm mb-8">{error}</p>
+        <h1 className="text-title-md font-bold text-center mb-4 text-red-500">Creation Failed</h1>
+        <p className="text-body-md text-gray-400 text-center max-w-sm mb-8">{error}</p>
         <div className="flex gap-4">
           <Button
             onClick={() => setError(null)}
@@ -117,14 +117,14 @@ export default function CharacterCreationForm({
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-xl font-bold flex-1">Create {characterName}</h1>
+        <h1 className="text-title-md font-bold flex-1">Create {characterName}</h1>
       </div>
 
       {/* Content */}
       <div className="flex-1 px-6 py-8">
         {/* Gender Selection */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">What is their gender?</h2>
+          <h2 className="text-body-lg font-semibold mb-4">What is their gender?</h2>
           <div className="space-y-3">
             {['Male', 'Female', 'Other'].map((g) => (
               <button
@@ -144,7 +144,7 @@ export default function CharacterCreationForm({
 
         {/* Ethnicity Selection */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">What is their ethnic background?</h2>
+          <h2 className="text-body-lg font-semibold mb-4">What is their ethnic background?</h2>
           <div className="space-y-3">
             {ethnicities.map((e) => (
               <button
@@ -169,7 +169,7 @@ export default function CharacterCreationForm({
         <Button
           onClick={handleComplete}
           disabled={!gender || !ethnicity}
-          className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-xl text-lg font-semibold"
+          className="btn-primary disabled:btn-disabled"
         >
           Create {characterName}
         </Button>

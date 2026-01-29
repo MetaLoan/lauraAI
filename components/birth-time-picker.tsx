@@ -33,7 +33,7 @@ export default function BirthTimePicker({
   return (
     <div className="h-full bg-black flex flex-col items-center p-6">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-6">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-balance text-center px-2 flex-shrink-0">
+        <h1 className="text-title-lg text-balance text-center px-2 flex-shrink-0">
           Could you share the exact time you were born?
         </h1>
 
@@ -58,8 +58,8 @@ export default function BirthTimePicker({
                       <div
                         className={`text-center py-3 transition-all ${
                           selected
-                            ? 'text-white font-bold text-2xl'
-                            : 'text-gray-500 text-lg'
+                            ? 'text-white font-bold text-title-md'
+                            : 'text-gray-500 text-body-lg'
                         }`}
                       >
                         {option}
@@ -79,7 +79,7 @@ export default function BirthTimePicker({
             onChange(pickerValue)
             onNext()
           }}
-          className="w-full bg-white text-black hover:bg-gray-100 h-14 text-lg font-semibold rounded-xl"
+          className="btn-primary"
         >
           Continue
         </Button>

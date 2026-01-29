@@ -18,8 +18,8 @@ export default function Preloader() {
       <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-8 px-6">
         {/* Title */}
         <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold text-balance">Welcome to</h1>
-          <h2 className="text-5xl md:text-6xl font-bold text-balance">Laura AI</h2>
+          <h1 className="text-title-xl text-balance">Welcome to</h1>
+          <h2 className="text-title-xl text-balance">Laura AI</h2>
         </div>
 
         {/* Loading Bar */}

@@ -211,13 +211,13 @@ export default function Dashboard({
       <div className="px-6 space-y-8">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="animate-spin w-8 h-8 border-2 border-white/20 border-t-white rounded-full" />
+            <div className="loading-spinner" />
           </div>
         ) : (
           <>
             {/* Trending Section */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">Trending</h2>
+              <h2 className="text-title-md font-bold mb-4">Trending</h2>
               <div className="flex gap-4 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
                 {trendingTypes.map((charType) => renderCharacterSlot(charType, 'bg-gradient-to-b from-amber-200 to-amber-400'))}
               </div>
@@ -225,7 +225,7 @@ export default function Dashboard({
 
             {/* Family Section */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">Draw & Chat with Your AI Family</h2>
+              <h2 className="text-title-md font-bold mb-4">Draw & Chat with Your AI Family</h2>
               <div className="overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
                 <div className="flex gap-4 min-w-min">
                   {familyTypes.map((charType) => renderCharacterSlot(charType, 'bg-gradient-to-b from-amber-900 to-gray-800'))}
@@ -235,7 +235,7 @@ export default function Dashboard({
 
             {/* Friend Section */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">Draw & Chat with Your AI Friend</h2>
+              <h2 className="text-title-md font-bold mb-4">Draw & Chat with Your AI Friend</h2>
               <div className="overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
                 <div className="flex gap-4 min-w-min">
                   {friendTypes.map((charType) => renderCharacterSlot(charType, 'bg-gradient-to-b from-gray-700 to-gray-900'))}
@@ -245,7 +245,7 @@ export default function Dashboard({
 
             {/* Companion Section */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">Draw & Chat with Your AI Companion</h2>
+              <h2 className="text-title-md font-bold mb-4">Draw & Chat with Your AI Companion</h2>
               <div className="overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
                 <div className="flex gap-4 min-w-min">
                   {companionTypes.map((charType) => renderCharacterSlot(charType, 'bg-gradient-to-b from-gray-800 to-black'))}
