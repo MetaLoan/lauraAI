@@ -23,4 +23,8 @@ fi
 
 # 运行服务器
 echo "启动服务器..."
+# 从 .env 获取端口号，默认为 8081
+PORT=$(grep '^PORT=' .env | cut -d '=' -f2)
+PORT=${PORT:-8081}
+echo "后端 API 运行在端口: $PORT"
 go run cmd/server/main.go
