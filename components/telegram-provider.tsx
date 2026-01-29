@@ -53,9 +53,57 @@ function forceDisableVerticalSwipes() {
   }
 }
 
+// 获取并设置安全区 CSS 变量，返回是否成功获取到有效值
+function setupSafeAreaCssVars(): boolean {
+  const webApp = (window as any).Telegram?.WebApp;
+  if (!webApp) return false;
+  
+  const safeAreaInset = webApp.safeAreaInset;
+  const contentSafeAreaInset = webApp.contentSafeAreaInset;
+  
+  console.log('=== Safe Area Values ===');
+  console.log('safeAreaInset:', JSON.stringify(safeAreaInset));
+  console.log('contentSafeAreaInset:', JSON.stringify(contentSafeAreaInset));
+  console.log('isFullscreen:', webApp.isFullscreen);
+  console.log('========================');
+  
+  let hasValidValues = false;
+  
+  // 设置设备安全区
+  if (safeAreaInset) {
+    document.documentElement.style.setProperty('--tg-safe-area-top', `${safeAreaInset.top || 0}px`);
+    document.documentElement.style.setProperty('--tg-safe-area-bottom', `${safeAreaInset.bottom || 0}px`);
+    document.documentElement.style.setProperty('--tg-safe-area-left', `${safeAreaInset.left || 0}px`);
+    document.documentElement.style.setProperty('--tg-safe-area-right', `${safeAreaInset.right || 0}px`);
+    if (safeAreaInset.top > 0 || safeAreaInset.bottom > 0) {
+      hasValidValues = true;
+    }
+  }
+  
+  // 设置内容安全区
+  if (contentSafeAreaInset) {
+    document.documentElement.style.setProperty('--tg-content-safe-area-top', `${contentSafeAreaInset.top || 0}px`);
+    document.documentElement.style.setProperty('--tg-content-safe-area-bottom', `${contentSafeAreaInset.bottom || 0}px`);
+    if (contentSafeAreaInset.top > 0) {
+      hasValidValues = true;
+      console.log(`[SAFE AREA] Got valid content safe area top: ${contentSafeAreaInset.top}px`);
+    }
+  }
+  
+  // 如果在全屏模式下但没有获取到 contentSafeAreaInset，设置默认值
+  if (webApp.isFullscreen && (!contentSafeAreaInset || contentSafeAreaInset.top === 0)) {
+    document.documentElement.style.setProperty('--tg-content-safe-area-top', '56px');
+    console.log('[SAFE AREA] Set default content safe area top: 56px (fullscreen mode)');
+    hasValidValues = true;
+  }
+  
+  return hasValidValues;
+}
+
 function TelegramInitializer({ children }: PropsWithChildren) {
   const [isReady, setIsReady] = useState(false);
   const [isSDKInitialized, setIsSDKInitialized] = useState(false);
+  const [safeAreaReady, setSafeAreaReady] = useState(false);
 
   // 初始化 SDK
   useEffect(() => {
@@ -65,6 +113,7 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       if (!inTMA) {
         console.warn('Not in Telegram Mini App environment');
         setIsSDKInitialized(true);
+        setSafeAreaReady(true);
         setIsReady(true);
         return;
       }
@@ -127,10 +176,40 @@ function TelegramInitializer({ children }: PropsWithChildren) {
         }
         
         setIsSDKInitialized(true);
+        
+        // 在 Preloader 阶段轮询获取安全区的值
+        console.log('[PRELOADER] Starting safe area polling...');
+        let attempts = 0;
+        const maxAttempts = 20; // 最多尝试 20 次，每次 100ms，共 2 秒
+        
+        const pollSafeArea = () => {
+          attempts++;
+          const hasValidValues = setupSafeAreaCssVars();
+          
+          if (hasValidValues) {
+            console.log(`[PRELOADER] Safe area values obtained after ${attempts} attempts`);
+            setSafeAreaReady(true);
+          } else if (attempts >= maxAttempts) {
+            // 超时，使用默认值
+            console.log('[PRELOADER] Safe area polling timeout, using default values');
+            document.documentElement.style.setProperty('--tg-content-safe-area-top', '56px');
+            document.documentElement.style.setProperty('--tg-safe-area-bottom', '34px');
+            setSafeAreaReady(true);
+          } else {
+            // 继续轮询
+            setTimeout(pollSafeArea, 100);
+          }
+        };
+        
+        // 立即开始轮询
+        pollSafeArea();
+        
       } catch (e) {
         console.error('Telegram SDK init error:', e);
-        // 即使失败也标记为就绪
+        // 即使失败也标记为就绪，使用默认值
+        document.documentElement.style.setProperty('--tg-content-safe-area-top', '56px');
         setIsSDKInitialized(true);
+        setSafeAreaReady(true);
       }
     };
 
@@ -196,53 +275,8 @@ function TelegramInitializer({ children }: PropsWithChildren) {
         viewport.expand();
       }
       
-      // 尝试调用 requestFullscreen (如果通过 SDK 暴露)
-      // 目前 @telegram-apps/sdk-react 可能还没完全封装 requestFullscreen，
-      // 所以主要依赖上面的原生调用。
-      
-      // 禁用垂直下拉关闭 Mini App 的行为（仅使用原生 API，避免 SDK 兼容性问题）
-      try {
-        const webApp = (window as any).Telegram?.WebApp;
-        if (webApp) {
-          webApp.expand(); // 再次尝试 expand
-          if (typeof webApp.disableVerticalSwipe === 'function') {
-            webApp.disableVerticalSwipe();
-          }
-          webApp.isVerticalSwipeAllowed = false; // 尝试旧属性
-          
-          // 手动读取并设置安全区 CSS 变量（确保生效）
-          const safeAreaInset = webApp.safeAreaInset;
-          const contentSafeAreaInset = webApp.contentSafeAreaInset;
-          
-          console.log('=== Safe Area Debug ===');
-          console.log('safeAreaInset:', safeAreaInset);
-          console.log('contentSafeAreaInset:', contentSafeAreaInset);
-          console.log('isFullscreen:', webApp.isFullscreen);
-          console.log('========================');
-          
-          // 手动设置 CSS 变量
-          if (safeAreaInset) {
-            document.documentElement.style.setProperty('--tg-safe-area-top', `${safeAreaInset.top || 0}px`);
-            document.documentElement.style.setProperty('--tg-safe-area-bottom', `${safeAreaInset.bottom || 0}px`);
-            document.documentElement.style.setProperty('--tg-safe-area-left', `${safeAreaInset.left || 0}px`);
-            document.documentElement.style.setProperty('--tg-safe-area-right', `${safeAreaInset.right || 0}px`);
-          }
-          
-          if (contentSafeAreaInset) {
-            document.documentElement.style.setProperty('--tg-content-safe-area-top', `${contentSafeAreaInset.top || 0}px`);
-            document.documentElement.style.setProperty('--tg-content-safe-area-bottom', `${contentSafeAreaInset.bottom || 0}px`);
-          }
-          
-          // 如果在全屏模式下但没有获取到 contentSafeAreaInset，设置一个默认值
-          if (webApp.isFullscreen && (!contentSafeAreaInset || contentSafeAreaInset.top === 0)) {
-            // 全屏模式下，Telegram 头部大约 56px
-            document.documentElement.style.setProperty('--tg-content-safe-area-top', '56px');
-            console.log('Set default content safe area top: 56px');
-          }
-        }
-      } catch (err) {
-        console.warn('Failed to setup safe area:', err);
-      }
+      // 再次尝试获取安全区（viewport 挂载后可能会有新值）
+      setupSafeAreaCssVars();
       
       // 添加一次性点击监听器，用户首次交互后尝试全屏（某些平台需要用户交互）
       const handleFirstInteraction = () => {
@@ -321,17 +355,23 @@ function TelegramInitializer({ children }: PropsWithChildren) {
         }
       }, 1000); // 每秒检查一次
       
-      // 只有在 Viewport 挂载并绑定变量后，才认为准备就绪（此时 CSS 变量已生效）
-      // 设置一小段延迟确保布局计算完成
-      const timer = setTimeout(() => setIsReady(true), 500);
       return () => {
-        clearTimeout(timer);
         clearInterval(expandInterval);
         document.removeEventListener('click', handleFirstInteraction);
         document.removeEventListener('touchstart', handleFirstInteraction);
       };
     }
   }, [isViewportMounted]);
+  
+  // 只有在安全区获取完成后才设置 isReady
+  useEffect(() => {
+    if (safeAreaReady && isViewportMounted) {
+      console.log('[READY] Safe area ready and viewport mounted, showing content');
+      // 再次确保安全区 CSS 变量已设置
+      setupSafeAreaCssVars();
+      setIsReady(true);
+    }
+  }, [safeAreaReady, isViewportMounted]);
 
   if (!isReady) {
     return <Preloader />;
