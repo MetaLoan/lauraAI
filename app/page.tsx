@@ -280,6 +280,48 @@ export default function Home() {
     setShowHistory(false)
   }
 
+  // Handle Telegram Back Button
+  useEffect(() => {
+    const webApp = (window as any).Telegram?.WebApp
+    if (!webApp) return
+
+    const backButton = webApp.BackButton
+
+    const handleTelegramBack = () => {
+      if (showChat) {
+        handleCloseChat()
+      } else if (showProfile) {
+        handleCloseProfile()
+      } else if (showHistory) {
+        handleCloseHistory()
+      } else if (creatingCharacterType && step === 9) {
+        // 如果正在创建角色且在第一步（性别选择），点击返回回到 Dashboard
+        handleGoToDashboard()
+      } else if (step > 0 && step !== 8.5 && step !== 10.5) {
+        handleBack()
+      }
+    }
+
+    // Determine visibility
+    // Show back button if:
+    // 1. Chat is open
+    // 2. Profile is open
+    // 3. History is open
+    // 4. Step > 0 (except specific intermediate steps)
+    const shouldShow = showChat || showProfile || showHistory || (step > 0 && step !== 8.5 && step !== 10.5)
+
+    if (shouldShow) {
+      backButton.show()
+      backButton.onClick(handleTelegramBack)
+    } else {
+      backButton.hide()
+    }
+
+    return () => {
+      backButton.offClick(handleTelegramBack)
+    }
+  }, [step, showChat, showProfile, showHistory, creatingCharacterType])
+
   const steps = [
     <Welcome key="welcome" onNext={handleNext} />,
     <NameInput key="name" value={formData.name} onChange={(val) => updateFormData('name', val)} onNext={handleNext} onBack={handleBack} />,
@@ -325,8 +367,8 @@ export default function Home() {
     <div 
       className="h-full flex flex-col bg-black text-white overflow-hidden"
       style={{
-        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))', // 移除 max(100px) 限制，让其紧贴顶部安全区
-        paddingBottom: '0px', 
+        paddingTop: step === 0 ? '0px' : 'max(100px, calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px)))',
+        paddingBottom: '0px', // 彻底移除底部 padding，解决黑条问题
         paddingLeft: 'var(--tg-safe-area-left, 0px)',
         paddingRight: 'var(--tg-safe-area-right, 0px)',
       }}

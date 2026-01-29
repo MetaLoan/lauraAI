@@ -78,15 +78,9 @@ export default function SoulmateDetailPage({
   }
 
   return (
-    <div className="min-h-screen flex flex-col pb-32 pt-tg-top">
+    <div className="h-full flex flex-col pb-32 pt-tg-top">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
-        <button
-          onClick={onBack}
-          className="p-3 rounded-full border border-white/30 hover:border-white/50 transition-colors"
-        >
-          <X className="w-6 h-6" />
-        </button>
         <h2 className="text-xl font-semibold">{title}</h2>
         <button className="p-3 rounded-full border border-white/30 hover:border-white/50 transition-colors">
           <Share2 className="w-6 h-6" />

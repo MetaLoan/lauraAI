@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 
 export default function Welcome({ onNext }: { onNext: () => void }) {
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-between p-6 relative overflow-hidden">
+    <div className="h-full bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Decorative striped background */}
       <div className="absolute inset-0 opacity-10">
         <svg className="w-full h-full" viewBox="0 0 400 800" preserveAspectRatio="none">
@@ -17,22 +17,24 @@ export default function Welcome({ onNext }: { onNext: () => void }) {
         </svg>
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center">
-        <h1 className="text-5xl font-bold mb-4 text-balance">Welcome to</h1>
-        <h2 className="text-6xl font-bold mb-8 text-balance">Laura AI</h2>
-        <p className="text-xl text-gray-300 max-w-sm text-balance">
+      <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-6 flex-1 max-w-sm">
+        <div className="space-y-3">
+          <h1 className="text-4xl md:text-5xl font-bold text-balance">Welcome to</h1>
+          <h2 className="text-5xl md:text-6xl font-bold text-balance">Laura AI</h2>
+        </div>
+        <p className="text-lg md:text-xl text-gray-300 text-balance px-4">
           Draw, Meet & Chat with Your AI Matches
         </p>
       </div>
 
-      <div className="relative z-10 w-full max-w-sm mb-8">
+      <div className="relative z-10 w-full max-w-sm pb-4">
         <Button
           onClick={onNext}
           className="w-full bg-white text-black hover:bg-gray-100 h-14 text-lg font-semibold rounded-xl"
         >
           Continue
         </Button>
-        <p className="text-center text-gray-500 text-xs mt-6">
+        <p className="text-center text-gray-500 text-xs mt-4">
           By clicking 'Continue,' you agree to our <span className="text-white font-semibold">Terms & Conditions</span> and <span className="text-white font-semibold">Privacy Policy.</span>
         </p>
       </div>

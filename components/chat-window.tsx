@@ -189,12 +189,6 @@ export default function ChatWindow({ characterId, characterTitle = 'Your Soulmat
               <p className="text-xs text-gray-400">Online</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
-          >
-            <X size={20} />
-          </button>
         </div>
 
         {/* Messages */}

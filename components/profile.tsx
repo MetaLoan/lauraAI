@@ -130,17 +130,9 @@ export default function Profile({
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-8 pt-tg-top">
+    <div className="h-full bg-black text-white pb-8 pt-tg-top overflow-y-auto">
       {/* Header */}
       <div className="px-6 py-6 border-b border-white/10">
-        <div className="flex items-center gap-4 mb-4">
-          <button
-            onClick={onBack}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-        </div>
         <h1 className="text-2xl font-bold mb-2">Profile</h1>
         <h2 className="text-4xl font-bold">{name || 'User'}</h2>
       </div>
