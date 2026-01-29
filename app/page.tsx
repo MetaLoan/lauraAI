@@ -307,7 +307,7 @@ export default function Home() {
       } else if (creatingCharacterType && step === 9) {
         // 如果正在创建角色且在第一步（性别选择），点击返回回到 Dashboard
         handleGoToDashboard()
-      } else if (step > 0 && step !== 8.5 && step !== 10.5) {
+      } else if (step > 0 && step !== 8.5 && step !== 10.5 && step !== 13) {
         handleBack()
       }
     }
@@ -317,16 +317,21 @@ export default function Home() {
     // 1. Chat is open
     // 2. Profile is open
     // 3. History is open
-    // 4. Step > 0 (except specific intermediate steps)
-    const shouldShow = showChat || showProfile || showHistory || (step > 0 && step !== 8.5 && step !== 10.5)
+    // 4. Step > 0 (except specific intermediate steps and Dashboard)
+    const shouldShowBack = showChat || showProfile || showHistory || (step > 0 && step !== 8.5 && step !== 10.5 && step !== 13)
 
-    if (shouldShow) {
+    if (shouldShowBack) {
       backButton.show()
       backButton.onClick(handleTelegramBack)
     } else {
       backButton.hide()
     }
 
+    // Settings Button / Close behavior for Dashboard
+    // Telegram doesn't have a native "Close" button toggle for the BackButton, 
+    // but we can hide the BackButton on Dashboard so the native "Close" or "X" 
+    // of the Mini App is the only option.
+    
     return () => {
       backButton.offClick(handleTelegramBack)
     }
