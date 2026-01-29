@@ -1,6 +1,9 @@
 // API URL: 优先使用环境变量，否则使用默认值
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api'
 
+// 请求超时时间（毫秒）
+const REQUEST_TIMEOUT = 15000
+
 interface ApiResponse<T> {
   code: number
   message: string
@@ -16,7 +19,8 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    timeout: number = REQUEST_TIMEOUT
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
     
@@ -44,18 +48,32 @@ class ApiClient {
       headers['X-Telegram-Init-Data'] = initData
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    })
+    // 添加超时控制
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeout)
 
-    const data: ApiResponse<T> = await response.json()
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
 
-    if (data.code !== 0) {
-      throw new Error(data.message || '请求失败')
+      const data: ApiResponse<T> = await response.json()
+
+      if (data.code !== 0) {
+        throw new Error(data.message || '请求失败')
+      }
+
+      return data.data as T
+    } catch (error) {
+      clearTimeout(timeoutId)
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('请求超时，请检查网络连接')
+      }
+      throw error
     }
-
-    return data.data as T
   }
 
   // 认证
@@ -143,11 +161,11 @@ class ApiClient {
     return this.request(`/characters/${characterId}/messages?limit=${limit}`)
   }
 
-  // 图片生成
+  // 图片生成（使用更长的超时时间，因为生成需要时间）
   async generateImage(characterId: string) {
     return this.request(`/characters/${characterId}/generate-image`, {
       method: 'POST',
-    })
+    }, 60000) // 60秒超时
   }
 }
 
