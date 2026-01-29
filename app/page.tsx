@@ -58,11 +58,14 @@ export default function Home() {
           setStep(0)
         }
       } catch (error) {
+        console.error('检查用户状态失败:', error)
         // 出错时也显示 Welcome 页面
         setStep(0)
       } finally {
-        // 立即隐藏 preloader（TelegramProvider 已经处理了最小显示时间）
-        setIsLoading(false)
+        // 延迟一小会儿隐藏 preloader，确保状态已切换
+        setTimeout(() => {
+          setIsLoading(false)
+        }, 500)
       }
     }
     checkUserStatus()
