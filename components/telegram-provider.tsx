@@ -72,10 +72,10 @@ function setupSafeAreaCssVars(): boolean {
   // 设置设备安全区
   if (safeAreaInset) {
     document.documentElement.style.setProperty('--tg-safe-area-top', `${safeAreaInset.top || 0}px`);
-    document.documentElement.style.setProperty('--tg-safe-area-bottom', `${safeAreaInset.bottom || 0}px`);
+    document.documentElement.style.setProperty('--tg-safe-area-bottom', '0px'); // 强制设为 0，移除底部黑条
     document.documentElement.style.setProperty('--tg-safe-area-left', `${safeAreaInset.left || 0}px`);
     document.documentElement.style.setProperty('--tg-safe-area-right', `${safeAreaInset.right || 0}px`);
-    if (safeAreaInset.top > 0 || safeAreaInset.bottom > 0) {
+    if (safeAreaInset.top > 0) {
       hasValidValues = true;
     }
   }
@@ -83,7 +83,7 @@ function setupSafeAreaCssVars(): boolean {
   // 设置内容安全区
   if (contentSafeAreaInset) {
     document.documentElement.style.setProperty('--tg-content-safe-area-top', `${contentSafeAreaInset.top || 0}px`);
-    document.documentElement.style.setProperty('--tg-content-safe-area-bottom', `${contentSafeAreaInset.bottom || 0}px`);
+    document.documentElement.style.setProperty('--tg-content-safe-area-bottom', '0px'); // 强制设为 0，移除底部黑条
     if (contentSafeAreaInset.top > 0) {
       hasValidValues = true;
       console.log(`[SAFE AREA] Got valid content safe area top: ${contentSafeAreaInset.top}px`);
