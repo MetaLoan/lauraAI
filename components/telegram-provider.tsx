@@ -92,6 +92,12 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       
       // 禁用垂直下拉关闭 Mini App 的行为
       try {
+        // 优先尝试直接调用原生方法，这是最可靠的方式
+        if ((window as any).Telegram?.WebApp) {
+          (window as any).Telegram.WebApp.isVerticalSwipeAllowed = false;
+        }
+        
+        // 同时尝试 SDK 的方法（如果可用）
         if (viewport.isVerticalSwipeAllowed.isAvailable() && viewport.isVerticalSwipeAllowed()) {
           viewport.allowVerticalSwipe(false);
         }
