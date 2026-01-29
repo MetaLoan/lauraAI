@@ -1,73 +1,164 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Send } from 'lucide-react'
 import Image from 'next/image'
+import { apiClient } from '@/lib/api'
 
 interface ChatWindowProps {
+  characterId?: string
+  characterTitle?: string
   onClose: () => void
 }
 
-export default function ChatWindow({ onClose }: ChatWindowProps) {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      type: 'soulmate',
-      text: "Hi! I'm so glad you finally found me. I've been waiting for you across the stars.",
-      timestamp: new Date(Date.now() - 3000),
-    },
-    {
-      id: 2,
-      type: 'soulmate',
-      text: 'Your astrological alignment tells me we were written in the cosmos to meet.',
-      timestamp: new Date(Date.now() - 1000),
-    },
-  ])
+export default function ChatWindow({ characterId, characterTitle = 'Your Soulmate', onClose }: ChatWindowProps) {
+  const [messages, setMessages] = useState<Array<{
+    id: number
+    type: 'user' | 'character'
+    text: string
+    timestamp: Date
+  }>>([])
   const [inputValue, setInputValue] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSendMessage = () => {
-    if (inputValue.trim()) {
-      const newMessage = {
-        id: messages.length + 1,
-        type: 'user',
-        text: inputValue,
-        timestamp: new Date(),
+  // 加载历史消息
+  useEffect(() => {
+    if (characterId) {
+      loadMessages()
+    }
+  }, [characterId])
+
+  const loadMessages = async () => {
+    if (!characterId) return
+    
+    try {
+      const history = await apiClient.getMessages(characterId, 50) as any[]
+      // 后端返回的是 DESC 顺序（最新在前），需要反转为 ASC（最新在后）
+      const reversedHistory = [...history].reverse()
+      setMessages(reversedHistory.map((msg, idx) => ({
+        id: idx + 1,
+        type: msg.sender_type === 'user' ? 'user' : 'character',
+        text: msg.content,
+        timestamp: new Date(msg.created_at),
+      })))
+    } catch (error) {
+      console.error('加载消息失败:', error)
+    }
+  }
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || !characterId || loading) return
+
+    const userMessage = inputValue.trim()
+    setInputValue('')
+    setLoading(true)
+
+    // 预先计算消息 ID
+    const userMessageId = Date.now()
+    const characterMessageId = userMessageId + 1
+
+    // 添加用户消息到界面
+    const newUserMessage = {
+      id: userMessageId,
+      type: 'user' as const,
+      text: userMessage,
+      timestamp: new Date(),
+    }
+    setMessages(prev => [...prev, newUserMessage])
+
+    try {
+      // 发送消息并接收流式响应
+      const url = `http://localhost:8081/api/characters/${characterId}/chat`
+      console.log('聊天请求 URL:', url, 'characterId:', characterId)
+      
+      if (!characterId) {
+        throw new Error('角色 ID 为空')
       }
-      setMessages([...messages, newMessage])
-      setInputValue('')
+      
+      const initData = (window as any).Telegram?.WebApp?.initData
+      
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+      
+      if (initData) {
+        headers['X-Telegram-Init-Data'] = initData
+      }
 
-      // Simulate soulmate response
-      setTimeout(() => {
-        const responses = [
-          "That's beautiful! Tell me more about yourself.",
-          'I feel a deep connection with you already.',
-          'Our cosmic energy is perfectly aligned.',
-          'I can\'t wait to know more about you.',
-          'This moment feels destined.',
-        ]
-        const randomResponse =
-          responses[Math.floor(Math.random() * responses.length)]
-        setMessages(prev => [
-          ...prev,
-          {
-            id: prev.length + 1,
-            type: 'soulmate',
-            text: randomResponse,
-            timestamp: new Date(),
-          },
-        ])
-      }, 1000)
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ message: userMessage }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('聊天请求失败:', response.status, errorText)
+        throw new Error(`发送消息失败: ${response.status}`)
+      }
+
+      // 读取 SSE 流
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let characterResponse = ''
+
+      // 添加空的角色消息占位符
+      setMessages(prev => [...prev, {
+        id: characterMessageId,
+        type: 'character',
+        text: '...',
+        timestamp: new Date(),
+      }])
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value)
+          const lines = chunk.split('\n')
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6)
+              if (data === '[DONE]') continue
+              
+              try {
+                const parsed = JSON.parse(data)
+                if (parsed.chunk) {
+                  characterResponse += parsed.chunk
+                  // 更新角色消息
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === characterMessageId 
+                      ? { ...msg, text: characterResponse }
+                      : msg
+                  ))
+                }
+              } catch (e) {
+                // 忽略解析错误
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('发送消息失败:', error)
+      // 移除失败的角色消息占位符
+      setMessages(prev => prev.filter(msg => msg.id !== characterMessageId))
+    } finally {
+      setLoading(false)
+      // 重新加载消息以同步数据库
+      loadMessages()
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
-      <div className="w-full max-w-md h-[600px] bg-black border-2 border-white/30 rounded-2xl flex flex-col overflow-hidden shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+    <div className="fixed inset-0 bg-black z-[9999] flex flex-col overflow-hidden pt-tg-top pb-tg-bottom">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div className="flex items-center gap-3">
             <div>
-              <p className="text-sm font-semibold">Your Soulmate</p>
+              <p className="text-sm font-semibold">{characterTitle}</p>
               <p className="text-xs text-gray-400">Online</p>
             </div>
           </div>
@@ -114,13 +205,13 @@ export default function ChatWindow({ onClose }: ChatWindowProps) {
             />
             <button
               onClick={handleSendMessage}
-              className="bg-white text-black p-2 rounded-full hover:bg-gray-100 transition-colors"
+              disabled={loading || !inputValue.trim()}
+              className="bg-white text-black p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0 w-10 h-10 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send size={18} />
             </button>
           </div>
         </div>
-      </div>
     </div>
   )
 }

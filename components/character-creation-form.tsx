@@ -2,22 +2,26 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, AlertCircle, RefreshCw } from 'lucide-react'
+import { apiClient } from '@/lib/api'
 
 interface CharacterCreationFormProps {
   characterName: string
+  characterType?: string
   onBack: () => void
   onComplete: () => void
 }
 
 export default function CharacterCreationForm({
   characterName,
+  characterType = 'companion',
   onBack,
   onComplete,
 }: CharacterCreationFormProps) {
   const [gender, setGender] = useState('')
   const [ethnicity, setEthnicity] = useState('')
-  const [loadingComplete, setLoadingComplete] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const ethnicities = [
     'Black / African',
@@ -31,23 +35,74 @@ export default function CharacterCreationForm({
     'Mixed',
   ]
 
-  const handleComplete = () => {
-    if (gender && ethnicity) {
-      setLoadingComplete(true)
-      setTimeout(() => {
-        onComplete()
-      }, 2000)
+  const handleComplete = async () => {
+    if (!gender || !ethnicity) return
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      // 创建角色
+      const character = await apiClient.createCharacter({
+        type: characterType,
+        title: characterName,
+        gender: gender,
+        ethnicity: ethnicity,
+      })
+
+      if (!character || !(character as any).id) {
+        throw new Error('创建角色失败：未返回有效的角色数据')
+      }
+
+      // 生成角色图片
+      const imageResult = await apiClient.generateImage((character as any).id.toString())
+      if (!imageResult || !(imageResult as any).image_url) {
+        throw new Error('生成图片失败：未返回有效的图片数据')
+      }
+
+      console.log('角色创建成功:', character)
+      onComplete()
+    } catch (err) {
+      console.error('创建角色失败:', err)
+      setError(err instanceof Error ? err.message : '创建失败，请重试')
+      setIsLoading(false)
     }
   }
 
-  if (loadingComplete) {
+  if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-6" />
         <h1 className="text-2xl font-bold text-center mb-4">Creating {characterName}...</h1>
         <p className="text-gray-400 text-center max-w-sm">
-          Crafting your perfect {characterName} with personalized traits.
+          Crafting your perfect {characterName} with personalized traits and generating AI portrait.
         </p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-6">
+        <AlertCircle className="w-16 h-16 text-red-500 mb-6" />
+        <h1 className="text-2xl font-bold text-center mb-4 text-red-500">Creation Failed</h1>
+        <p className="text-gray-400 text-center max-w-sm mb-8">{error}</p>
+        <div className="flex gap-4">
+          <Button
+            onClick={() => setError(null)}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-semibold"
+          >
+            <RefreshCw className="w-5 h-5 mr-2" />
+            Retry
+          </Button>
+          <Button
+            onClick={onBack}
+            variant="outline"
+            className="border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-full font-semibold"
+          >
+            Go Back
+          </Button>
+        </div>
       </div>
     )
   }

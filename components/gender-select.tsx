@@ -50,7 +50,7 @@ export default function GenderSelect({
         </div>
       </div>
 
-      <div className="w-full" />
+      <div className="w-full max-w-md h-14" />
     </div>
   )
 }

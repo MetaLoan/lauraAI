@@ -88,17 +88,17 @@ export default function BirthPlaceInput({
           )}
 
           {suggestions.length > 0 && (
-            <div className="absolute w-full mt-2 z-10 bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
+            <div className="absolute w-full mt-2 z-10 bg-black border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
               {suggestions.map((place) => (
                 <button
                   key={place.place_id}
                   onClick={() => handleSelect(place)}
-                  className="w-full text-left p-4 hover:bg-gray-800 transition-colors border-b border-gray-800 last:border-none"
+                  className="w-full text-left p-4 bg-black hover:bg-gray-900 transition-colors border-b border-gray-800 last:border-none text-white"
                 >
                   <p className="text-white text-sm font-medium truncate">
                     {place.display_name.split(',')[0]}
                   </p>
-                  <p className="text-gray-500 text-xs truncate">
+                  <p className="text-gray-400 text-xs truncate">
                     {place.display_name.split(',').slice(1).join(',').trim()}
                   </p>
                 </button>
@@ -106,25 +106,25 @@ export default function BirthPlaceInput({
             </div>
           )}
         </div>
-
-        <div className="w-full space-y-3">
-          <Button
-            onClick={handleNext}
-            disabled={!input.trim()}
-            className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
-          >
-            Continue
-          </Button>
-          <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-sm">
-            Skip
-          </button>
-        </div>
-
-        <p className="text-gray-500 text-xs mt-6 text-center">
-          Your birth place is essential for accurate calculations and personalized guidance. Your privacy is our priority, and this
-          information will never be shared with third parties.
-        </p>
       </div>
+
+      <div className="w-full max-w-md space-y-3">
+        <Button
+          onClick={handleNext}
+          disabled={!input.trim()}
+          className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 text-lg font-semibold rounded-xl"
+        >
+          Continue
+        </Button>
+        <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-sm">
+          Skip
+        </button>
+      </div>
+
+      <p className="text-gray-500 text-xs mt-6 text-center max-w-md">
+        Your birth place is essential for accurate calculations and personalized guidance. Your privacy is our priority, and this
+        information will never be shared with third parties.
+      </p>
     </div>
   )
 }
