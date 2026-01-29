@@ -30,13 +30,15 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       try {
         // init() 会尝试获取启动参数，如果失败会抛出异常
         init();
+        
+        // 尝试尽早调用 expand，不等待 React 状态更新
         const webApp = (window as any).Telegram?.WebApp;
-        if (webApp?.ready) {
+        if (webApp) {
           webApp.ready();
-        }
-        if (webApp?.expand) {
           webApp.expand();
+          console.log('Telegram WebApp initialized and expanded immediately');
         }
+        
         setIsSDKInitialized(true);
       } catch (e) {
         console.error('Telegram SDK init error:', e);
@@ -124,10 +126,16 @@ function TelegramInitializer({ children }: PropsWithChildren) {
       // 定时检查全屏状态（兜底方案）
       const expandInterval = setInterval(() => {
         const webApp = (window as any).Telegram?.WebApp;
-        if (webApp && !webApp.isExpanded) {
-          webApp.expand();
+        if (webApp) {
+            if (!webApp.isExpanded) {
+                webApp.expand();
+            }
+            // 持续尝试禁用垂直滑动
+            if (typeof webApp.disableVerticalSwipe === 'function') {
+                webApp.disableVerticalSwipe();
+            }
         }
-      }, 2000);
+      }, 1000);
       
       // 只有在 Viewport 挂载并绑定变量后，才认为准备就绪（此时 CSS 变量已生效）
       // 设置一小段延迟确保布局计算完成
