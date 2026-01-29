@@ -66,8 +66,8 @@ func (s *GeminiImagenService) GenerateMiniMeImage(ctx context.Context, descripti
 	}
 
 	// 构建 Mini Me 风格提示词
-	// 使用 Pixar/Disney 3D 风格
-	prompt := fmt.Sprintf("A high-quality 3D Pixar-style character avatar of a person with these features: %s. The character should have expressive, large eyes, smooth skin textures, and a friendly, charming personality. 3D Disney animation style, vibrant colors, cinematic soft lighting, detailed clothing textures, solid soft-colored background, 8k resolution, masterpiece, trending on ArtStation.", description)
+	// 使用更写实、更具艺术感的 3D 风格，避免过于低幼的卡通感
+	prompt := fmt.Sprintf("A stunning 3D digital art portrait of a person with these features: %s. The style should be modern 3D animation (like modern Disney or Riot Games cinematic style), with extremely detailed skin texture, realistic hair rendering, and expressive, soulful eyes. Soft cinematic studio lighting, shallow depth of field, vibrant but natural colors, solid neutral background. 8k resolution, masterpiece, trending on ArtStation, highly detailed, sharp focus.", description)
 
 	return s.doGenerateImageWithPrompt(ctx, prompt)
 }
