@@ -209,9 +209,39 @@ function TelegramInitializer({ children }: PropsWithChildren) {
             webApp.disableVerticalSwipe();
           }
           webApp.isVerticalSwipeAllowed = false; // 尝试旧属性
+          
+          // 手动读取并设置安全区 CSS 变量（确保生效）
+          const safeAreaInset = webApp.safeAreaInset;
+          const contentSafeAreaInset = webApp.contentSafeAreaInset;
+          
+          console.log('=== Safe Area Debug ===');
+          console.log('safeAreaInset:', safeAreaInset);
+          console.log('contentSafeAreaInset:', contentSafeAreaInset);
+          console.log('isFullscreen:', webApp.isFullscreen);
+          console.log('========================');
+          
+          // 手动设置 CSS 变量
+          if (safeAreaInset) {
+            document.documentElement.style.setProperty('--tg-safe-area-top', `${safeAreaInset.top || 0}px`);
+            document.documentElement.style.setProperty('--tg-safe-area-bottom', `${safeAreaInset.bottom || 0}px`);
+            document.documentElement.style.setProperty('--tg-safe-area-left', `${safeAreaInset.left || 0}px`);
+            document.documentElement.style.setProperty('--tg-safe-area-right', `${safeAreaInset.right || 0}px`);
+          }
+          
+          if (contentSafeAreaInset) {
+            document.documentElement.style.setProperty('--tg-content-safe-area-top', `${contentSafeAreaInset.top || 0}px`);
+            document.documentElement.style.setProperty('--tg-content-safe-area-bottom', `${contentSafeAreaInset.bottom || 0}px`);
+          }
+          
+          // 如果在全屏模式下但没有获取到 contentSafeAreaInset，设置一个默认值
+          if (webApp.isFullscreen && (!contentSafeAreaInset || contentSafeAreaInset.top === 0)) {
+            // 全屏模式下，Telegram 头部大约 56px
+            document.documentElement.style.setProperty('--tg-content-safe-area-top', '56px');
+            console.log('Set default content safe area top: 56px');
+          }
         }
       } catch (err) {
-        console.warn('Failed to disable vertical swipe:', err);
+        console.warn('Failed to setup safe area:', err);
       }
       
       // 添加一次性点击监听器，用户首次交互后尝试全屏（某些平台需要用户交互）
@@ -274,6 +304,19 @@ function TelegramInitializer({ children }: PropsWithChildren) {
                 webApp.disableVerticalSwipes();
             } else if (typeof webApp.disableVerticalSwipe === 'function') {
                 webApp.disableVerticalSwipe();
+            }
+            
+            // 更新安全区 CSS 变量（全屏模式可能在稍后生效）
+            if (checkCount <= 10) {
+              const contentSafeAreaInset = webApp.contentSafeAreaInset;
+              if (contentSafeAreaInset && contentSafeAreaInset.top > 0) {
+                document.documentElement.style.setProperty('--tg-content-safe-area-top', `${contentSafeAreaInset.top}px`);
+                document.documentElement.style.setProperty('--tg-content-safe-area-bottom', `${contentSafeAreaInset.bottom || 0}px`);
+                console.log(`[CHECK ${checkCount}] Updated content safe area top: ${contentSafeAreaInset.top}px`);
+              } else if (webApp.isFullscreen) {
+                // 全屏模式下设置默认值
+                document.documentElement.style.setProperty('--tg-content-safe-area-top', '56px');
+              }
             }
         }
       }, 1000); // 每秒检查一次
