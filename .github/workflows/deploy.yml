@@ -1,0 +1,56 @@
+name: 部署前端到 Vercel
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: 部署到 Vercel
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: 安装依赖
+        run: npm ci
+      
+      - name: 运行代码检查
+        run: npm run lint || true
+        continue-on-error: true
+      
+      - name: 构建项目
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api' }}
+      
+      - name: 检查构建输出
+        run: |
+          if [ -d ".next" ]; then
+            echo "✅ 构建成功"
+            du -sh .next
+          else
+            echo "❌ 构建失败"
+            exit 1
+          fi
+      
+      - name: 部署到 Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./
+      
+      - name: 部署成功通知
+        if: success()
+        run: echo "✅ 部署成功！"
