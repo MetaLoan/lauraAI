@@ -33,17 +33,8 @@ export default function SoulmateEthnicitySelect({
   characterTitle = 'Soulmate',
 }: SoulmateEthnicitySelectProps) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-between px-6 py-8">
+    <div className="h-full flex flex-col items-center justify-center px-6 py-8">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md pb-32">
-        <div className="w-full flex justify-start mb-4">
-          <button
-            onClick={onBack}
-            className="p-3 rounded-full border border-white/20 hover:border-white/40 transition-colors"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-        </div>
-
         <h1 className="text-4xl font-bold mb-6">
           What ethnic background for your {characterTitle}?
         </h1>

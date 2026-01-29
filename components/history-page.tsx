@@ -63,19 +63,13 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
   }, [])
 
   return (
-    <div className="fixed inset-0 bg-black z-[9999] flex flex-col overflow-hidden pt-tg-top pb-tg-bottom">
+    <div className="fixed inset-0 bg-black z-[9999] flex flex-col overflow-hidden pt-tg-top pb-tg-bottom h-full">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
           <MessageSquare className="w-6 h-6 text-white" />
           <h1 className="text-lg font-bold">Chat History</h1>
         </div>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-white/10 rounded-full transition-colors"
-        >
-          <X size={24} />
-        </button>
       </div>
 
       {/* Content */}
