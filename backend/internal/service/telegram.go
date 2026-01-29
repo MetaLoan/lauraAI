@@ -23,71 +23,67 @@ type TelegramUser struct {
 
 // ValidateTelegramInitData 验证 Telegram initData 签名
 func ValidateTelegramInitData(initData string) (*TelegramUser, error) {
-	if config.AppConfig.TelegramBotToken == "" {
+	if strings.TrimSpace(config.AppConfig.TelegramBotToken) == "" {
 		return nil, fmt.Errorf("TELEGRAM_BOT_TOKEN 未配置")
 	}
 
-	// 提取 hash
-	hash := ""
-	var pairs []string
-	for _, part := range strings.Split(initData, "&") {
-		kv := strings.SplitN(part, "=", 2)
-		if len(kv) != 2 {
-			continue
-		}
-		key := kv[0]
-		val := kv[1]
-		if key == "hash" {
-			hash = val
-			continue
-		}
-		if key == "signature" {
-			continue
-		}
-		pairs = append(pairs, key+"="+val)
+	// 使用 url.ParseQuery 解析参数（会自动处理 URL 编码，得到解码后的值）
+	// 经过测试验证，必须使用解码后的值来构建 dataCheckString
+	params, err := url.ParseQuery(initData)
+	if err != nil {
+		return nil, fmt.Errorf("解析 initData 失败: %v", err)
 	}
 
+	// 提取并移除 hash
+	hash := params.Get("hash")
 	if hash == "" {
 		return nil, fmt.Errorf("缺少 hash 参数")
 	}
+	params.Del("hash")
+	// 注意：不要移除 signature，经过测试它必须参与签名计算
 
-	// 按字母顺序排序参数
-	sort.Strings(pairs)
+	// 按字母顺序排序参数键
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
 
 	// 构建 data-check-string
+	var pairs []string
+	for _, k := range keys {
+		pairs = append(pairs, k+"="+params.Get(k))
+	}
 	dataCheckString := strings.Join(pairs, "\n")
 
-	// 计算 secret_key
-	secretKey := hmacSHA256([]byte("WebAppData"), []byte(config.AppConfig.TelegramBotToken))
+	fmt.Printf("DEBUG: dataCheckString (quoted): %q\n", dataCheckString)
 
-	// 计算 HMAC-SHA256
+	// 计算 secret_key = HMAC_SHA256(bot_token, key="WebAppData")
+	botToken := strings.TrimSpace(config.AppConfig.TelegramBotToken)
+	botToken = strings.Trim(botToken, `"'`)
+	secretKey := hmacSHA256([]byte(botToken), []byte("WebAppData"))
+
+	// 计算 hash = HMAC_SHA256(data_check_string, secret_key)
 	calculatedHash := hex.EncodeToString(
 		hmacSHA256([]byte(dataCheckString), secretKey),
 	)
 
-	// 验证 hash
+	fmt.Printf("DEBUG: calculatedHash: %s\n", calculatedHash)
+	fmt.Printf("DEBUG: receivedHash: %s\n", hash)
+
 	if calculatedHash != hash {
 		fmt.Printf("DEBUG: 签名验证失败\n")
-		fmt.Printf("DEBUG: dataCheckString: %s\n", dataCheckString)
-		fmt.Printf("DEBUG: calculatedHash: %s\n", calculatedHash)
-		fmt.Printf("DEBUG: receivedHash: %s\n", hash)
 		return nil, fmt.Errorf("签名验证失败")
 	}
 
+	fmt.Printf("DEBUG: 签名验证成功！\n")
+
 	// 解析用户信息
-	params, _ := url.ParseQuery(initData)
 	userStr := params.Get("user")
 	if userStr == "" {
 		return nil, fmt.Errorf("缺少 user 参数")
 	}
 
-	// URL 解码
-	userStr, err := url.QueryUnescape(userStr)
-	if err != nil {
-		return nil, fmt.Errorf("解码 user 参数失败: %v", err)
-	}
-
-	// 解析 JSON
 	var user TelegramUser
 	if err := json.Unmarshal([]byte(userStr), &user); err != nil {
 		return nil, fmt.Errorf("解析 user JSON 失败: %v", err)
