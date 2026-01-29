@@ -128,9 +128,9 @@ export default function Dashboard({
 
   // 点击添加按钮，创建新角色
   const handleCreateNewCharacter = (charType: CharacterType) => {
-    if (charType.requiresUpload) {
-      // Mini Me requires upload
-      console.log('Opening Mini Me upload')
+    if (charType.type === 'mini_me' && onCreateCharacter) {
+      // Mini Me 特殊处理，跳转到上传页面
+      onCreateCharacter({ type: 'mini_me', title: 'Mini Me' })
     } else if (onCreateCharacter) {
       // 使用父组件的创建流程
       onCreateCharacter({ type: charType.type, title: charType.title })

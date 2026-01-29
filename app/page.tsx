@@ -143,7 +143,12 @@ export default function Home() {
     // 清空之前的角色数据
     updateFormData('soulmateGender', '')
     updateFormData('soulmateEthnicity', '')
-    setStep(9) // 跳转到性别选择步骤
+    
+    if (charType.type === 'mini_me') {
+      setStep(8.5) // 跳转到 Mini Me 上传步骤
+    } else {
+      setStep(9) // 跳转到性别选择步骤
+    }
   }
 
   const handleNext = () => {
@@ -349,6 +354,7 @@ export default function Home() {
     <ResultsCard key="results" onNext={handleNext} onBack={handleBack} />,
     <SoulmateGenderSelect key="soulmateGender" value={formData.soulmateGender} onChange={(val) => updateFormData('soulmateGender', val)} onNext={handleNext} onBack={creatingCharacterType ? handleGoToDashboard : handleBack} characterTitle={creatingCharacterType?.title || 'Soulmate'} />,
     <SoulmateEthnicitySelect key="soulmateEthnicity" value={formData.soulmateEthnicity} onChange={(val) => updateFormData('soulmateEthnicity', val)} onNext={handleNext} onBack={handleBack} characterTitle={creatingCharacterType?.title || 'Soulmate'} />,
+    <MiniMeUpload key="miniMeUpload" onNext={handleNext} onBack={handleGoToDashboard} />,
     <DrawingLoading key="drawing" onBack={handleBack} error={generationError} onRetry={() => { setIsGenerating(false); setGenerationError(null); }} />,
     <SoulmateDetailPage key="detail" character={selectedCharacterData} onNext={handleOpenChat} onBack={handleGoToDashboard} />,
     <Dashboard 
