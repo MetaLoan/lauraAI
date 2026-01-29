@@ -78,7 +78,17 @@ export default function ChatWindow({ characterId, characterTitle = 'Your Soulmat
         throw new Error('角色 ID 为空')
       }
       
-      const initData = (window as any).Telegram?.WebApp?.initData
+      // 从 Telegram Mini App 获取 initData
+      let initData = (window as any).Telegram?.WebApp?.initData
+      
+      // 备用方案：尝试从 URL 获取 initData
+      if (!initData && typeof window !== 'undefined') {
+        const hash = window.location.hash.slice(1)
+        const params = new URLSearchParams(hash)
+        initData = params.get('tgWebAppData')
+      }
+      
+      console.log('initData 长度:', initData?.length || 0)
       
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
@@ -86,6 +96,8 @@ export default function ChatWindow({ characterId, characterTitle = 'Your Soulmat
       
       if (initData) {
         headers['X-Telegram-Init-Data'] = initData
+      } else {
+        console.error('无法获取 Telegram initData')
       }
 
       const response = await fetch(url, {
