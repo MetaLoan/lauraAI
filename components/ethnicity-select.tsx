@@ -31,13 +31,17 @@ export default function EthnicitySelect({
   }
 
   return (
-    <div className="h-full bg-black flex flex-col items-center justify-center p-6">
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md pb-32">
-        <h1 className="text-3xl font-bold mb-8 text-balance">
+    <div className="h-full bg-black flex flex-col p-6">
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 w-full max-w-md mx-auto mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-balance text-center">
           Last question, could you share your ethnic background?
         </h1>
+      </div>
 
-        <div className="w-full space-y-3 mb-8">
+      {/* Scrollable Options List */}
+      <div className="flex-1 w-full max-w-md mx-auto overflow-y-auto scrollbar-hide mb-6">
+        <div className="w-full space-y-3">
           {options.map((option) => (
             <SelectionButton
               key={option}
@@ -49,8 +53,8 @@ export default function EthnicitySelect({
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-black/60 backdrop-blur-md z-50">
-        <div className="max-w-md mx-auto">
+      {/* Fixed Footer Button */}
+      <div className="flex-shrink-0 w-full max-w-md mx-auto">
           <Button
             onClick={() => {
               onChange(value)
@@ -61,7 +65,6 @@ export default function EthnicitySelect({
           >
             Continue
           </Button>
-        </div>
       </div>
     </div>
   )

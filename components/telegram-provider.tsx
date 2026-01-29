@@ -8,7 +8,7 @@ import {
   themeParams,
   isTMA
 } from '@telegram-apps/sdk-react';
-import { type PropsWithChildren, useEffect, useState } from 'react';
+import { type PropsWithChildren, useEffect, useState, useRef } from 'react';
 import Preloader from './ui/preloader';
 
 // 强制发送 web_app_request_fullscreen 事件，绕过 JS 封装层
@@ -148,6 +148,7 @@ function TelegramInitializer({ children }: PropsWithChildren) {
   const [isReady, setIsReady] = useState(false);
   const [isSDKInitialized, setIsSDKInitialized] = useState(false);
   const [safeAreaReady, setSafeAreaReady] = useState(false);
+  const startTimeRef = useRef<number>(Date.now());
 
   // 初始化 SDK
   useEffect(() => {
@@ -158,7 +159,13 @@ function TelegramInitializer({ children }: PropsWithChildren) {
         console.warn('Not in Telegram Mini App environment');
         setIsSDKInitialized(true);
         setSafeAreaReady(true);
-        setIsReady(true);
+        // 确保至少显示3秒
+        const elapsed = Date.now() - startTimeRef.current;
+        const minDisplayTime = 3000;
+        const remainingTime = Math.max(0, minDisplayTime - elapsed);
+        setTimeout(() => {
+          setIsReady(true);
+        }, remainingTime);
         return;
       }
 
@@ -434,13 +441,21 @@ function TelegramInitializer({ children }: PropsWithChildren) {
     }
   }, [isViewportMounted]);
   
-  // 只有在安全区获取完成后才设置 isReady
+  // 只有在安全区获取完成后才设置 isReady，并确保至少显示3秒
   useEffect(() => {
     if (safeAreaReady && isViewportMounted) {
-      console.log('[READY] Safe area ready and viewport mounted, showing content');
-      // 再次确保安全区 CSS 变量已设置
-      setupSafeAreaCssVars();
-      setIsReady(true);
+      const elapsed = Date.now() - startTimeRef.current;
+      const minDisplayTime = 3000; // 最少显示3秒
+      const remainingTime = Math.max(0, minDisplayTime - elapsed);
+      
+      const timer = setTimeout(() => {
+        console.log('[READY] Safe area ready and viewport mounted, showing content');
+        // 再次确保安全区 CSS 变量已设置
+        setupSafeAreaCssVars();
+        setIsReady(true);
+      }, remainingTime);
+      
+      return () => clearTimeout(timer);
     }
   }, [safeAreaReady, isViewportMounted]);
 

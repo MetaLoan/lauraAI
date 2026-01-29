@@ -174,4 +174,17 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  
+  @keyframes loading-slide {
+    0% {
+      left: -30%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+  
+  .animate-loading-slide {
+    animation: loading-slide 1.5s ease-in-out infinite;
+  }
 }

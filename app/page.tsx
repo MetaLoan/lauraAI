@@ -42,9 +42,8 @@ export default function Home() {
   const [selectedCharacterData, setSelectedCharacterData] = useState<any>(null)
   const [dashboardKey, setDashboardKey] = useState(0) // 用于强制刷新 Dashboard
   const [creatingCharacterType, setCreatingCharacterType] = useState<{ type: string; title: string } | null>(null)
-  const [isLoading, setIsLoading] = useState(true) // 初始加载状态
 
-  // 检查用户是否已完成引导流程
+  // 检查用户是否已完成引导流程（后台检查，不阻塞UI）
   useEffect(() => {
     const checkUserStatus = async () => {
       try {
@@ -55,8 +54,6 @@ export default function Home() {
         }
       } catch (error) {
         console.log('用户未登录或未完成引导')
-      } finally {
-        setIsLoading(false)
       }
     }
     checkUserStatus()
@@ -344,24 +341,6 @@ export default function Home() {
       onOpenHistory={handleOpenHistory}
     />,
   ]
-
-  // 初始加载时显示加载状态
-  if (isLoading) {
-    return (
-      <div 
-        className="min-h-screen bg-black text-white flex items-center justify-center"
-        style={{
-          paddingTop: 'max(56px, calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px)))',
-          paddingBottom: 'max(20px, calc(var(--tg-safe-area-bottom, 0px) + var(--tg-content-safe-area-bottom, 0px)))',
-        }}
-      >
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/60">Loading...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div 

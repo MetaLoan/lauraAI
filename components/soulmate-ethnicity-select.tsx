@@ -1,7 +1,6 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { ChevronLeft } from 'lucide-react'
 import { SelectionButton } from '@/components/ui/selection-button'
 
 interface SoulmateEthnicitySelectProps {
@@ -33,13 +32,17 @@ export default function SoulmateEthnicitySelect({
   characterTitle = 'Soulmate',
 }: SoulmateEthnicitySelectProps) {
   return (
-    <div className="h-full flex flex-col items-center justify-center px-6 py-8">
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md pb-32">
-        <h1 className="text-4xl font-bold mb-6">
+    <div className="h-full flex flex-col p-6">
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 w-full max-w-md mx-auto mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-balance text-center">
           What ethnic background for your {characterTitle}?
         </h1>
+      </div>
 
-        <div className="w-full space-y-3 mb-8">
+      {/* Scrollable Options List */}
+      <div className="flex-1 w-full max-w-md mx-auto overflow-y-auto scrollbar-hide mb-6">
+        <div className="w-full space-y-3">
           {ethnicities.map((ethnicity) => (
             <SelectionButton
               key={ethnicity}
@@ -51,16 +54,15 @@ export default function SoulmateEthnicitySelect({
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-black/60 backdrop-blur-md z-50">
-        <div className="max-w-md mx-auto">
-          <Button
-            onClick={onNext}
-            disabled={!value}
-            className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 rounded-xl text-lg font-semibold"
-          >
-            Continue
-          </Button>
-        </div>
+      {/* Fixed Footer Button */}
+      <div className="flex-shrink-0 w-full max-w-md mx-auto">
+        <Button
+          onClick={onNext}
+          disabled={!value}
+          className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed h-14 rounded-xl text-lg font-semibold"
+        >
+          Continue
+        </Button>
       </div>
     </div>
   )
