@@ -109,12 +109,14 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 		// #endregion
 		if err != nil {
 			// 用户不存在，创建新用户
+			inviteCode := repository.GenerateInviteCode()
 			// #region agent log
-			debugLog("B", "用户不存在-创建新用户", map[string]interface{}{"telegramID": telegramUser.ID, "name": telegramUser.FirstName})
+			debugLog("B", "用户不存在-创建新用户", map[string]interface{}{"telegramID": telegramUser.ID, "name": telegramUser.FirstName, "inviteCode": inviteCode})
 			// #endregion
 			user = &model.User{
 				TelegramID: telegramUser.ID,
 				Name:       telegramUser.FirstName,
+				InviteCode: inviteCode,
 			}
 			if err := userRepo.Create(user); err != nil {
 				// #region agent log
