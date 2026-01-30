@@ -10,7 +10,7 @@ export interface Character {
 export const mockCharacters = {
   soulmate: {
     id: 'soulmate-1',
-    title: 'Your Soulmate',
+    title: 'Soulmate',
     image: '/avatars/soulmate-female.jpg',
     description: 'A harmonious partner who values balance and partnership (Libra Sun), brings emotional depth and nurturing (Cancer Moon), and offers dreamy empathy with intuitive sensitivity (Pisces Rising).',
     compatibility: 92,

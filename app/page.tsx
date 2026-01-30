@@ -205,7 +205,7 @@ export default function Home() {
         try {
           // 确定角色类型和标题
           const charType = creatingCharacterType?.type || 'soulmate'
-          const charTitle = creatingCharacterType?.title || 'Your Soulmate'
+          const charTitle = creatingCharacterType?.title || 'Soulmate'
 
           // 创建角色
           const character = await apiClient.createCharacter({
@@ -514,7 +514,7 @@ export default function Home() {
             <>
               <ChatWindow 
                 characterId={selectedCharacterData?.id?.toString()} 
-                characterTitle={selectedCharacterData?.title || 'Your Soulmate'}
+                characterTitle={selectedCharacterData?.title || 'Soulmate'}
                 characterImage={selectedCharacterData?.image_url || selectedCharacterData?.image}
                 onClose={handleCloseChat} 
               />

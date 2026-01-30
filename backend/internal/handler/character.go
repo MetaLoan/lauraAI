@@ -79,7 +79,7 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 		// 根据类型设置默认标题
 		switch character.Type {
 		case model.CharacterTypeSoulmate:
-			character.Title = "Your Soulmate"
+			character.Title = "Soulmate"
 		case model.CharacterTypeMiniMe:
 			character.Title = "Mini Me"
 		default:

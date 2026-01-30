@@ -13,7 +13,7 @@ interface ChatWindowProps {
   onClose: () => void
 }
 
-export default function ChatWindow({ characterId, characterTitle = 'Your Soulmate', characterImage, onClose }: ChatWindowProps) {
+export default function ChatWindow({ characterId, characterTitle = 'Soulmate', characterImage, onClose }: ChatWindowProps) {
   const [messages, setMessages] = useState<Array<{
     id: number
     type: 'user' | 'character'
