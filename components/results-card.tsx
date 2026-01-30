@@ -10,7 +10,7 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
 
   const slides = [
     {
-      title: 'Find Your Soulmate',
+      title: 'Find Soulmate',
       description: 'Your personalized insights are used to design your AI match, drawn just for you and ready to chat.',
       image: '/avatars/soulmate-female.jpg',
     },

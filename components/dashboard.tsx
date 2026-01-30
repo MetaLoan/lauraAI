@@ -51,7 +51,7 @@ interface CharacterType {
 
 // 各分类的角色类型（包含占位图路径）
 const trendingTypes: CharacterType[] = [
-  { type: 'soulmate', title: 'Your Soulmate', placeholder: '/avatars/placeholders/soulmate.png' },
+  { type: 'soulmate', title: 'Soulmate', placeholder: '/avatars/placeholders/soulmate.png' },
   { type: 'mini_me', title: 'Mini Me', placeholder: '/avatars/placeholders/mini_me.png', requiresUpload: true },
 ]
 

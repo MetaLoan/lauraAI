@@ -53,7 +53,7 @@ export default function SoulmateDetailPage({
   const [priceTON, setPriceTON] = useState(3)
   const [isLoadingPrice, setIsLoadingPrice] = useState(false)
 
-  const title = character?.title || "Your Soulmate"
+  const title = character?.title || "Soulmate"
   const targetScore = character?.compatibility || 92
 
   // 根据解锁状态选择显示的图片
