@@ -79,7 +79,7 @@ func (h *TelegramWebhookHandler) HandleWebhook(c *gin.Context) {
 	var update TelegramUpdate
 	if err := c.ShouldBindJSON(&update); err != nil {
 		log.Printf("Telegram Webhook: 解析请求失败: %v", err)
-		response.Error(c, 400, "无效的请求")
+		response.Error(c, 400, "Invalid request")
 		return
 	}
 

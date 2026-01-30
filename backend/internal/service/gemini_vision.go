@@ -21,7 +21,7 @@ func NewGeminiVisionService() (*GeminiVisionService, error) {
 			log.Println("开发模式: GEMINI_API_KEY 未配置，将使用模拟视觉分析")
 			return &GeminiVisionService{client: nil}, nil
 		}
-		return nil, fmt.Errorf("GEMINI_API_KEY 未配置")
+		return nil, fmt.Errorf("GEMINI_API_KEY not configured")
 	}
 
 	ctx := context.Background()
@@ -29,7 +29,7 @@ func NewGeminiVisionService() (*GeminiVisionService, error) {
 		APIKey: apiKey,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("创建 Gemini 客户端失败: %v", err)
+		return nil, fmt.Errorf("Failed to create Gemini client: %v", err)
 	}
 
 	return &GeminiVisionService{client: client}, nil
@@ -63,11 +63,11 @@ func (s *GeminiVisionService) AnalyzeImage(ctx context.Context, imageData []byte
 
 	resp, err := s.client.Models.GenerateContent(ctx, "gemini-2.0-flash", []*genai.Content{{Parts: parts}}, nil)
 	if err != nil {
-		return "", fmt.Errorf("生成描述失败: %v", err)
+		return "", fmt.Errorf("Failed to generate description: %v", err)
 	}
 
 	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
-		return "", fmt.Errorf("未生成描述")
+		return "", fmt.Errorf("Description not generated")
 	}
 
 	return resp.Candidates[0].Content.Parts[0].Text, nil

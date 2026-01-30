@@ -24,7 +24,7 @@ func NewUserHandler() *UserHandler {
 func (h *UserHandler) GetMe(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
@@ -35,7 +35,7 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 func (h *UserHandler) UpdateMe(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
@@ -49,7 +49,7 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, 400, "无效的请求参数: "+err.Error())
+		response.Error(c, 400, "Invalid request parameters: "+err.Error())
 		return
 	}
 
@@ -94,7 +94,7 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 		}
 		// 使用 Raw SQL 直接更新 birth_time
 		if err := repository.DB.Exec("UPDATE users SET birth_time = $1::time WHERE id = $2", timeStr, user.ID).Error; err != nil {
-			response.Error(c, 500, "更新失败: "+err.Error())
+			response.Error(c, 500, "Failed to update: "+err.Error())
 			return
 		}
 		// 清除 user.BirthTime，避免在后续 GORM 更新中覆盖
@@ -103,7 +103,7 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 
 	// 更新其他字段（排除 birth_time）
 	if err := repository.DB.Model(user).Omit("birth_time").Updates(user).Error; err != nil {
-		response.Error(c, 500, "更新失败: "+err.Error())
+		response.Error(c, 500, "Failed to update: "+err.Error())
 		return
 	}
 
@@ -121,14 +121,14 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 func (h *UserHandler) DeleteMe(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
 	if err := h.userRepo.Delete(user.ID); err != nil {
-		response.Error(c, 500, "删除账户失败: "+err.Error())
+		response.Error(c, 500, "Failed to delete account: "+err.Error())
 		return
 	}
 
-	response.Success(c, gin.H{"message": "账户已删除"})
+	response.Success(c, gin.H{"message": "Account deleted"})
 }

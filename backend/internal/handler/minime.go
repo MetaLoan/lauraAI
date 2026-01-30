@@ -31,14 +31,14 @@ func NewMiniMeHandler(visionService *service.GeminiVisionService, imagenService 
 func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
 	// 1. 获取上传的文件
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		response.Error(c, 400, "请上传图片文件")
+		response.Error(c, 400, "Please upload image file")
 		return
 	}
 	defer file.Close()
@@ -47,14 +47,14 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 	mimeType := header.Header.Get("Content-Type")
 	// 增加对 image/heic 的支持（虽然前端应该已经转换了，但后端保持鲁棒性）
 	if mimeType != "image/jpeg" && mimeType != "image/png" && mimeType != "image/webp" && mimeType != "image/heic" {
-		response.Error(c, 400, "仅支持 JPG, PNG, WEBP, HEIC 格式")
+		response.Error(c, 400, "Only JPG, PNG, WEBP, HEIC formats are supported")
 		return
 	}
 
 	// 读取文件内容
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
-		response.Error(c, 500, "读取文件失败")
+		response.Error(c, 500, "Failed to read file")
 		return
 	}
 
@@ -62,14 +62,14 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 	ctx := c.Request.Context()
 	description, err := h.visionService.AnalyzeImage(ctx, fileBytes, mimeType)
 	if err != nil {
-		response.Error(c, 500, "图片分析失败: "+err.Error())
+		response.Error(c, 500, "Failed to analyze image: "+err.Error())
 		return
 	}
 
 	// 3. 调用 Imagen API 生成 Mini Me
 	imageURL, err := h.imagenService.GenerateMiniMeImage(ctx, description)
 	if err != nil {
-		response.Error(c, 500, "生成 Mini Me 失败: "+err.Error())
+		response.Error(c, 500, "Failed to generate Mini Me: "+err.Error())
 		return
 	}
 
@@ -85,7 +85,7 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 	}
 
 	if err := h.characterRepo.Create(character); err != nil {
-		response.Error(c, 500, "保存角色失败: "+err.Error())
+		response.Error(c, 500, "Failed to save character: "+err.Error())
 		return
 	}
 

@@ -39,20 +39,20 @@ func NewUnlockHandler() *UnlockHandler {
 func (h *UnlockHandler) GetShareInfo(c *gin.Context) {
 	shareCode := c.Param("code")
 	if shareCode == "" {
-		response.Error(c, 400, "无效的分享码")
+		response.Error(c, 400, "Invalid share code")
 		return
 	}
 
 	character, err := h.characterRepo.GetByShareCode(shareCode)
 	if err != nil {
-		response.Error(c, 404, "分享链接无效或已过期")
+		response.Error(c, 404, "Share link invalid or expired")
 		return
 	}
 
 	// 获取角色所有者信息
 	owner, err := h.userRepo.GetByID(character.UserID)
 	if err != nil {
-		response.Error(c, 500, "获取用户信息失败")
+		response.Error(c, 500, "Failed to get user information")
 		return
 	}
 
@@ -93,14 +93,14 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 		// #region agent log
 		debugLog("A", "用户未认证-返回401", map[string]interface{}{})
 		// #endregion
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
 	idStr := c.Param("id")
 	characterID, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		response.Error(c, 400, "无效的角色 ID")
+		response.Error(c, 400, "Invalid character ID")
 		return
 	}
 
@@ -112,7 +112,7 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 		// #region agent log
 		debugLog("D", "角色不存在", map[string]interface{}{"characterID": characterID, "error": err.Error()})
 		// #endregion
-		response.Error(c, 404, "角色不存在")
+		response.Error(c, 404, "Character not found")
 		return
 	}
 
@@ -124,7 +124,7 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 		// #region agent log
 		debugLog("E", "不能帮自己解锁", map[string]interface{}{})
 		// #endregion
-		response.Error(c, 400, "不能帮自己解锁")
+		response.Error(c, 400, "Cannot help yourself unlock")
 		return
 	}
 
@@ -144,7 +144,7 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 	debugLog("F", "检查邀请关系", map[string]interface{}{"helperInviterID": helper.InviterID, "characterUserID": character.UserID, "isInvitedByOwner": isInvitedByOwner})
 	// #endregion
 	if !isInvitedByOwner {
-		response.ErrorWithCode(c, 403, "NOT_INVITED", "你不是该用户邀请的好友")
+		response.ErrorWithCode(c, 403, "NOT_INVITED", "You are not invited by this user")
 		return
 	}
 
@@ -154,11 +154,11 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 	debugLog("G", "检查是否已帮助过", map[string]interface{}{"helperID": helper.ID, "ownerID": character.UserID, "hasHelped": hasHelped})
 	// #endregion
 	if err != nil {
-		response.Error(c, 500, "检查帮助记录失败: "+err.Error())
+		response.Error(c, 500, "Failed to check help record: "+err.Error())
 		return
 	}
 	if hasHelped {
-		response.ErrorWithCode(c, 400, "ALREADY_HELPED", "你已经帮助过他了")
+		response.ErrorWithCode(c, 400, "ALREADY_HELPED", "You have already helped this user")
 		return
 	}
 
@@ -170,14 +170,14 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 		// #region agent log
 		debugLog("C", "角色已被解锁或已有人帮助", map[string]interface{}{"unlockStatus": character.UnlockStatus})
 		// #endregion
-		response.Error(c, 400, "角色已被解锁或已有人帮助")
+		response.Error(c, 400, "Character already unlocked or already helped")
 		return
 	}
 
 	// 更新解锁状态为半解锁
 	helperID := helper.ID
 	if err := h.characterRepo.UpdateUnlockStatus(characterID, model.UnlockStatusHalfUnlocked, &helperID); err != nil {
-		response.Error(c, 500, "解锁失败: "+err.Error())
+		response.Error(c, 500, "Failed to unlock: "+err.Error())
 		return
 	}
 
@@ -192,32 +192,32 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 func (h *UnlockHandler) Unlock(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
 	idStr := c.Param("id")
 	characterID, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		response.Error(c, 400, "无效的角色 ID")
+		response.Error(c, 400, "Invalid character ID")
 		return
 	}
 
 	character, err := h.characterRepo.GetByID(characterID)
 	if err != nil {
-		response.Error(c, 404, "角色不存在")
+		response.Error(c, 404, "Character not found")
 		return
 	}
 
 	// 验证角色属于当前用户
 	if character.UserID != user.ID {
-		response.Error(c, 403, "无权访问")
+		response.Error(c, 403, "Access denied")
 		return
 	}
 
 	// 已完全解锁
 	if character.UnlockStatus == model.UnlockStatusFullUnlocked {
-		response.Error(c, 400, "角色已完全解锁")
+		response.Error(c, 400, "Character already fully unlocked")
 		return
 	}
 
@@ -227,7 +227,7 @@ func (h *UnlockHandler) Unlock(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, 400, "无效的请求参数")
+		response.Error(c, 400, "Invalid request parameters")
 		return
 	}
 
@@ -254,7 +254,7 @@ func (h *UnlockHandler) Unlock(c *gin.Context) {
 
 	// 更新解锁状态为完全解锁
 	if err := h.characterRepo.UpdateUnlockStatus(characterID, model.UnlockStatusFullUnlocked, nil); err != nil {
-		response.Error(c, 500, "解锁失败: "+err.Error())
+		response.Error(c, 500, "Failed to unlock: "+err.Error())
 		return
 	}
 
@@ -262,7 +262,7 @@ func (h *UnlockHandler) Unlock(c *gin.Context) {
 	character.UnlockStatus = model.UnlockStatusFullUnlocked
 	character.ImageURL = character.ClearImageURL
 	if err := h.characterRepo.Update(character); err != nil {
-		response.Error(c, 500, "更新角色失败: "+err.Error())
+		response.Error(c, 500, "Failed to update character: "+err.Error())
 		return
 	}
 
@@ -281,13 +281,13 @@ func (h *UnlockHandler) GetUnlockPrice(c *gin.Context) {
 	idStr := c.Param("id")
 	characterID, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		response.Error(c, 400, "无效的角色 ID")
+		response.Error(c, 400, "Invalid character ID")
 		return
 	}
 
 	character, err := h.characterRepo.GetByID(characterID)
 	if err != nil {
-		response.Error(c, 404, "角色不存在")
+		response.Error(c, 404, "Character not found")
 		return
 	}
 
