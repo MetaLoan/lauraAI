@@ -24,6 +24,7 @@ interface PaymentDrawerProps {
   priceTON?: number
   isDiscounted?: boolean
   onPaymentSuccess?: () => void
+  onPay?: (method: 'stars' | 'ton') => Promise<void>
 }
 
 type PaymentStatus = 'idle' | 'processing' | 'success'
@@ -38,6 +39,7 @@ export function PaymentDrawer({
   priceTON = 3,
   isDiscounted = false,
   onPaymentSuccess,
+  onPay,
 }: PaymentDrawerProps) {
   const [status, setStatus] = useState<PaymentStatus>('idle')
 
@@ -51,12 +53,19 @@ export function PaymentDrawer({
   }, [isOpen])
 
   const handlePayment = async (method: 'stars' | 'ton') => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/payment-drawer.tsx:53',message:'handlePayment called',data:{method, hasOnPay: !!onPay},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     setStatus('processing')
     
-    // Simulate payment processing
-    // In a real app, this would call Telegram WebApp API or your backend
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      if (onPay) {
+        await onPay(method)
+      } else {
+        // Simulate payment processing if no handler provided
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+      }
+      
       setStatus('success')
       
       // Auto close after success

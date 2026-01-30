@@ -176,9 +176,32 @@ export default function SoulmateDetailPage({
   }
 
   const handlePaymentSuccess = () => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/soulmate-detail-page.tsx:178',message:'handlePaymentSuccess called',data:{unlockStatus},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     setUnlockStatus(UnlockStatus.FULL_UNLOCKED)
     setIsPaymentOpen(false)
     onUnlockSuccess?.()
+  }
+
+  const handlePay = async (method: 'stars' | 'ton') => {
+    if (!character?.id) return
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/soulmate-detail-page.tsx:handlePay',message:'Calling unlockCharacter API',data:{characterId: character.id, method},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+
+    const result = await apiClient.unlockCharacter(character.id.toString(), method)
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/soulmate-detail-page.tsx:handlePay',message:'Unlock API success',data:{result},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    
+    // 更新本地 character 数据（如果有需要）
+    if (character) {
+      character.unlock_status = result.unlock_status
+      character.clear_image_url = result.image_url
+    }
   }
 
   return (
@@ -379,6 +402,7 @@ export default function SoulmateDetailPage({
         priceTON={priceTON}
         isDiscounted={unlockStatus === UnlockStatus.HALF_UNLOCKED}
         onPaymentSuccess={handlePaymentSuccess}
+        onPay={handlePay}
       />
     </div>
   )
