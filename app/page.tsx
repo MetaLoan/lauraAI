@@ -425,7 +425,13 @@ export default function Home() {
   }, [step, showChat, showProfile, showHistory, showMiniMe, creatingCharacterType])
 
   const steps = [
-    <Welcome key="welcome" onNext={handleNext} />,
+    <Welcome 
+      key="welcome" 
+      onNext={handleNext} 
+      onUserFound={() => {
+        setStep(13) // Directly jump to Dashboard
+      }}
+    />,
     <NameInput key="name" value={formData.name} onChange={(val) => updateFormData('name', val)} onNext={handleNext} onBack={handleBack} />,
     <GenderSelect key="gender" value={formData.gender} onChange={(val) => updateFormData('gender', val)} onNext={handleNext} onBack={handleBack} title="What is your gender?" />,
     <BirthDatePicker key="birthDate" value={formData.birthDate} onChange={(val) => updateFormData('birthDate', val)} onNext={handleNext} onBack={handleBack} />,
