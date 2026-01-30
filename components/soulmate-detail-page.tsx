@@ -186,10 +186,17 @@ export default function SoulmateDetailPage({
               </div>
               {/* Lock overlay for locked states */}
               {unlockStatus !== UnlockStatus.FULL_UNLOCKED && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
                   <div className="bg-black/60 rounded-full p-4">
                     <Lock className="w-10 h-10 text-white" />
                   </div>
+                  {/* 100% 模糊状态下的提示文字 */}
+                  {unlockStatus === UnlockStatus.LOCKED && (
+                    <p className="text-white/90 text-sm text-center mt-4 px-6 leading-relaxed">
+                      This photo is shrouded in mist.<br/>
+                      Maybe a friend can help clear it.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
