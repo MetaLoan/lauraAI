@@ -182,7 +182,7 @@ export default function SoulmateDetailPage({
               />
               {/* 模糊状态标签 */}
               <div className="absolute top-3 left-3 bg-black/70 text-white text-xs px-3 py-1 rounded-full">
-                {unlockStatus === UnlockStatus.FULL_UNLOCKED ? '0% blur' : unlockStatus === UnlockStatus.HALF_UNLOCKED ? '50% blur' : '100% blur'}
+                {unlockStatus === UnlockStatus.FULL_UNLOCKED ? '0% blur' : unlockStatus === UnlockStatus.HALF_UNLOCKED ? '20% blur' : '100% blur'}
               </div>
               {/* Lock overlay for locked states */}
               {unlockStatus !== UnlockStatus.FULL_UNLOCKED && (

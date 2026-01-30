@@ -87,6 +87,11 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 		}
 	}
 
+	// 每个角色类型只允许有一个最新的，删除同类型的旧角色
+	if err := h.characterRepo.DeleteByUserIDAndType(user.ID, model.CharacterType(req.Type)); err != nil {
+		// 忽略删除错误，继续创建
+	}
+
 	if err := h.characterRepo.Create(character); err != nil {
 		response.Error(c, 500, "创建失败: "+err.Error())
 		return
