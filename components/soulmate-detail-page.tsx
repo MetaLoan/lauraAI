@@ -127,7 +127,7 @@ export default function SoulmateDetailPage({
       onShare(character.share_code)
     } else if (character?.share_code) {
       // 使用 Telegram 分享
-      const shareLink = `https://t.me/LauraAI_bot/app?startapp=char_${character.id}_${character.share_code}`
+      const shareLink = `https://t.me/laura_tst_bot/app?startapp=char_${character.id}_${character.share_code}`
       const webApp = (window as any).Telegram?.WebApp
       if (webApp?.openTelegramLink) {
         webApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(`Help me unlock my ${title}!`)}`)
