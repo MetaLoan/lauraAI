@@ -78,13 +78,6 @@ func (h *ImageHandler) GenerateImage(c *gin.Context) {
 	// 使用安全响应，不暴露未解锁的图片URL
 	safeResponse := character.ToSafeResponse()
 	
-	response.Success(c, gin.H{
-		"image_url":           safeResponse["image_url"],
-		"full_blur_image_url": safeResponse["full_blur_image_url"],
-		"half_blur_image_url": safeResponse["half_blur_image_url"],
-		"clear_image_url":     safeResponse["clear_image_url"], // 只有解锁时才有值
-		"unlock_status":       character.UnlockStatus,
-		"share_code":          character.ShareCode,
-		"character":           safeResponse,
-	})
+	// 只返回安全响应，不单独暴露图片URL字段
+	response.Success(c, safeResponse)
 }

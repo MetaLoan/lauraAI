@@ -385,7 +385,7 @@ export default function SoulmateDetailPage({
         onClose={() => setIsPaymentOpen(false)}
         characterName={title}
         characterType={character?.astro_sign || 'Soulmate'}
-        characterImage={character?.half_blur_image_url || character?.full_blur_image_url}
+        characterImage={character?.full_blur_image_url}
         priceStars={priceStars}
         priceTON={priceTON}
         isDiscounted={unlockStatus === UnlockStatus.HALF_UNLOCKED}
