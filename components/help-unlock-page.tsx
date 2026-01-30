@@ -54,7 +54,17 @@ export default function HelpUnlockPage({
     setStatus('helping')
     
     try {
+      // #region agent log
+      const webApp = (window as any).Telegram?.WebApp
+      const initData = webApp?.initData
+      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'help-unlock-page.tsx:handleHelpUnlock',message:'调用helpUnlock前',data:{characterId:characterData.id,hasInitData:!!initData,initDataLen:initData?.length||0},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
+      
       await apiClient.helpUnlock(characterData.id.toString())
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'help-unlock-page.tsx:handleHelpUnlock',message:'helpUnlock成功',data:{characterId:characterData.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'success'})}).catch(()=>{});
+      // #endregion
       
       // Animate the blur transition
       setShowHalfBlur(true)
@@ -63,7 +73,10 @@ export default function HelpUnlockPage({
       await new Promise(resolve => setTimeout(resolve, 1500))
       
       setStatus('success')
-    } catch (err) {
+    } catch (err: any) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'help-unlock-page.tsx:handleHelpUnlock',message:'helpUnlock失败',data:{characterId:characterData.id,error:err?.message||String(err)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'error'})}).catch(()=>{});
+      // #endregion
       console.error('Failed to help unlock:', err)
       setError('Failed to help unlock. You may have already helped or need to sign up first.')
       setStatus('error')

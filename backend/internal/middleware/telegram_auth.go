@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"encoding/json"
 	"log"
+	"time"
 
 	"lauraai-backend/internal/config"
 	"lauraai-backend/internal/model"
@@ -18,7 +20,19 @@ const UserContextKey = "user"
 const DefaultTestTelegramID int64 = 999999999
 
 func TelegramAuthMiddleware() gin.HandlerFunc {
+	// #region agent log
+	debugLog := func(hypo, msg string, data map[string]interface{}) {
+		logData := map[string]interface{}{"hypothesisId": hypo, "location": "telegram_auth.go", "message": msg, "data": data, "timestamp": time.Now().UnixMilli()}
+		jsonBytes, _ := json.Marshal(logData)
+		log.Printf("[DEBUG] %s", string(jsonBytes))
+	}
+	// #endregion
+
 	return func(c *gin.Context) {
+		// #region agent log
+		debugLog("A", "TelegramAuth开始", map[string]interface{}{"path": c.Request.URL.Path, "method": c.Request.Method})
+		// #endregion
+
 		// 开发模式：跳过 Telegram 验证，使用默认测试账号
 		if config.AppConfig.DevMode {
 			userRepo := repository.NewUserRepository()
@@ -58,8 +72,15 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 			initData = c.Query("initData")
 		}
 
+		// #region agent log
+		debugLog("A,E", "检查initData", map[string]interface{}{"hasInitData": initData != "", "initDataLen": len(initData)})
+		// #endregion
+
 		if initData == "" {
 			log.Printf("TelegramAuth: 缺少 initData")
+			// #region agent log
+			debugLog("E", "缺少initData-返回401", map[string]interface{}{})
+			// #endregion
 			response.Error(c, 401, "缺少 Telegram initData")
 			c.Abort()
 			return
@@ -68,7 +89,13 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 
 		// 验证 initData
 		telegramUser, err := service.ValidateTelegramInitData(initData)
+		// #region agent log
+		debugLog("A", "验证initData结果", map[string]interface{}{"success": err == nil, "error": func() string { if err != nil { return err.Error() }; return "" }(), "telegramUserID": func() int64 { if telegramUser != nil { return telegramUser.ID }; return 0 }()})
+		// #endregion
 		if err != nil {
+			// #region agent log
+			debugLog("A", "initData验证失败-返回401", map[string]interface{}{"error": err.Error()})
+			// #endregion
 			response.Error(c, 401, "Telegram 认证失败: "+err.Error())
 			c.Abort()
 			return
@@ -77,22 +104,37 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 		// 获取或创建用户
 		userRepo := repository.NewUserRepository()
 		user, err := userRepo.GetByTelegramID(telegramUser.ID)
+		// #region agent log
+		debugLog("B", "查询用户", map[string]interface{}{"telegramID": telegramUser.ID, "found": err == nil, "userID": func() uint64 { if user != nil { return user.ID }; return 0 }()})
+		// #endregion
 		if err != nil {
 			// 用户不存在，创建新用户
+			// #region agent log
+			debugLog("B", "用户不存在-创建新用户", map[string]interface{}{"telegramID": telegramUser.ID, "name": telegramUser.FirstName})
+			// #endregion
 			user = &model.User{
 				TelegramID: telegramUser.ID,
 				Name:       telegramUser.FirstName,
 			}
 			if err := userRepo.Create(user); err != nil {
+				// #region agent log
+				debugLog("B", "创建用户失败", map[string]interface{}{"error": err.Error()})
+				// #endregion
 				response.Error(c, 500, "创建用户失败: "+err.Error())
 				c.Abort()
 				return
 			}
+			// #region agent log
+			debugLog("B", "创建用户成功", map[string]interface{}{"userID": user.ID})
+			// #endregion
 		}
 
 		// 将用户信息存储到上下文
 		c.Set(UserContextKey, user)
 		c.Set("telegram_user", telegramUser)
+		// #region agent log
+		debugLog("A,B", "认证成功-用户已设置到上下文", map[string]interface{}{"userID": user.ID, "telegramID": user.TelegramID})
+		// #endregion
 		c.Next()
 	}
 }

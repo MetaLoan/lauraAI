@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
+	"time"
 
 	"lauraai-backend/internal/middleware"
 	"lauraai-backend/internal/model"
@@ -73,8 +76,22 @@ func (h *UnlockHandler) GetShareInfo(c *gin.Context) {
 
 // HelpUnlock 好友帮助解锁（将解锁状态从0改为1）
 func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
+	// #region agent log
+	debugLog := func(hypo, msg string, data map[string]interface{}) {
+		logData := map[string]interface{}{"hypothesisId": hypo, "location": "unlock.go:HelpUnlock", "message": msg, "data": data, "timestamp": time.Now().UnixMilli()}
+		jsonBytes, _ := json.Marshal(logData)
+		log.Printf("[DEBUG] %s", string(jsonBytes))
+	}
+	// #endregion
+
 	helper, exists := middleware.GetUserFromContext(c)
+	// #region agent log
+	debugLog("A", "检查用户上下文", map[string]interface{}{"exists": exists, "helperID": fmt.Sprintf("%v", helper)})
+	// #endregion
 	if !exists {
+		// #region agent log
+		debugLog("A", "用户未认证-返回401", map[string]interface{}{})
+		// #endregion
 		response.Error(c, 401, "未认证")
 		return
 	}
@@ -87,19 +104,37 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 	}
 
 	character, err := h.characterRepo.GetByID(characterID)
+	// #region agent log
+	debugLog("C,D", "获取角色信息", map[string]interface{}{"characterID": characterID, "found": err == nil, "unlockStatus": func() int { if character != nil { return character.UnlockStatus }; return -1 }()})
+	// #endregion
 	if err != nil {
+		// #region agent log
+		debugLog("D", "角色不存在", map[string]interface{}{"characterID": characterID, "error": err.Error()})
+		// #endregion
 		response.Error(c, 404, "角色不存在")
 		return
 	}
 
 	// 不能帮自己解锁
+	// #region agent log
+	debugLog("E", "检查是否自己帮自己", map[string]interface{}{"helperID": helper.ID, "characterUserID": character.UserID, "isSelf": character.UserID == helper.ID})
+	// #endregion
 	if character.UserID == helper.ID {
+		// #region agent log
+		debugLog("E", "不能帮自己解锁", map[string]interface{}{})
+		// #endregion
 		response.Error(c, 400, "不能帮自己解锁")
 		return
 	}
 
 	// 只有未解锁状态才能帮忙解锁
+	// #region agent log
+	debugLog("C", "检查解锁状态", map[string]interface{}{"unlockStatus": character.UnlockStatus, "isLocked": character.UnlockStatus == model.UnlockStatusLocked})
+	// #endregion
 	if character.UnlockStatus != model.UnlockStatusLocked {
+		// #region agent log
+		debugLog("C", "角色已被解锁或已有人帮助", map[string]interface{}{"unlockStatus": character.UnlockStatus})
+		// #endregion
 		response.Error(c, 400, "角色已被解锁或已有人帮助")
 		return
 	}
