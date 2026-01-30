@@ -145,7 +145,7 @@ export default function Profile({
 
   // 复制邀请链接
   const handleCopyInviteLink = async () => {
-    const inviteLink = `https://t.me/LauraAI_bot/app?startapp=invite_${inviteCode}`
+    const inviteLink = `https://t.me/laura_tst_bot/app?startapp=invite_${inviteCode}`
     try {
       await navigator.clipboard.writeText(inviteLink)
       setCopied(true)
@@ -157,7 +157,7 @@ export default function Profile({
 
   // 分享邀请链接
   const handleShareInviteLink = () => {
-    const inviteLink = `https://t.me/LauraAI_bot/app?startapp=invite_${inviteCode}`
+    const inviteLink = `https://t.me/laura_tst_bot/app?startapp=invite_${inviteCode}`
     const webApp = (window as any).Telegram?.WebApp
     if (webApp?.openTelegramLink) {
       webApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent('Join Laura AI and discover your AI soulmate!')}`)
