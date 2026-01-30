@@ -66,7 +66,7 @@ export default function Home() {
         // #region agent log
         fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:checkUserStatus',message:'Telegram WebApp Info',data:{initData: !!webApp?.initData, initDataUnsafe: webApp?.initDataUnsafe, startParam},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'B'})}).catch(()=>{});
         // #endregion
-
+        
         // 检查是否是分享链接 (格式: char_{characterId}_{shareCode})
         if (startParam && startParam.startsWith('char_')) {
           const parts = startParam.split('_')
@@ -85,7 +85,7 @@ export default function Home() {
         // #region agent log
         fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:checkUserStatus',message:'Calling apiClient.getMe()',data:{},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'A'})}).catch(()=>{});
         // #endregion
-
+        
         const user = await apiClient.getMe() as any
 
         // #region agent log
@@ -563,7 +563,7 @@ export default function Home() {
             onClose={() => setIsPaymentOpen(false)}
             characterName={creatingCharacterType?.title || selectedCharacterData?.title || 'AI Companion'}
             characterType={creatingCharacterType?.type || 'Soulmate'}
-            characterImage={selectedCharacterData?.image_url || selectedCharacterData?.image || creatingCharacterType?.placeholder}
+            characterImage={selectedCharacterData?.full_blur_image_url || selectedCharacterData?.half_blur_image_url || creatingCharacterType?.placeholder}
             onPaymentSuccess={handlePaymentSuccess}
           />
         </>
