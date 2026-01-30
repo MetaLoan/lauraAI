@@ -204,16 +204,14 @@ export default function SoulmateDetailPage({
 
           {/* Action buttons below image */}
           <div className="flex gap-3">
-            {/* Share button - 只要有 share_code 就显示 */}
-            {character?.share_code && (
+            {/* 只在 LOCKED 状态下显示邀请好友按钮 */}
+            {unlockStatus === UnlockStatus.LOCKED && character?.share_code && (
               <button 
                 onClick={handleShare}
                 className="p-3 rounded-full border border-white/30 hover:border-white/50 transition-colors flex items-center gap-2 px-4"
               >
                 <Share2 className="w-5 h-5" />
-                <span className="text-sm">
-                  {unlockStatus === UnlockStatus.FULL_UNLOCKED ? 'Share' : 'Ask Friend to Help'}
-                </span>
+                <span className="text-sm">Ask Friend to Help</span>
               </button>
             )}
           </div>
@@ -323,10 +321,11 @@ export default function SoulmateDetailPage({
         <div className="max-w-md mx-auto">
           {unlockStatus === UnlockStatus.FULL_UNLOCKED ? (
             <Button
-              onClick={onNext}
-              className="btn-primary"
+              onClick={handleShare}
+              className="btn-primary flex items-center justify-center gap-2"
             >
-              Say "Hello" to {title}..
+              <Share2 className="w-5 h-5" />
+              Share with Friends
             </Button>
           ) : (
             <Button
