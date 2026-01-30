@@ -7,7 +7,19 @@ const REQUEST_TIMEOUT = 15000
 interface ApiResponse<T> {
   code: number
   message: string
+  error_code?: string
   data?: T
+}
+
+// 自定义错误类，包含 error_code
+class ApiError extends Error {
+  error_code?: string
+  
+  constructor(message: string, error_code?: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.error_code = error_code
+  }
 }
 
 class ApiClient {
@@ -62,7 +74,7 @@ class ApiClient {
       const data: ApiResponse<T> = await response.json()
 
       if (data.code !== 0) {
-        throw new Error(data.message || '请求失败')
+        throw new ApiError(data.message || '请求失败', data.error_code)
       }
 
       return data.data as T
