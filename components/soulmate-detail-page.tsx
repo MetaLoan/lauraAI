@@ -145,16 +145,14 @@ export default function SoulmateDetailPage({
         webApp?.openTelegramLink?.(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`)
       }
     } else {
-      // 2. 未解锁状态：使用 switchInlineQuery 模拟媒体分享效果
-      // 这样用户在选择好友后，会看到一个带图片的预览卡片
+      // 2. 未解锁状态：使用普通分享链接
       const text = `Help me see what my ${title} looks like! I need your help 🥺`
       
-      if (webApp?.switchInlineQuery) {
-        // 注意：这需要你在 BotFather 开启 Inline Mode
-        webApp.switchInlineQuery(`share_${character?.id}`, ['users', 'groups'])
+      const url = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`
+      if (webApp?.openTelegramLink) {
+        webApp.openTelegramLink(url)
       } else {
-        // Fallback: 普通分享
-        webApp?.openTelegramLink?.(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`)
+        window.open(url, '_blank')
       }
     }
   }
