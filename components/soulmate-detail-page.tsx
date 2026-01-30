@@ -341,7 +341,7 @@ export default function SoulmateDetailPage({
               ) : (
                 <>
                   <Unlock className="w-5 h-5" />
-                  UNLOCK PIC AND DOC
+                  Unlock Photo and Report
                 </>
               )}
             </Button>
