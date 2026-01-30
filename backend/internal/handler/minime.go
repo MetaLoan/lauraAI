@@ -90,7 +90,7 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 	}
 
 	response.Success(c, gin.H{
-		"character": character,
+		"character": character.ToSafeResponse(),
 		"image_url": imageURL,
 	})
 }
