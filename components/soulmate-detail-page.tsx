@@ -126,13 +126,22 @@ export default function SoulmateDetailPage({
     const webApp = (window as any).Telegram?.WebApp
     const shareLink = `https://t.me/laura_tst_bot/app?startapp=char_${character?.id}_${character?.share_code}`
     
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/soulmate-detail-page.tsx:handleShare',message:'handleShare called',data:{unlockStatus, shareLink, hasWebApp: !!webApp, hasShareToStory: !!webApp?.shareToStory, hasSwitchInlineQuery: !!webApp?.switchInlineQuery},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+
     if (unlockStatus === UnlockStatus.FULL_UNLOCKED) {
       // 1. 完全解锁状态：使用故事分享 (Stories) 展示高清图片
       const text = `OMG, my ${title} looks like this! You should try it too! 🔥`
+      const imageUrl = getAssetPath(character?.clear_image_url || '')
       
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/soulmate-detail-page.tsx:handleShare',message:'Attempting shareToStory',data:{imageUrl, text},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+
       if (webApp?.shareToStory) {
         // 使用 shareToStory API 分享到故事
-        webApp.shareToStory(getAssetPath(character?.clear_image_url || ''), {
+        webApp.shareToStory(imageUrl, {
           text: text,
           widget_link: {
             url: shareLink,
@@ -148,6 +157,10 @@ export default function SoulmateDetailPage({
       // 这样用户在选择好友后，会看到一个带图片的预览卡片
       const text = `Help me see what my ${title} looks like! I need your help 🥺`
       
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/soulmate-detail-page.tsx:handleShare',message:'Attempting switchInlineQuery',data:{query: `share_${character?.id}`, text},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+
       if (webApp?.switchInlineQuery) {
         // 注意：这需要你在 BotFather 开启 Inline Mode
         webApp.switchInlineQuery(`share_${character?.id}`, ['users', 'groups'])
