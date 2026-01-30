@@ -105,7 +105,7 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 
 	character, err := h.characterRepo.GetByID(characterID)
 	// #region agent log
-	debugLog("C,D", "获取角色信息", map[string]interface{}{"characterID": characterID, "found": err == nil, "unlockStatus": func() int { if character != nil { return character.UnlockStatus }; return -1 }()})
+	debugLog("C,D", "获取角色信息", map[string]interface{}{"characterID": characterID, "found": err == nil, "unlockStatus": func() int { if character != nil { return int(character.UnlockStatus) }; return -1 }()})
 	// #endregion
 	if err != nil {
 		// #region agent log
