@@ -157,9 +157,24 @@ func (s *GeminiChatService) buildSystemPrompt(character *model.Character) string
 		return character.PersonalityPrompt
 	}
 
+	var ageDescription string
+	switch character.Type {
+	case model.CharacterTypeFutureBaby:
+		ageDescription = "an infant"
+	case model.CharacterTypeSoulmate, model.CharacterTypeBoyfriend, model.CharacterTypeGirlfriend:
+		ageDescription = "a young adult in their 20s"
+	case model.CharacterTypeFutureHusband, model.CharacterTypeFutureWife:
+		ageDescription = "a mature adult in their late 20s or early 30s"
+	case model.CharacterTypeWiseMentor:
+		ageDescription = "a wise elder with decades of experience"
+	default:
+		ageDescription = "an adult"
+	}
+
 	prompt := fmt.Sprintf(`You are %s, a vivid and engaging AI character. 
 	Your identity: %s.
 	Your astrological sign: %s.
+	Your age: You should act as %s.
 	
 	Guidelines for your personality and communication style:
 	1. Stay strictly in character at all times. Never mention you are an AI or a language model.
@@ -170,7 +185,7 @@ func (s *GeminiChatService) buildSystemPrompt(character *model.Character) string
 	6. Use emojis occasionally to express emotion, but don't overdo it.
 	7. Remember details the user shares and reference them to build a stronger bond.
 	8. Your goal is to make the user feel seen, understood, and special.`,
-		character.Title, character.Description, character.AstroSign)
+		character.Title, character.Description, character.AstroSign, ageDescription)
 
 	return prompt
 }

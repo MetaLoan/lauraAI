@@ -26,7 +26,10 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
     setUploadStatus('Processing image...')
 
     try {
-      // 1. 处理 iOS 特有的 HEIC 格式
+      // 1. 检查文件类型并进行初步处理
+      let processingFile = file
+      
+      // 处理 iOS 特有的 HEIC 格式
       if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic') {
         setUploadStatus('Converting HEIC format...')
         const heic2any = (await import('heic2any')).default
@@ -38,26 +41,27 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
         
         // heic2any 可能返回数组或单个 blob
         const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob
-        file = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), {
+        processingFile = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), {
           type: 'image/jpeg'
         })
       }
 
-      // 2. 压缩图片
+      // 2. 统一压缩和格式转换
+      // 无论是什么格式（JPG, PNG, WebP 等），都进行统一压缩并强制转换为 JPEG
       setUploadStatus('Compressing image...')
       const options = {
-        maxSizeMB: 0.8,          // 进一步减小到 0.8MB 以提高稳定性
-        maxWidthOrHeight: 800,   // 减小到 800px，对分析特征足够了
+        maxSizeMB: 0.8,          // 目标大小 0.8MB
+        maxWidthOrHeight: 1024,  // 适度提高分辨率到 1024px，保证特征清晰
         useWebWorker: true,
-        initialQuality: 0.7,     // 降低初始质量
-        fileType: 'image/jpeg'   // 强制转换为 jpeg
+        initialQuality: 0.8,     // 初始质量
+        fileType: 'image/jpeg' as any // 强制转换为 jpeg
       }
 
-      const compressedFile = await imageCompression(file, options)
+      const compressedFile = await imageCompression(processingFile, options)
       
       // 检查压缩后的文件大小
       console.log('Original size:', file.size / 1024 / 1024, 'MB')
-      console.log('Compressed size:', compressedFile.size / 1024 / 1024, 'MB')
+      console.log('Processed size:', compressedFile.size / 1024 / 1024, 'MB')
       
       // 3. 上传并生成
       setUploadStatus('Analyzing your features...')
@@ -65,7 +69,7 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
       onNext(result.character)
     } catch (err) {
       console.error('Mini Me generation failed:', err)
-      setError(err instanceof Error ? err.message : 'Failed to generate Mini Me')
+      setError('Please try again')
     } finally {
       setIsUploading(false)
       setUploadStatus(null)
