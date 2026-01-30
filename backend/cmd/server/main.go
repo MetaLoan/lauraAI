@@ -74,6 +74,10 @@ func main() {
 		api.GET("/share/:code", unlockHandler.GetShareInfo)
 	}
 
+	// Telegram Bot Webhook（公开，由 Telegram 服务器调用）
+	telegramWebhookHandler := handler.NewTelegramWebhookHandler()
+	r.POST("/webhook/telegram", telegramWebhookHandler.HandleWebhook)
+
 	// 需要认证的路由
 	apiAuth := r.Group("/api")
 	apiAuth.Use(middleware.TelegramAuthMiddleware())
