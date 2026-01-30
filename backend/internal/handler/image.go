@@ -51,6 +51,13 @@ func (h *ImageHandler) GenerateImage(c *gin.Context) {
 		return
 	}
 
+	// 检查角色是否已经生成过图片
+	// 只要有任何一张图片 URL 存在，就认为已经生成过，不允许重复生成
+	if character.ClearImageURL != "" || character.FullBlurImageURL != "" || character.HalfBlurImageURL != "" {
+		response.Error(c, 400, "该角色已生成图片，请勿重复请求")
+		return
+	}
+
 	// 生成图片（会同时生成3张：清晰、半模糊、完全模糊）
 	ctx := c.Request.Context()
 	_, err = h.imagenService.GenerateImage(ctx, character)
