@@ -72,10 +72,10 @@ export function PaymentDrawer({
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent className="bg-black border-t border-white/10 text-white">
-        <div className="mx-auto w-full max-w-sm">
+        <div className="w-full">
           {status === 'idle' && (
             <>
-              <DrawerHeader className="pt-8">
+              <DrawerHeader className="pt-8 px-6">
                 <DrawerTitle className="text-2xl font-bold text-center tracking-tight">
                   Unlock {characterName}
                 </DrawerTitle>
@@ -86,7 +86,7 @@ export function PaymentDrawer({
                 </DrawerDescription>
               </DrawerHeader>
 
-              <div className="px-[0.8rem] py-6 space-y-6">
+              <div className="px-6 py-6 space-y-6">
                 <div className="bg-white/5 rounded-2xl p-5 border border-white/10 flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="text-xs uppercase tracking-wider text-gray-500 font-medium">{characterName}</p>
@@ -139,8 +139,8 @@ export function PaymentDrawer({
                 </div>
               </div>
 
-              <DrawerFooter className="pb-10">
-                <p className="text-[10px] text-center text-gray-600 px-8 leading-relaxed uppercase tracking-tighter">
+              <DrawerFooter className="pb-10 px-6">
+                <p className="text-[10px] text-center text-gray-600 leading-relaxed uppercase tracking-tighter">
                   By completing the payment, you agree to our <br/> Terms of Service and Privacy Policy.
                 </p>
               </DrawerFooter>
