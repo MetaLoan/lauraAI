@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronDown, Share2, Lock, Unlock, Loader2, CloudFog } from 'lucide-react'
-import { getAssetPath } from '@/lib/utils'
+import { getFullImageUrl } from '@/lib/utils'
 import { PaymentDrawer } from '@/components/payment-drawer'
 import { apiClient } from '@/lib/api'
 
@@ -133,7 +133,7 @@ export default function SoulmateDetailPage({
     if (unlockStatus === UnlockStatus.FULL_UNLOCKED) {
       // 1. 完全解锁状态：使用故事分享 (Stories) 展示高清图片
       const text = `OMG, my ${title} looks like this! You should try it too! 🔥`
-      const imageUrl = getAssetPath(character?.clear_image_url || '')
+      const imageUrl = getFullImageUrl(character?.clear_image_url || '')
       
       // #region agent log
       fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/soulmate-detail-page.tsx:handleShare',message:'Attempting shareToStory',data:{imageUrl, text},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
@@ -220,7 +220,7 @@ export default function SoulmateDetailPage({
             <div className="w-full h-full bg-amber-200 flex items-center justify-center relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={getAssetPath(image)}
+                src={getFullImageUrl(image)}
                 alt={title}
                 className="w-full h-full object-cover"
               />

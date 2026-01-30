@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { X, Send } from 'lucide-react'
 import Image from 'next/image'
 import { apiClient } from '@/lib/api'
-import { getAssetPath } from '@/lib/utils'
+import { getAssetPath, getFullImageUrl } from '@/lib/utils'
 
 interface ChatWindowProps {
   characterId?: string
@@ -177,7 +177,7 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
             <div className="w-10 h-10 rounded-full overflow-hidden bg-white/10 flex-shrink-0 relative">
               {characterImage ? (
                 <Image
-                  src={getAssetPath(characterImage)}
+                  src={getFullImageUrl(characterImage)}
                   alt={characterTitle}
                   fill
                   className="object-cover"

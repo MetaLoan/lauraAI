@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, MessageSquare, ChevronRight } from 'lucide-react'
 import { apiClient } from '@/lib/api'
-import { getAssetPath } from '@/lib/utils'
+import { getAssetPath, getFullImageUrl } from '@/lib/utils'
 
 interface HistoryCharacter {
   id: string
@@ -101,7 +101,7 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
                   {char.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={getAssetPath(char.image_url)}
+                      src={getFullImageUrl(char.image_url)}
                       alt={char.title}
                       className="w-full h-full object-cover"
                     />
