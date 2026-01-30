@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"lauraai-backend/internal/config"
 	"lauraai-backend/internal/handler"
@@ -19,6 +20,11 @@ func main() {
 	// 初始化数据库
 	if err := repository.InitDB(); err != nil {
 		log.Fatalf("数据库初始化失败: %v", err)
+	}
+
+	// 确保上传目录存在
+	if err := os.MkdirAll("./uploads", 0755); err != nil {
+		log.Fatalf("创建上传目录失败: %v", err)
 	}
 
 	// 初始化 Gemini 服务
@@ -42,6 +48,9 @@ func main() {
 
 	// 初始化 Gin
 	r := gin.Default()
+
+	// 静态文件服务
+	r.Static("/uploads", "./uploads")
 
 	// CORS 中间件
 	r.Use(func(c *gin.Context) {

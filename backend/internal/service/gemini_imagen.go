@@ -8,6 +8,10 @@ import (
 	"image"
 	"image/jpeg"
 	"log"
+	"math/rand"
+	"os"
+	"path/filepath"
+	"time"
 
 	"lauraai-backend/internal/config"
 	"lauraai-backend/internal/model"
@@ -89,12 +93,12 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 	}
 
 	var imageData []byte
-	var mimeType string
+	// var mimeType string
 
 	for _, part := range resp.Candidates[0].Content.Parts {
 		if part.InlineData != nil {
 			imageData = part.InlineData.Data
-			mimeType = part.InlineData.MIMEType
+			// mimeType = part.InlineData.MIMEType
 			break
 		}
 		if part.Text != "" {
@@ -111,8 +115,11 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 	if err != nil {
 		// 如果解码失败，返回原始图片（可能是不支持的格式）
 		log.Printf("[Imagen] 图片解码失败，使用原始图片: %v", err)
-		encoded := base64.StdEncoding.EncodeToString(imageData)
-		clearURL := fmt.Sprintf("data:%s;base64,%s", mimeType, encoded)
+		// 尝试直接保存原始数据
+		clearURL, saveErr := s.saveImageBytes(imageData, "jpg") // 假设是 jpg
+		if saveErr != nil {
+			return "", fmt.Errorf("保存图片失败: %v", saveErr)
+		}
 		character.ClearImageURL = clearURL
 		character.FullBlurImageURL = clearURL
 		character.HalfBlurImageURL = clearURL
@@ -121,23 +128,25 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 		return clearURL, nil
 	}
 
-	// 生成清晰图片的 base64
-	clearEncoded := base64.StdEncoding.EncodeToString(imageData)
-	clearURL := fmt.Sprintf("data:%s;base64,%s", mimeType, clearEncoded)
+	// 保存清晰图片
+	clearURL, err := s.saveImage(img)
+	if err != nil {
+		return "", fmt.Errorf("保存清晰图片失败: %v", err)
+	}
 
 	// 生成完全模糊版本 (sigma=30)
 	fullBlurImg := imaging.Blur(img, 30)
-	fullBlurURL, err := imageToDataURL(fullBlurImg)
+	fullBlurURL, err := s.saveImage(fullBlurImg)
 	if err != nil {
-		log.Printf("[Imagen] 生成完全模糊图失败: %v", err)
+		log.Printf("[Imagen] 保存完全模糊图失败: %v", err)
 		fullBlurURL = clearURL
 	}
 
 	// 生成半模糊版本 (sigma=6, 约20%模糊)
 	halfBlurImg := imaging.Blur(img, 6)
-	halfBlurURL, err := imageToDataURL(halfBlurImg)
+	halfBlurURL, err := s.saveImage(halfBlurImg)
 	if err != nil {
-		log.Printf("[Imagen] 生成半模糊图失败: %v", err)
+		log.Printf("[Imagen] 保存半模糊图失败: %v", err)
 		halfBlurURL = clearURL
 	}
 
@@ -148,21 +157,40 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 	character.ShareCode = repository.GenerateShareCode()
 	character.UnlockStatus = model.UnlockStatusLocked
 
-	log.Printf("[Imagen] 成功生成3张图片: 清晰(%d bytes), 半模糊, 完全模糊", len(imageData))
+	log.Printf("[Imagen] 成功生成3张图片: 清晰, 半模糊, 完全模糊")
 
 	// 返回模糊图片作为默认显示（未解锁状态）
 	return fullBlurURL, nil
 }
 
-// imageToDataURL 将图片转换为 data URL
-func imageToDataURL(img image.Image) (string, error) {
-	var buf bytes.Buffer
-	err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 85})
+// saveImage 保存图片到本地 uploads 目录并返回完整 URL
+func (s *GeminiImagenService) saveImage(img image.Image) (string, error) {
+	filename := fmt.Sprintf("%d_%d.jpg", time.Now().UnixNano(), rand.Intn(1000))
+	filepath := filepath.Join("uploads", filename)
+
+	file, err := os.Create(filepath)
 	if err != nil {
 		return "", err
 	}
-	encoded := base64.StdEncoding.EncodeToString(buf.Bytes())
-	return fmt.Sprintf("data:image/jpeg;base64,%s", encoded), nil
+	defer file.Close()
+
+	if err := jpeg.Encode(file, img, &jpeg.Options{Quality: 85}); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s/uploads/%s", config.AppConfig.BaseURL, filename), nil
+}
+
+// saveImageBytes 保存图片字节到本地 uploads 目录并返回完整 URL
+func (s *GeminiImagenService) saveImageBytes(data []byte, ext string) (string, error) {
+	filename := fmt.Sprintf("%d_%d.%s", time.Now().UnixNano(), rand.Intn(1000), ext)
+	filepath := filepath.Join("uploads", filename)
+
+	if err := os.WriteFile(filepath, data, 0644); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s/uploads/%s", config.AppConfig.BaseURL, filename), nil
 }
 
 func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, prompt string) (string, error) {
@@ -180,8 +208,14 @@ func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, pro
 
 	for _, part := range resp.Candidates[0].Content.Parts {
 		if part.InlineData != nil {
-			encoded := base64.StdEncoding.EncodeToString(part.InlineData.Data)
-			return fmt.Sprintf("data:%s;base64,%s", part.InlineData.MIMEType, encoded), nil
+			// 保存图片
+			url, err := s.saveImageBytes(part.InlineData.Data, "jpg")
+			if err != nil {
+				// 如果保存失败，回退到 Base64 (虽然不推荐用于分享，但至少能显示)
+				encoded := base64.StdEncoding.EncodeToString(part.InlineData.Data)
+				return fmt.Sprintf("data:%s;base64,%s", part.InlineData.MIMEType, encoded), nil
+			}
+			return url, nil
 		}
 		if part.Text != "" {
 			log.Printf("[Imagen] 收到文本响应: %s", part.Text)
