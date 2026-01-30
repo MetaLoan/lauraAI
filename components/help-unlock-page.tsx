@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Unlock, Sparkles, ArrowRight, Loader2 } from 'lucide-react'
-import { getAssetPath } from '@/lib/utils'
+import { getFullImageUrl } from '@/lib/utils'
 import { apiClient } from '@/lib/api'
 
 interface HelpUnlockPageProps {
@@ -35,7 +35,14 @@ export default function HelpUnlockPage({
   useEffect(() => {
     const loadShareInfo = async () => {
       try {
+        console.log('Fetching share info for code:', shareCode)
         const data = await apiClient.getShareInfo(shareCode)
+        console.log('Share info received:', data)
+        
+        if (!data || !data.character) {
+          throw new Error('Invalid data received from server')
+        }
+
         setCharacterData(data.character)
         setOwnerName(data.owner.name || 'your friend')
         setStatus('ready')
@@ -154,7 +161,7 @@ export default function HelpUnlockPage({
         <div className="text-center space-y-6 max-w-sm">
           <div className="relative w-48 h-64 mx-auto rounded-2xl overflow-hidden shadow-2xl">
             <img
-              src={getAssetPath(characterData?.half_blur_image_url || '')}
+              src={getFullImageUrl(characterData?.half_blur_image_url || '')}
               alt={characterData?.title || 'Character'}
               className="w-full h-full object-cover"
             />
@@ -209,7 +216,7 @@ export default function HelpUnlockPage({
             }`}
           >
             <img
-              src={getAssetPath(displayImage || '')}
+              src={getFullImageUrl(displayImage || '')}
               alt={characterData?.title || 'Character'}
               className={`w-full h-full object-cover transition-all duration-1000 ${
                 showHalfBlur ? 'brightness-110' : ''

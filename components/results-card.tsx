@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import Image from 'next/image'
-import { getAssetPath } from '@/lib/utils'
+import { getAssetPath, getFullImageUrl } from '@/lib/utils'
 
 export default function ResultsCard({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -56,7 +56,7 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
           <div className="bg-amber-100 p-3 sm:p-4 rounded-sm shadow-2xl" style={{ aspectRatio: '3/4' }}>
             <div className="w-full h-full bg-amber-200 rounded-sm flex items-center justify-center border-2 border-amber-300 overflow-hidden relative">
               <Image
-                src={getAssetPath(slides[currentSlide].image || "/placeholder.svg")}
+                src={getFullImageUrl(slides[currentSlide].image || "/placeholder.svg")}
                 alt={slides[currentSlide].title}
                 fill
                 className="object-cover"

@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
 import { Loader2, CheckCircle2, Star, Sparkles } from 'lucide-react'
-import { cn, getAssetPath } from '@/lib/utils'
+import { cn, getAssetPath, getFullImageUrl } from '@/lib/utils'
 
 interface PaymentDrawerProps {
   isOpen: boolean
@@ -100,7 +100,7 @@ export function PaymentDrawer({
                   </div>
                   <div className="h-14 w-14 rounded-full bg-white/10 flex items-center justify-center overflow-hidden border border-white/20">
                     {characterImage ? (
-                      <img src={getAssetPath(characterImage)} alt={characterName} className="w-full h-full object-cover" />
+                      <img src={getFullImageUrl(characterImage)} alt={characterName} className="w-full h-full object-cover" />
                     ) : (
                       <Star className="text-white w-7 h-7" />
                     )}
