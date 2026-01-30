@@ -49,6 +49,8 @@ export default function SoulmateDetailPage({
   const [progressWidth, setProgressWidth] = useState(0)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [unlockStatus, setUnlockStatus] = useState(character?.unlock_status ?? UnlockStatus.LOCKED)
+  const [priceStars, setPriceStars] = useState(300)
+  const [priceTON, setPriceTON] = useState(3)
 
   const title = character?.title || "Your Soulmate"
   const targetScore = character?.compatibility || 92
@@ -70,10 +72,6 @@ export default function SoulmateDetailPage({
   // 性格报告只有完全解锁才可见
   const isDescriptionVisible = unlockStatus === UnlockStatus.FULL_UNLOCKED
   const description = character?.description || `A harmonious partner who values balance and partnership (Libra Sun), brings emotional depth and nurturing (Cancer Moon), and offers dreamy empathy with intuitive sensitivity (Pisces Rising). They help soften boundaries, encourage diplomatic communication, and create a safe emotional haven where your intellectual curiosity and humanitarian ideals can flourish.`
-
-  // 价格
-  const priceStars = unlockStatus === UnlockStatus.HALF_UNLOCKED ? 100 : 300
-  const priceTON = unlockStatus === UnlockStatus.HALF_UNLOCKED ? 1 : 3
 
   useEffect(() => {
     // 更新解锁状态
@@ -140,12 +138,14 @@ export default function SoulmateDetailPage({
     }
   }
 
-  // 拉起支付弹窗前获取最新的解锁状态
+  // 拉起支付弹窗前获取最新的解锁状态和价格（价格由后端决定）
   const handleOpenPayment = async () => {
     if (character?.id) {
       try {
         const priceInfo = await apiClient.getUnlockPrice(character.id.toString()) as { unlock_status: number, price_stars: number, price_ton: number }
         setUnlockStatus(priceInfo.unlock_status)
+        setPriceStars(priceInfo.price_stars)
+        setPriceTON(priceInfo.price_ton)
       } catch (error) {
         console.error('获取解锁价格失败:', error)
       }
