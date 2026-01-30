@@ -75,6 +75,7 @@ func (h *UnlockHandler) GetShareInfo(c *gin.Context) {
 }
 
 // HelpUnlock 好友帮助解锁（将解锁状态从0改为1）
+// 条件：帮助者必须是角色所有者邀请的用户，且只能帮助邀请者解锁一次
 func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 	// #region agent log
 	debugLog := func(hypo, msg string, data map[string]interface{}) {
@@ -127,6 +128,30 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 		return
 	}
 
+	// 检查帮助者是否是角色所有者邀请的用户
+	isInvitedByOwner := helper.InviterID != nil && *helper.InviterID == character.UserID
+	// #region agent log
+	debugLog("F", "检查邀请关系", map[string]interface{}{"helperInviterID": helper.InviterID, "characterUserID": character.UserID, "isInvitedByOwner": isInvitedByOwner})
+	// #endregion
+	if !isInvitedByOwner {
+		response.ErrorWithCode(c, 403, "NOT_INVITED", "你不是该用户邀请的好友")
+		return
+	}
+
+	// 检查帮助者是否曾经帮助过这个用户的任何角色
+	hasHelped, err := h.characterRepo.HasUserHelpedOwner(helper.ID, character.UserID)
+	// #region agent log
+	debugLog("G", "检查是否已帮助过", map[string]interface{}{"helperID": helper.ID, "ownerID": character.UserID, "hasHelped": hasHelped})
+	// #endregion
+	if err != nil {
+		response.Error(c, 500, "检查帮助记录失败: "+err.Error())
+		return
+	}
+	if hasHelped {
+		response.ErrorWithCode(c, 400, "ALREADY_HELPED", "你已经帮助过他了")
+		return
+	}
+
 	// 只有未解锁状态才能帮忙解锁
 	// #region agent log
 	debugLog("C", "检查解锁状态", map[string]interface{}{"unlockStatus": character.UnlockStatus, "isLocked": character.UnlockStatus == model.UnlockStatusLocked})
@@ -144,11 +169,6 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 	if err := h.characterRepo.UpdateUnlockStatus(characterID, model.UnlockStatusHalfUnlocked, &helperID); err != nil {
 		response.Error(c, 500, "解锁失败: "+err.Error())
 		return
-	}
-
-	// 同时将帮助者设为角色所有者的邀请下级（如果还没有邀请人）
-	if helper.InviterID == nil {
-		_ = h.userRepo.SetInviter(helper.ID, character.UserID)
 	}
 
 	response.Success(c, gin.H{

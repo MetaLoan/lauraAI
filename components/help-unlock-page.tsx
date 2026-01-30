@@ -12,7 +12,7 @@ interface HelpUnlockPageProps {
   onSkip: () => void
 }
 
-type PageStatus = 'loading' | 'ready' | 'helping' | 'success' | 'error'
+type PageStatus = 'loading' | 'ready' | 'helping' | 'success' | 'error' | 'not_invited' | 'already_helped'
 
 export default function HelpUnlockPage({
   shareCode,
@@ -75,11 +75,23 @@ export default function HelpUnlockPage({
       setStatus('success')
     } catch (err: any) {
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'help-unlock-page.tsx:handleHelpUnlock',message:'helpUnlock失败',data:{characterId:characterData.id,error:err?.message||String(err)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'error'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'help-unlock-page.tsx:handleHelpUnlock',message:'helpUnlock失败',data:{characterId:characterData.id,error:err?.message||String(err),errorCode:err?.error_code},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'error'})}).catch(()=>{});
       // #endregion
       console.error('Failed to help unlock:', err)
-      setError('Failed to help unlock. You may have already helped or need to sign up first.')
-      setStatus('error')
+      
+      // 处理不同错误码
+      const errorCode = err?.error_code || ''
+      if (errorCode === 'NOT_INVITED') {
+        // 不是被邀请的用户，直接跳过
+        setStatus('not_invited')
+      } else if (errorCode === 'ALREADY_HELPED') {
+        // 已经帮助过
+        setError('You have already helped this friend before!')
+        setStatus('already_helped')
+      } else {
+        setError('Failed to help unlock. The photo may have already been unlocked.')
+        setStatus('error')
+      }
     }
   }
 
@@ -88,6 +100,36 @@ export default function HelpUnlockPage({
       <div className="h-full flex flex-col items-center justify-center bg-black text-white p-6">
         <Loader2 className="w-12 h-12 animate-spin mb-4" />
         <p className="text-gray-400">Loading...</p>
+      </div>
+    )
+  }
+
+  // 不是被邀请的用户，直接跳过解锁页面
+  if (status === 'not_invited') {
+    // 自动跳转到欢迎页面
+    setTimeout(() => onSkip(), 100)
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-black text-white p-6">
+        <Loader2 className="w-12 h-12 animate-spin mb-4" />
+        <p className="text-gray-400">Redirecting...</p>
+      </div>
+    )
+  }
+
+  // 已经帮助过
+  if (status === 'already_helped') {
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-black text-white p-6">
+        <div className="text-center space-y-6 max-w-sm">
+          <div className="text-5xl">🤝</div>
+          <h1 className="text-2xl font-bold">Already Helped!</h1>
+          <p className="text-gray-400">
+            You&apos;ve already helped {ownerName} before. Each friend can only help once!
+          </p>
+          <Button onClick={onSkip} className="btn-primary">
+            Continue to App
+          </Button>
+        </div>
       </div>
     )
   }

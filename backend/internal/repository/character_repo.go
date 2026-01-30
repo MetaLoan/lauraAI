@@ -82,3 +82,15 @@ func GenerateShareCode() string {
 	rand.Read(bytes)
 	return hex.EncodeToString(bytes)[:8]
 }
+
+// HasUserHelpedOwner 检查某用户是否曾经帮助过某个用户的任何角色解锁
+func (r *CharacterRepository) HasUserHelpedOwner(helperID uint64, ownerID uint64) (bool, error) {
+	var count int64
+	err := DB.Model(&model.Character{}).
+		Where("user_id = ? AND unlock_helper_id = ?", ownerID, helperID).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
