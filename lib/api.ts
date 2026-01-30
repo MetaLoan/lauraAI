@@ -40,6 +40,10 @@ class ApiClient {
     const webApp = (window as any).Telegram?.WebApp
     let initData = webApp?.initData
     
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/api.ts:request',message:'Preparing request',data:{endpoint, hasInitData: !!initData, initDataLen: initData?.length || 0},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+
     // 获取邀请码 (支持 invite_CODE 和 char_ID_CODE 两种格式)
     let inviterCode = ''
     const startParam = webApp?.initDataUnsafe?.start_param
@@ -89,14 +93,24 @@ class ApiClient {
       })
       clearTimeout(timeoutId)
 
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/api.ts:request',message:'Response received',data:{endpoint, status: response.status, ok: response.ok},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+
       const data: ApiResponse<T> = await response.json()
 
       if (data.code !== 0) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/api.ts:request',message:'API Error',data:{endpoint, code: data.code, message: data.message, errorCode: data.error_code},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
         throw new ApiError(data.message || '请求失败', data.error_code)
       }
 
       return data.data as T
     } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/api.ts:request',message:'Fetch Error',data:{endpoint, error: error instanceof Error ? error.message : String(error)},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
       clearTimeout(timeoutId)
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('请求超时，请检查网络连接')
