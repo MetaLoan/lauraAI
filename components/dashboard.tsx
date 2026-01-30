@@ -10,6 +10,11 @@ interface CharacterCard {
   title: string
   image: string
   image_url?: string
+  full_blur_image_url?: string
+  half_blur_image_url?: string
+  clear_image_url?: string
+  unlock_status?: number
+  share_code?: string
   type: string
   requiresUpload?: boolean
   description?: string
@@ -24,6 +29,11 @@ interface BackendCharacter {
   type: string
   title: string
   image_url?: string
+  full_blur_image_url?: string
+  half_blur_image_url?: string
+  clear_image_url?: string
+  unlock_status?: number
+  share_code?: string
   gender?: string
   ethnicity?: string
   description?: string
@@ -92,6 +102,11 @@ export default function Dashboard({
           title: char.title || 'Untitled',
           image: char.image_url || '',
           image_url: char.image_url || '',
+          full_blur_image_url: char.full_blur_image_url,
+          half_blur_image_url: char.half_blur_image_url,
+          clear_image_url: char.clear_image_url,
+          unlock_status: char.unlock_status,
+          share_code: char.share_code,
           type: char.type,
           requiresUpload: char.type === 'mini_me',
           description: char.description,
@@ -146,6 +161,20 @@ export default function Dashboard({
     const existingChar = getCharacterByType(charType.type)
     
     if (existingChar && existingChar.image) {
+      // 根据解锁状态选择显示的图片
+      const getDisplayImage = () => {
+        switch (existingChar.unlock_status) {
+          case 2: // FULL_UNLOCKED
+            return existingChar.clear_image_url || existingChar.image_url || existingChar.image
+          case 1: // HALF_UNLOCKED
+            return existingChar.half_blur_image_url || existingChar.image_url || existingChar.image
+          default: // LOCKED (0)
+            return existingChar.full_blur_image_url || existingChar.image_url || existingChar.image
+        }
+      }
+      const displayImage = getDisplayImage()
+      const blurLabel = existingChar.unlock_status === 2 ? '0% blur' : existingChar.unlock_status === 1 ? '50% blur' : '100% blur'
+      
       // 已创建的角色 - 显示图片
       return (
         <button
@@ -156,10 +185,14 @@ export default function Dashboard({
           <div className={`w-36 h-36 rounded-2xl ${gradientClass} hover:opacity-90 transition-all flex items-center justify-center overflow-hidden relative`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={getAssetPath(existingChar.image)}
+              src={getAssetPath(displayImage)}
               alt={existingChar.title}
               className="w-full h-full object-cover"
             />
+            {/* 模糊状态标签 */}
+            <div className="absolute top-2 left-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full">
+              {blurLabel}
+            </div>
           </div>
           <p className="text-xs font-medium text-center">{existingChar.title}</p>
         </button>

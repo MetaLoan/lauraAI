@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { ChevronDown, Share2, Lock, Unlock } from 'lucide-react'
 import { getAssetPath } from '@/lib/utils'
 import { PaymentDrawer } from '@/components/payment-drawer'
+import { apiClient } from '@/lib/api'
 
 // 解锁状态枚举
 const UnlockStatus = {
@@ -139,6 +140,19 @@ export default function SoulmateDetailPage({
     }
   }
 
+  // 拉起支付弹窗前获取最新的解锁状态
+  const handleOpenPayment = async () => {
+    if (character?.id) {
+      try {
+        const priceInfo = await apiClient.getUnlockPrice(character.id.toString()) as { unlock_status: number, price_stars: number, price_ton: number }
+        setUnlockStatus(priceInfo.unlock_status)
+      } catch (error) {
+        console.error('获取解锁价格失败:', error)
+      }
+    }
+    setIsPaymentOpen(true)
+  }
+
   const handlePaymentSuccess = () => {
     setUnlockStatus(UnlockStatus.FULL_UNLOCKED)
     setIsPaymentOpen(false)
@@ -163,6 +177,10 @@ export default function SoulmateDetailPage({
                 alt={title}
                 className="w-full h-full object-cover"
               />
+              {/* 模糊状态标签 */}
+              <div className="absolute top-3 left-3 bg-black/70 text-white text-xs px-3 py-1 rounded-full">
+                {unlockStatus === UnlockStatus.FULL_UNLOCKED ? '0% blur' : unlockStatus === UnlockStatus.HALF_UNLOCKED ? '50% blur' : '100% blur'}
+              </div>
               {/* Lock overlay for locked states */}
               {unlockStatus !== UnlockStatus.FULL_UNLOCKED && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -176,22 +194,16 @@ export default function SoulmateDetailPage({
 
           {/* Action buttons below image */}
           <div className="flex gap-3">
-            {/* Share button */}
-            {unlockStatus !== UnlockStatus.FULL_UNLOCKED && character?.share_code && (
+            {/* Share button - 只要有 share_code 就显示 */}
+            {character?.share_code && (
               <button 
                 onClick={handleShare}
                 className="p-3 rounded-full border border-white/30 hover:border-white/50 transition-colors flex items-center gap-2 px-4"
               >
                 <Share2 className="w-5 h-5" />
-                <span className="text-sm">Share to Unlock</span>
-              </button>
-            )}
-            {unlockStatus === UnlockStatus.FULL_UNLOCKED && (
-              <button 
-                onClick={handleShare}
-                className="p-3 rounded-full border border-white/30 hover:border-white/50 transition-colors"
-              >
-                <Share2 className="w-6 h-6" />
+                <span className="text-sm">
+                  {unlockStatus === UnlockStatus.FULL_UNLOCKED ? 'Share' : 'Share to Unlock'}
+                </span>
               </button>
             )}
           </div>
@@ -308,7 +320,7 @@ export default function SoulmateDetailPage({
             </Button>
           ) : (
             <Button
-              onClick={() => setIsPaymentOpen(true)}
+              onClick={handleOpenPayment}
               className="btn-primary flex items-center justify-center gap-2"
             >
               <Unlock className="w-5 h-5" />
