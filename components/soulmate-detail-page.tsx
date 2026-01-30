@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Share2, Lock, Unlock } from 'lucide-react'
+import { ChevronDown, Share2, Lock, Unlock, Loader2 } from 'lucide-react'
 import { getAssetPath } from '@/lib/utils'
 import { PaymentDrawer } from '@/components/payment-drawer'
 import { apiClient } from '@/lib/api'
@@ -51,6 +51,7 @@ export default function SoulmateDetailPage({
   const [unlockStatus, setUnlockStatus] = useState(character?.unlock_status ?? UnlockStatus.LOCKED)
   const [priceStars, setPriceStars] = useState(300)
   const [priceTON, setPriceTON] = useState(3)
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false)
 
   const title = character?.title || "Your Soulmate"
   const targetScore = character?.compatibility || 92
@@ -140,6 +141,7 @@ export default function SoulmateDetailPage({
 
   // 拉起支付弹窗前获取最新的解锁状态和价格（价格由后端决定）
   const handleOpenPayment = async () => {
+    setIsLoadingPrice(true)
     if (character?.id) {
       try {
         const priceInfo = await apiClient.getUnlockPrice(character.id.toString()) as { unlock_status: number, price_stars: number, price_ton: number }
@@ -150,6 +152,7 @@ export default function SoulmateDetailPage({
         console.error('获取解锁价格失败:', error)
       }
     }
+    setIsLoadingPrice(false)
     setIsPaymentOpen(true)
   }
 
@@ -321,12 +324,20 @@ export default function SoulmateDetailPage({
           ) : (
             <Button
               onClick={handleOpenPayment}
+              disabled={isLoadingPrice}
               className="btn-primary flex items-center justify-center gap-2"
             >
-              <Unlock className="w-5 h-5" />
-              {unlockStatus === UnlockStatus.HALF_UNLOCKED 
-                ? `Unlock Now - ${priceStars} Stars`
-                : `Unlock Now - ${priceStars} Stars`}
+              {isLoadingPrice ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <Unlock className="w-5 h-5" />
+                  UNLOCK PIC AND DOC
+                </>
+              )}
             </Button>
           )}
         </div>
