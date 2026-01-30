@@ -91,6 +91,48 @@ func (c *Character) IsDescriptionVisible() bool {
 	return c.UnlockStatus == UnlockStatusFullUnlocked
 }
 
+// ToSafeResponse 根据解锁状态返回安全的响应数据，隐藏未解锁的图片URL
+func (c *Character) ToSafeResponse() map[string]interface{} {
+	result := map[string]interface{}{
+		"id":            c.ID,
+		"user_id":       c.UserID,
+		"type":          c.Type,
+		"title":         c.Title,
+		"gender":        c.Gender,
+		"ethnicity":     c.Ethnicity,
+		"compatibility": c.Compatibility,
+		"astro_sign":    c.AstroSign,
+		"unlock_status": c.UnlockStatus,
+		"share_code":    c.ShareCode,
+		"created_at":    c.CreatedAt,
+		"updated_at":    c.UpdatedAt,
+	}
+
+	// 根据解锁状态决定返回哪些图片 URL
+	switch c.UnlockStatus {
+	case UnlockStatusFullUnlocked:
+		// 完全解锁：返回所有图片和描述
+		result["image_url"] = c.ClearImageURL
+		result["full_blur_image_url"] = c.FullBlurImageURL
+		result["half_blur_image_url"] = c.HalfBlurImageURL
+		result["clear_image_url"] = c.ClearImageURL
+		result["description"] = c.Description
+	case UnlockStatusHalfUnlocked:
+		// 半解锁：只返回模糊图，不返回清晰图和描述
+		result["image_url"] = c.HalfBlurImageURL
+		result["full_blur_image_url"] = c.FullBlurImageURL
+		result["half_blur_image_url"] = c.HalfBlurImageURL
+		// 不返回 clear_image_url 和 description
+	default:
+		// 未解锁：只返回完全模糊图
+		result["image_url"] = c.FullBlurImageURL
+		result["full_blur_image_url"] = c.FullBlurImageURL
+		// 不返回 half_blur_image_url, clear_image_url 和 description
+	}
+
+	return result
+}
+
 func (Character) TableName() string {
 	return "characters"
 }

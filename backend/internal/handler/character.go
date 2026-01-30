@@ -97,7 +97,7 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, character)
+	response.Success(c, character.ToSafeResponse())
 }
 
 // List 获取用户的所有角色
@@ -114,7 +114,13 @@ func (h *CharacterHandler) List(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, characters)
+	// 转换为安全响应，过滤敏感图片URL
+	safeCharacters := make([]map[string]interface{}, len(characters))
+	for i, char := range characters {
+		safeCharacters[i] = char.ToSafeResponse()
+	}
+
+	response.Success(c, safeCharacters)
 }
 
 // GetByID 获取角色详情
@@ -144,7 +150,7 @@ func (h *CharacterHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, character)
+	response.Success(c, character.ToSafeResponse())
 }
 
 // CleanupEmpty 清理没有图片的角色
