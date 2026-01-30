@@ -123,18 +123,37 @@ export default function SoulmateDetailPage({
   }
 
   const handleShare = () => {
-    if (character?.share_code && onShare) {
-      onShare(character.share_code)
-    } else if (character?.share_code) {
-      // 使用 Telegram 分享
-      const shareLink = `https://t.me/laura_tst_bot/app?startapp=char_${character.id}_${character.share_code}`
-      const webApp = (window as any).Telegram?.WebApp
-      if (webApp?.openTelegramLink) {
-        webApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(`Help me unlock my ${title}!`)}`)
+    const webApp = (window as any).Telegram?.WebApp
+    const shareLink = `https://t.me/laura_tst_bot/app?startapp=char_${character?.id}_${character?.share_code}`
+    
+    if (unlockStatus === UnlockStatus.FULL_UNLOCKED) {
+      // 1. 完全解锁状态：使用故事分享 (Stories) 展示高清图片
+      const text = `OMG, my ${title} looks like this! You should try it too! 🔥`
+      
+      if (webApp?.shareToStory) {
+        // 使用 shareToStory API 分享到故事
+        webApp.shareToStory(getAssetPath(character?.clear_image_url || ''), {
+          text: text,
+          widget_link: {
+            url: shareLink,
+            name: "Create Your Own"
+          }
+        })
       } else {
-        // Fallback: 复制到剪贴板
-        navigator.clipboard.writeText(shareLink)
-        alert('Link copied to clipboard!')
+        // Fallback: 普通分享
+        webApp?.openTelegramLink?.(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`)
+      }
+    } else {
+      // 2. 未解锁状态：使用 switchInlineQuery 模拟媒体分享效果
+      // 这样用户在选择好友后，会看到一个带图片的预览卡片
+      const text = `Help me see what my ${title} looks like! I need your help 🥺`
+      
+      if (webApp?.switchInlineQuery) {
+        // 注意：这需要你在 BotFather 开启 Inline Mode
+        webApp.switchInlineQuery(`share_${character?.id}`, ['users', 'groups'])
+      } else {
+        // Fallback: 普通分享
+        webApp?.openTelegramLink?.(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`)
       }
     }
   }
