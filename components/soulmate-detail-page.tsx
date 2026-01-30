@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Share2, Lock, Unlock, Loader2 } from 'lucide-react'
+import { ChevronDown, Share2, Lock, Unlock, Loader2, CloudFog } from 'lucide-react'
 import { getAssetPath } from '@/lib/utils'
 import { PaymentDrawer } from '@/components/payment-drawer'
 import { apiClient } from '@/lib/api'
@@ -188,7 +188,7 @@ export default function SoulmateDetailPage({
               {unlockStatus !== UnlockStatus.FULL_UNLOCKED && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
                   <div className="bg-black/60 rounded-full p-4">
-                    <Lock className="w-10 h-10 text-white" />
+                    <CloudFog className="w-10 h-10 text-white" />
                   </div>
                   {/* 100% 模糊状态下的提示文字 */}
                   {unlockStatus === UnlockStatus.LOCKED && (
