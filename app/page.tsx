@@ -55,10 +55,18 @@ export default function Home() {
   useEffect(() => {
     const checkUserStatus = async () => {
       try {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:checkUserStatus',message:'Start checkUserStatus',data:{isLoading, step},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+
         // 解析 Telegram startapp 参数
         const webApp = (window as any).Telegram?.WebApp
         const startParam = webApp?.initDataUnsafe?.start_param
         
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:checkUserStatus',message:'Telegram WebApp Info',data:{initData: !!webApp?.initData, initDataUnsafe: webApp?.initDataUnsafe, startParam},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+
         // 检查是否是分享链接 (格式: char_{characterId}_{shareCode})
         if (startParam && startParam.startsWith('char_')) {
           const parts = startParam.split('_')
@@ -67,24 +75,48 @@ export default function Home() {
             setHelpUnlockShareCode(shareCode)
             setShowHelpUnlock(true)
             setIsLoading(false)
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:checkUserStatus',message:'Detected share link',data:{shareCode},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'A'})}).catch(()=>{});
+            // #endregion
             return
           }
         }
         
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:checkUserStatus',message:'Calling apiClient.getMe()',data:{},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+
         const user = await apiClient.getMe() as any
+
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:checkUserStatus',message:'apiClient.getMe() result',data:{user},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+
         if (user && user.name && user.gender && user.birth_date) {
           // 用户已完成引导，直接跳转到 Dashboard
           setStep(13)
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:checkUserStatus',message:'User exists, jump to Dashboard',data:{step: 13},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'A'})}).catch(()=>{});
+          // #endregion
         } else {
           // 用户未完成引导，显示 Welcome 页面
           setStep(0)
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:checkUserStatus',message:'User incomplete, show Welcome',data:{step: 0},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'A'})}).catch(()=>{});
+          // #endregion
         }
       } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:checkUserStatus',message:'Error in checkUserStatus',data:{error: error instanceof Error ? error.message : String(error)},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
         // 出错时也显示 Welcome 页面
         setStep(0)
       } finally {
         // 立即隐藏 preloader（TelegramProvider 已经处理了最小显示时间）
         setIsLoading(false)
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:checkUserStatus',message:'Finished checkUserStatus, setIsLoading(false)',data:{},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
       }
     }
     checkUserStatus()
