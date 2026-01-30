@@ -22,7 +22,7 @@ func NewGeminiChatService() (*GeminiChatService, error) {
 			log.Println("开发模式: GEMINI_API_KEY 未配置，将使用模拟聊天回复")
 			return &GeminiChatService{client: nil}, nil
 		}
-		return nil, fmt.Errorf("GEMINI_API_KEY 未配置")
+		return nil, fmt.Errorf("GEMINI_API_KEY not configured")
 	}
 
 	ctx := context.Background()
@@ -30,7 +30,7 @@ func NewGeminiChatService() (*GeminiChatService, error) {
 		APIKey: config.AppConfig.GeminiAPIKey,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("创建 Gemini 客户端失败: %v", err)
+		return nil, fmt.Errorf("Failed to create Gemini client: %v", err)
 	}
 
 	return &GeminiChatService{client: client}, nil
@@ -72,11 +72,11 @@ func (s *GeminiChatService) Chat(ctx context.Context, character *model.Character
 
 	resp, err := s.client.Models.GenerateContent(ctx, "gemini-2.0-flash", contents, config)
 	if err != nil {
-		return "", fmt.Errorf("生成响应失败: %v", err)
+		return "", fmt.Errorf("Failed to generate response: %v", err)
 	}
 
 	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
-		return "", fmt.Errorf("未收到有效响应")
+		return "", fmt.Errorf("No valid response received")
 	}
 
 	return resp.Candidates[0].Content.Parts[0].Text, nil

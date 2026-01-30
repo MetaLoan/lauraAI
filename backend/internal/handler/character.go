@@ -27,7 +27,7 @@ func NewCharacterHandler() *CharacterHandler {
 func (h *CharacterHandler) Create(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
@@ -39,7 +39,7 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, 400, "无效的请求参数: "+err.Error())
+		response.Error(c, 400, "Invalid request parameters: "+err.Error())
 		return
 	}
 
@@ -93,7 +93,7 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.characterRepo.Create(character); err != nil {
-		response.Error(c, 500, "创建失败: "+err.Error())
+		response.Error(c, 500, "Failed to create: "+err.Error())
 		return
 	}
 
@@ -104,13 +104,13 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 func (h *CharacterHandler) List(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
 	characters, err := h.characterRepo.GetByUserID(user.ID)
 	if err != nil {
-		response.Error(c, 500, "查询失败: "+err.Error())
+		response.Error(c, 500, "Failed to query: "+err.Error())
 		return
 	}
 
@@ -121,26 +121,26 @@ func (h *CharacterHandler) List(c *gin.Context) {
 func (h *CharacterHandler) GetByID(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		response.Error(c, 400, "无效的角色 ID")
+		response.Error(c, 400, "Invalid character ID")
 		return
 	}
 
 	character, err := h.characterRepo.GetByID(id)
 	if err != nil {
-		response.Error(c, 404, "角色不存在")
+		response.Error(c, 404, "Character not found")
 		return
 	}
 
 	// 验证角色属于当前用户
 	if character.UserID != user.ID {
-		response.Error(c, 403, "无权访问")
+		response.Error(c, 403, "Access denied")
 		return
 	}
 
@@ -151,15 +151,15 @@ func (h *CharacterHandler) GetByID(c *gin.Context) {
 func (h *CharacterHandler) CleanupEmpty(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
 	count, err := h.characterRepo.DeleteEmptyByUserID(user.ID)
 	if err != nil {
-		response.Error(c, 500, "清理失败: "+err.Error())
+		response.Error(c, 500, "Failed to cleanup: "+err.Error())
 		return
 	}
 
-	response.Success(c, gin.H{"deleted": count, "message": fmt.Sprintf("已清理 %d 个无用角色", count)})
+	response.Success(c, gin.H{"deleted": count, "message": fmt.Sprintf("Cleaned up %d unused characters", count)})
 }

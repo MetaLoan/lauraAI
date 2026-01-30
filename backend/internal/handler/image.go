@@ -27,34 +27,34 @@ func NewImageHandler(imagenService *service.GeminiImagenService) *ImageHandler {
 func (h *ImageHandler) GenerateImage(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
 	idStr := c.Param("id")
 	characterID, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		response.Error(c, 400, "无效的角色 ID")
+		response.Error(c, 400, "Invalid character ID")
 		return
 	}
 
 	// 获取角色
 	character, err := h.characterRepo.GetByID(characterID)
 	if err != nil {
-		response.Error(c, 404, "角色不存在")
+		response.Error(c, 404, "Character not found")
 		return
 	}
 
 	// 验证角色属于当前用户
 	if character.UserID != user.ID {
-		response.Error(c, 403, "无权访问")
+		response.Error(c, 403, "Access denied")
 		return
 	}
 
 	// 检查角色是否已经生成过图片
 	// 只要有任何一张图片 URL 存在，就认为已经生成过，不允许重复生成
 	if character.ClearImageURL != "" || character.FullBlurImageURL != "" || character.HalfBlurImageURL != "" {
-		response.Error(c, 400, "该角色已生成图片，请勿重复请求")
+		response.Error(c, 400, "Character image already generated, please do not request again")
 		return
 	}
 
@@ -62,7 +62,7 @@ func (h *ImageHandler) GenerateImage(c *gin.Context) {
 	ctx := c.Request.Context()
 	_, err = h.imagenService.GenerateImage(ctx, character)
 	if err != nil {
-		response.Error(c, 500, "生成图片失败: "+err.Error())
+		response.Error(c, 500, "Failed to generate image: "+err.Error())
 		return
 	}
 
@@ -71,7 +71,7 @@ func (h *ImageHandler) GenerateImage(c *gin.Context) {
 
 	// 更新角色的所有图片字段
 	if err := h.characterRepo.Update(character); err != nil {
-		response.Error(c, 500, "更新角色失败: "+err.Error())
+		response.Error(c, 500, "Failed to update character: "+err.Error())
 		return
 	}
 

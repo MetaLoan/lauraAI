@@ -21,13 +21,13 @@ func (h *AuthHandler) TelegramAuth(c *gin.Context) {
 	}
 
 	if initData == "" {
-		response.Error(c, 400, "缺少 initData 参数")
+		response.Error(c, 400, "Missing initData parameter")
 		return
 	}
 
 	telegramUser, err := service.ValidateTelegramInitData(initData)
 	if err != nil {
-		response.Error(c, 401, "认证失败: "+err.Error())
+		response.Error(c, 401, "Authentication failed: "+err.Error())
 		return
 	}
 

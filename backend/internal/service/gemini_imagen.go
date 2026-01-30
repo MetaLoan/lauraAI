@@ -31,7 +31,7 @@ func NewGeminiImagenService() (*GeminiImagenService, error) {
 			log.Println("开发模式: GEMINI_API_KEY 未配置，将使用模拟图片生成")
 			return &GeminiImagenService{client: nil}, nil
 		}
-		return nil, fmt.Errorf("GEMINI_API_KEY 未配置")
+		return nil, fmt.Errorf("GEMINI_API_KEY not configured")
 	}
 
 	ctx := context.Background()
@@ -39,7 +39,7 @@ func NewGeminiImagenService() (*GeminiImagenService, error) {
 		APIKey: config.AppConfig.GeminiAPIKey,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("创建 Gemini 客户端失败: %v", err)
+		return nil, fmt.Errorf("Failed to create Gemini client: %v", err)
 	}
 
 	return &GeminiImagenService{client: client}, nil
@@ -85,11 +85,11 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 	// 使用 gemini-2.5-flash-image 生成清晰图片
 	resp, err := s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), nil)
 	if err != nil {
-		return "", fmt.Errorf("生成图片失败: %v", err)
+		return "", fmt.Errorf("Failed to generate image: %v", err)
 	}
 
 	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
-		return "", fmt.Errorf("未生成图片")
+		return "", fmt.Errorf("Image not generated")
 	}
 
 	var imageData []byte
@@ -107,7 +107,7 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 	}
 
 	if imageData == nil {
-		return "", fmt.Errorf("响应中未找到图片数据")
+		return "", fmt.Errorf("Image data not found in response")
 	}
 
 	// 解码图片
@@ -118,7 +118,7 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 		// 尝试直接保存原始数据
 		clearURL, saveErr := s.saveImageBytes(imageData, "jpg") // 假设是 jpg
 		if saveErr != nil {
-			return "", fmt.Errorf("保存图片失败: %v", saveErr)
+			return "", fmt.Errorf("Failed to save image: %v", saveErr)
 		}
 		character.ClearImageURL = clearURL
 		character.FullBlurImageURL = clearURL
@@ -131,7 +131,7 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 	// 保存清晰图片
 	clearURL, err := s.saveImage(img)
 	if err != nil {
-		return "", fmt.Errorf("保存清晰图片失败: %v", err)
+		return "", fmt.Errorf("Failed to save clear image: %v", err)
 	}
 
 	// 生成完全模糊版本 (sigma=30)
@@ -199,11 +199,11 @@ func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, pro
 	// 使用 gemini-2.5-flash-image，这是专门的图像生成模型
 	resp, err := s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), nil)
 	if err != nil {
-		return "", fmt.Errorf("生成图片失败: %v", err)
+		return "", fmt.Errorf("Failed to generate image: %v", err)
 	}
 
 	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
-		return "", fmt.Errorf("未生成图片")
+		return "", fmt.Errorf("Image not generated")
 	}
 
 	for _, part := range resp.Candidates[0].Content.Parts {
@@ -222,7 +222,7 @@ func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, pro
 		}
 	}
 
-	return "", fmt.Errorf("响应中未找到图片数据")
+	return "", fmt.Errorf("Image data not found in response")
 }
 
 func (s *GeminiImagenService) buildImagePrompt(character *model.Character) string {

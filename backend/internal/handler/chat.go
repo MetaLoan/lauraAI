@@ -45,7 +45,7 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
 		log.Printf("SendMessage: 用户未认证")
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 	log.Printf("SendMessage: 用户ID=%d", user.ID)
@@ -53,20 +53,20 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 	idStr := c.Param("id")
 	characterID, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		response.Error(c, 400, "无效的角色 ID")
+		response.Error(c, 400, "Invalid character ID")
 		return
 	}
 
 	// 获取角色
 	character, err := h.characterRepo.GetByID(characterID)
 	if err != nil {
-		response.Error(c, 404, "角色不存在")
+		response.Error(c, 404, "Character not found")
 		return
 	}
 
 	// 验证角色属于当前用户
 	if character.UserID != user.ID {
-		response.Error(c, 403, "无权访问")
+		response.Error(c, 403, "Access denied")
 		return
 	}
 
@@ -75,7 +75,7 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, 400, "无效的请求参数: "+err.Error())
+		response.Error(c, 400, "Invalid request parameters: "+err.Error())
 		return
 	}
 
@@ -87,7 +87,7 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 		Content:     req.Message,
 	}
 	if err := h.messageRepo.Create(userMessage); err != nil {
-		response.Error(c, 500, "保存消息失败: "+err.Error())
+		response.Error(c, 500, "Failed to save message: "+err.Error())
 		return
 	}
 
@@ -105,7 +105,7 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 	ctx := c.Request.Context()
 	stream, err := h.chatService.ChatStream(ctx, character, historyMessages, req.Message)
 	if err != nil {
-		response.Error(c, 500, "生成响应失败: "+err.Error())
+		response.Error(c, 500, "Failed to generate response: "+err.Error())
 		return
 	}
 
@@ -137,27 +137,27 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 func (h *ChatHandler) GetMessages(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
-		response.Error(c, 401, "未认证")
+		response.Error(c, 401, "Unauthorized")
 		return
 	}
 
 	idStr := c.Param("id")
 	characterID, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		response.Error(c, 400, "无效的角色 ID")
+		response.Error(c, 400, "Invalid character ID")
 		return
 	}
 
 	// 获取角色
 	character, err := h.characterRepo.GetByID(characterID)
 	if err != nil {
-		response.Error(c, 404, "角色不存在")
+		response.Error(c, 404, "Character not found")
 		return
 	}
 
 	// 验证角色属于当前用户
 	if character.UserID != user.ID {
-		response.Error(c, 403, "无权访问")
+		response.Error(c, 403, "Access denied")
 		return
 	}
 
@@ -166,7 +166,7 @@ func (h *ChatHandler) GetMessages(c *gin.Context) {
 
 	messages, err := h.messageRepo.GetRecentByCharacterID(characterID, limit)
 	if err != nil {
-		response.Error(c, 500, "查询失败: "+err.Error())
+		response.Error(c, 500, "Failed to query: "+err.Error())
 		return
 	}
 

@@ -52,7 +52,7 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 				// 无论上面是否报错，都重新查一次以确保获取到正确的 User 对象（包含 ID）
 				user, err = userRepo.GetByTelegramID(DefaultTestTelegramID)
 				if err != nil {
-					response.Error(c, 500, "获取/创建测试用户失败: "+err.Error())
+					response.Error(c, 500, "Failed to get/create test user: "+err.Error())
 					c.Abort()
 					return
 				}
@@ -81,7 +81,7 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 			// #region agent log
 			debugLog("E", "缺少initData-返回401", map[string]interface{}{})
 			// #endregion
-			response.Error(c, 401, "缺少 Telegram initData")
+			response.Error(c, 401, "Missing Telegram initData")
 			c.Abort()
 			return
 		}
@@ -96,7 +96,7 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 			// #region agent log
 			debugLog("A", "initData验证失败-返回401", map[string]interface{}{"error": err.Error()})
 			// #endregion
-			response.Error(c, 401, "Telegram 认证失败: "+err.Error())
+			response.Error(c, 401, "Telegram authentication failed: "+err.Error())
 			c.Abort()
 			return
 		}
@@ -135,7 +135,7 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 				// #region agent log
 				debugLog("B", "创建用户失败", map[string]interface{}{"error": err.Error()})
 				// #endregion
-				response.Error(c, 500, "创建用户失败: "+err.Error())
+				response.Error(c, 500, "Failed to create user: "+err.Error())
 				c.Abort()
 				return
 			}
