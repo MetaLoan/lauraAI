@@ -11,7 +11,7 @@ import {
   DrawerFooter,
 } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
-import { Loader2, CheckCircle2, Star } from 'lucide-react'
+import { Loader2, CheckCircle2, Star, Sparkles } from 'lucide-react'
 import { cn, getAssetPath } from '@/lib/utils'
 
 interface PaymentDrawerProps {
@@ -20,6 +20,9 @@ interface PaymentDrawerProps {
   characterName: string
   characterType?: string
   characterImage?: string
+  priceStars?: number
+  priceTON?: number
+  isDiscounted?: boolean
   onPaymentSuccess?: () => void
 }
 
@@ -31,6 +34,9 @@ export function PaymentDrawer({
   characterName,
   characterType = 'AI Companion',
   characterImage,
+  priceStars = 300,
+  priceTON = 3,
+  isDiscounted = false,
   onPaymentSuccess,
 }: PaymentDrawerProps) {
   const [status, setStatus] = useState<PaymentStatus>('idle')
@@ -56,7 +62,6 @@ export function PaymentDrawer({
       // Auto close after success
       setTimeout(() => {
         onPaymentSuccess?.()
-        onClose()
       }, 1500)
     } catch (error) {
       console.error('Payment failed:', error)
@@ -75,7 +80,9 @@ export function PaymentDrawer({
                   Unlock {characterName}
                 </DrawerTitle>
                 <DrawerDescription className="text-gray-400 text-center mt-2">
-                  Choose your preferred payment method to start your journey with {characterName}.
+                  {isDiscounted 
+                    ? 'Your friend helped! Enjoy the discounted price.'
+                    : `Choose your preferred payment method to unlock ${characterName}.`}
                 </DrawerDescription>
               </DrawerHeader>
 
@@ -94,6 +101,14 @@ export function PaymentDrawer({
                   </div>
                 </div>
 
+                {/* Discount badge */}
+                {isDiscounted && (
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-3 flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4 text-green-400" />
+                    <span className="text-sm text-green-400 font-medium">Friend discount applied! Save 67%</span>
+                  </div>
+                )}
+
                 <div className="space-y-3 pt-2">
                   <Button
                     onClick={() => handlePayment('stars')}
@@ -104,7 +119,8 @@ export function PaymentDrawer({
                       alt="Telegram Stars" 
                       className="w-6 h-6 object-contain"
                     />
-                    Pay with Telegram Stars
+                    {isDiscounted && <span className="line-through text-gray-400 text-sm mr-1">300</span>}
+                    {priceStars} Stars
                   </Button>
 
                   <Button
@@ -117,7 +133,8 @@ export function PaymentDrawer({
                       alt="TON" 
                       className="w-6 h-6 object-contain"
                     />
-                    Pay with TON
+                    {isDiscounted && <span className="line-through text-gray-500 text-sm mr-1">3</span>}
+                    {priceTON} TON
                   </Button>
                 </div>
               </div>
@@ -137,7 +154,7 @@ export function PaymentDrawer({
               </div>
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-bold tracking-widest uppercase">Processing</h3>
-                <p className="text-gray-500 text-sm">Validating transaction on blockchain...</p>
+                <p className="text-gray-500 text-sm">Validating transaction...</p>
               </div>
             </div>
           )}
@@ -146,7 +163,7 @@ export function PaymentDrawer({
             <div className="py-24 flex flex-col items-center justify-center space-y-6 animate-in fade-in zoom-in duration-500">
               <CheckCircle2 className="w-16 h-16 text-white" />
               <div className="text-center space-y-2">
-                <h3 className="text-2xl font-bold tracking-tight">SUCCESSFUL</h3>
+                <h3 className="text-2xl font-bold tracking-tight">UNLOCKED!</h3>
                 <p className="text-gray-500">Welcome to the world of {characterName}.</p>
               </div>
             </div>

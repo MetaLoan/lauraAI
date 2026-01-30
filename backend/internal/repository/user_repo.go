@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+
 	"lauraai-backend/internal/model"
 
 	"gorm.io/gorm"
@@ -10,6 +13,13 @@ type UserRepository struct{}
 
 func NewUserRepository() *UserRepository {
 	return &UserRepository{}
+}
+
+// GenerateInviteCode 生成唯一的邀请码
+func GenerateInviteCode() string {
+	bytes := make([]byte, 6)
+	rand.Read(bytes)
+	return hex.EncodeToString(bytes)[:8]
 }
 
 func (r *UserRepository) Create(user *model.User) error {
@@ -63,7 +73,10 @@ func (r *UserRepository) CreateOrUpdate(user *model.User) error {
 	err := DB.Unscoped().Where("telegram_id = ?", user.TelegramID).First(&existing).Error
 	
 	if err != nil {
-		// 不存在，创建
+		// 不存在，创建时生成邀请码
+		if user.InviteCode == "" {
+			user.InviteCode = GenerateInviteCode()
+		}
 		return DB.Create(user).Error
 	}
 	
@@ -74,4 +87,35 @@ func (r *UserRepository) CreateOrUpdate(user *model.User) error {
 		"name":       user.Name,
 		"deleted_at": nil,
 	}).Error
+}
+
+// GetByInviteCode 通过邀请码查找用户
+func (r *UserRepository) GetByInviteCode(code string) (*model.User, error) {
+	var user model.User
+	err := DB.Where("invite_code = ?", code).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// GetReferrals 获取用户的下级好友列表
+func (r *UserRepository) GetReferrals(userID uint64) ([]model.User, error) {
+	var users []model.User
+	err := DB.Where("inviter_id = ?", userID).Find(&users).Error
+	return users, err
+}
+
+// SetInviter 设置用户的邀请人
+func (r *UserRepository) SetInviter(userID, inviterID uint64) error {
+	return DB.Model(&model.User{}).Where("id = ?", userID).Update("inviter_id", inviterID).Error
+}
+
+// EnsureInviteCode 确保用户有邀请码，如果没有则生成
+func (r *UserRepository) EnsureInviteCode(user *model.User) error {
+	if user.InviteCode != "" {
+		return nil
+	}
+	user.InviteCode = GenerateInviteCode()
+	return DB.Model(user).Update("invite_code", user.InviteCode).Error
 }

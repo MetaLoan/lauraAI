@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Calendar, MapPin, Clock, ChevronLeft, Trash2 } from 'lucide-react'
+import { Calendar, MapPin, Clock, ChevronLeft, Trash2, Users, Copy, Share2, CheckCircle2 } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 
 interface ProfileProps {
@@ -22,6 +22,13 @@ interface BackendUser {
   birth_place?: string
   ethnicity?: string
   avatar_url?: string
+}
+
+interface Referral {
+  id: number
+  name: string
+  avatar_url?: string
+  created_at: string
 }
 
 // 月份数字到名称的映射
@@ -45,6 +52,10 @@ export default function Profile({
   const [birthTime, setBirthTime] = useState(propBirthTime || { hour: '', minute: '' })
   const [loading, setLoading] = useState(!propName) // 如果 props 有数据就不加载
   const [isDeleting, setIsDeleting] = useState(false)
+  const [inviteCode, setInviteCode] = useState<string>('')
+  const [referrals, setReferrals] = useState<Referral[]>([])
+  const [referralsLoading, setReferralsLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
 
   // 处理删除账户
   const handleDeleteAccount = async () => {
@@ -111,6 +122,49 @@ export default function Profile({
       loadUserData()
     }
   }, [propName])
+
+  // 加载邀请码和下级好友
+  useEffect(() => {
+    const loadReferralData = async () => {
+      try {
+        // 获取邀请码
+        const codeData = await apiClient.getInviteCode()
+        setInviteCode(codeData.invite_code)
+
+        // 获取下级好友
+        const referralsData = await apiClient.getReferrals()
+        setReferrals(referralsData.referrals)
+      } catch (error) {
+        console.error('Failed to load referral data:', error)
+      } finally {
+        setReferralsLoading(false)
+      }
+    }
+    loadReferralData()
+  }, [])
+
+  // 复制邀请链接
+  const handleCopyInviteLink = async () => {
+    const inviteLink = `https://t.me/LauraAI_bot/app?startapp=invite_${inviteCode}`
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      alert('Failed to copy link')
+    }
+  }
+
+  // 分享邀请链接
+  const handleShareInviteLink = () => {
+    const inviteLink = `https://t.me/LauraAI_bot/app?startapp=invite_${inviteCode}`
+    const webApp = (window as any).Telegram?.WebApp
+    if (webApp?.openTelegramLink) {
+      webApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent('Join Laura AI and discover your AI soulmate!')}`)
+    } else {
+      handleCopyInviteLink()
+    }
+  }
 
   // 格式化日期显示
   const formatDate = () => {
@@ -183,6 +237,79 @@ export default function Profile({
               <span className="text-white font-medium">{formatTime()}</span>
             </div>
           </div>
+        </div>
+
+        {/* My Friends Card */}
+        <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-title-md font-bold flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              My Friends
+            </h3>
+            <span className="text-sm text-gray-400">{referrals.length} invited</span>
+          </div>
+
+          {/* Invite Code Section */}
+          {inviteCode && (
+            <div className="bg-white/5 rounded-xl p-4 mb-4">
+              <p className="text-xs text-gray-400 mb-2">Your Invite Code</p>
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-mono font-bold tracking-wider">{inviteCode}</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCopyInviteLink}
+                    className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                    title="Copy link"
+                  >
+                    {copied ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
+                  </button>
+                  <button
+                    onClick={handleShareInviteLink}
+                    className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                    title="Share"
+                  >
+                    <Share2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Referrals List */}
+          {referralsLoading ? (
+            <div className="py-6 text-center text-gray-400">Loading...</div>
+          ) : referrals.length > 0 ? (
+            <div className="space-y-3">
+              {referrals.map((referral) => (
+                <div key={referral.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
+                    {referral.avatar_url ? (
+                      <img src={referral.avatar_url} alt={referral.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-lg">{referral.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">{referral.name || 'Anonymous'}</p>
+                    <p className="text-xs text-gray-400">
+                      Joined {new Date(referral.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-6 text-center">
+              <p className="text-gray-400 mb-3">No friends invited yet</p>
+              <button
+                onClick={handleShareInviteLink}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-sm font-medium flex items-center gap-2 mx-auto"
+              >
+                <Share2 className="w-4 h-4" />
+                Invite Friends
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Danger Zone */}

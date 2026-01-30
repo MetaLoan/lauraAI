@@ -1,0 +1,254 @@
+package handler
+
+import (
+	"fmt"
+	"strconv"
+
+	"lauraai-backend/internal/middleware"
+	"lauraai-backend/internal/model"
+	"lauraai-backend/internal/repository"
+	"lauraai-backend/pkg/response"
+
+	"github.com/gin-gonic/gin"
+)
+
+// 价格配置
+const (
+	FullUnlockPriceStars = 300 // 全价解锁（星星）
+	FullUnlockPriceTON   = 3   // 全价解锁（TON）
+	HalfUnlockPriceStars = 100 // 半价解锁（星星）
+	HalfUnlockPriceTON   = 1   // 半价解锁（TON）
+)
+
+type UnlockHandler struct {
+	characterRepo *repository.CharacterRepository
+	userRepo      *repository.UserRepository
+}
+
+func NewUnlockHandler() *UnlockHandler {
+	return &UnlockHandler{
+		characterRepo: repository.NewCharacterRepository(),
+		userRepo:      repository.NewUserRepository(),
+	}
+}
+
+// GetShareInfo 获取分享链接的角色信息（公开接口，无需认证）
+func (h *UnlockHandler) GetShareInfo(c *gin.Context) {
+	shareCode := c.Param("code")
+	if shareCode == "" {
+		response.Error(c, 400, "无效的分享码")
+		return
+	}
+
+	character, err := h.characterRepo.GetByShareCode(shareCode)
+	if err != nil {
+		response.Error(c, 404, "分享链接无效或已过期")
+		return
+	}
+
+	// 获取角色所有者信息
+	owner, err := h.userRepo.GetByID(character.UserID)
+	if err != nil {
+		response.Error(c, 500, "获取用户信息失败")
+		return
+	}
+
+	// 返回公开信息（不返回清晰图片）
+	response.Success(c, gin.H{
+		"character": gin.H{
+			"id":                  character.ID,
+			"title":               character.Title,
+			"type":                character.Type,
+			"full_blur_image_url": character.FullBlurImageURL,
+			"half_blur_image_url": character.HalfBlurImageURL,
+			"unlock_status":       character.UnlockStatus,
+			"share_code":          character.ShareCode,
+		},
+		"owner": gin.H{
+			"id":   owner.ID,
+			"name": owner.Name,
+		},
+	})
+}
+
+// HelpUnlock 好友帮助解锁（将解锁状态从0改为1）
+func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
+	helper, exists := middleware.GetUserFromContext(c)
+	if !exists {
+		response.Error(c, 401, "未认证")
+		return
+	}
+
+	idStr := c.Param("id")
+	characterID, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.Error(c, 400, "无效的角色 ID")
+		return
+	}
+
+	character, err := h.characterRepo.GetByID(characterID)
+	if err != nil {
+		response.Error(c, 404, "角色不存在")
+		return
+	}
+
+	// 不能帮自己解锁
+	if character.UserID == helper.ID {
+		response.Error(c, 400, "不能帮自己解锁")
+		return
+	}
+
+	// 只有未解锁状态才能帮忙解锁
+	if character.UnlockStatus != model.UnlockStatusLocked {
+		response.Error(c, 400, "角色已被解锁或已有人帮助")
+		return
+	}
+
+	// 更新解锁状态为半解锁
+	helperID := helper.ID
+	if err := h.characterRepo.UpdateUnlockStatus(characterID, model.UnlockStatusHalfUnlocked, &helperID); err != nil {
+		response.Error(c, 500, "解锁失败: "+err.Error())
+		return
+	}
+
+	// 同时将帮助者设为角色所有者的邀请下级（如果还没有邀请人）
+	if helper.InviterID == nil {
+		_ = h.userRepo.SetInviter(helper.ID, character.UserID)
+	}
+
+	response.Success(c, gin.H{
+		"message":       "帮助解锁成功",
+		"unlock_status": model.UnlockStatusHalfUnlocked,
+		"image_url":     character.HalfBlurImageURL,
+	})
+}
+
+// Unlock 付费解锁角色
+func (h *UnlockHandler) Unlock(c *gin.Context) {
+	user, exists := middleware.GetUserFromContext(c)
+	if !exists {
+		response.Error(c, 401, "未认证")
+		return
+	}
+
+	idStr := c.Param("id")
+	characterID, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.Error(c, 400, "无效的角色 ID")
+		return
+	}
+
+	character, err := h.characterRepo.GetByID(characterID)
+	if err != nil {
+		response.Error(c, 404, "角色不存在")
+		return
+	}
+
+	// 验证角色属于当前用户
+	if character.UserID != user.ID {
+		response.Error(c, 403, "无权访问")
+		return
+	}
+
+	// 已完全解锁
+	if character.UnlockStatus == model.UnlockStatusFullUnlocked {
+		response.Error(c, 400, "角色已完全解锁")
+		return
+	}
+
+	var req struct {
+		PaymentMethod string `json:"payment_method" binding:"required"` // "stars" or "ton"
+		TransactionID string `json:"transaction_id"`                    // 支付凭证（简化处理）
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, 400, "无效的请求参数")
+		return
+	}
+
+	// 计算价格
+	var expectedPrice int
+	if character.UnlockStatus == model.UnlockStatusHalfUnlocked {
+		// 半价
+		if req.PaymentMethod == "stars" {
+			expectedPrice = HalfUnlockPriceStars
+		} else {
+			expectedPrice = HalfUnlockPriceTON
+		}
+	} else {
+		// 全价
+		if req.PaymentMethod == "stars" {
+			expectedPrice = FullUnlockPriceStars
+		} else {
+			expectedPrice = FullUnlockPriceTON
+		}
+	}
+
+	// TODO: 实际验证支付（这里简化处理，假设支付成功）
+	// 在生产环境中，应该调用 Telegram Stars API 或 TON 区块链验证支付
+
+	// 更新解锁状态为完全解锁
+	if err := h.characterRepo.UpdateUnlockStatus(characterID, model.UnlockStatusFullUnlocked, nil); err != nil {
+		response.Error(c, 500, "解锁失败: "+err.Error())
+		return
+	}
+
+	// 更新 ImageURL 为清晰图片
+	character.UnlockStatus = model.UnlockStatusFullUnlocked
+	character.ImageURL = character.ClearImageURL
+	if err := h.characterRepo.Update(character); err != nil {
+		response.Error(c, 500, "更新角色失败: "+err.Error())
+		return
+	}
+
+	response.Success(c, gin.H{
+		"message":       "解锁成功",
+		"unlock_status": model.UnlockStatusFullUnlocked,
+		"image_url":     character.ClearImageURL,
+		"description":   character.Description,
+		"price_paid":    expectedPrice,
+		"currency":      req.PaymentMethod,
+	})
+}
+
+// GetUnlockPrice 获取解锁价格
+func (h *UnlockHandler) GetUnlockPrice(c *gin.Context) {
+	idStr := c.Param("id")
+	characterID, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.Error(c, 400, "无效的角色 ID")
+		return
+	}
+
+	character, err := h.characterRepo.GetByID(characterID)
+	if err != nil {
+		response.Error(c, 404, "角色不存在")
+		return
+	}
+
+	var priceStars, priceTON int
+	var priceType string
+
+	switch character.UnlockStatus {
+	case model.UnlockStatusFullUnlocked:
+		priceStars = 0
+		priceTON = 0
+		priceType = "free"
+	case model.UnlockStatusHalfUnlocked:
+		priceStars = HalfUnlockPriceStars
+		priceTON = HalfUnlockPriceTON
+		priceType = "discounted"
+	default:
+		priceStars = FullUnlockPriceStars
+		priceTON = FullUnlockPriceTON
+		priceType = "full"
+	}
+
+	response.Success(c, gin.H{
+		"unlock_status": character.UnlockStatus,
+		"price_type":    priceType,
+		"price_stars":   priceStars,
+		"price_ton":     priceTON,
+		"price_display": fmt.Sprintf("%d Stars / %d TON", priceStars, priceTON),
+	})
+}

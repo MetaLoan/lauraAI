@@ -21,6 +21,7 @@ import ChatWindow from '@/components/chat-window'
 import Dashboard from '@/components/dashboard'
 import Profile from '@/components/profile'
 import HistoryPage from '@/components/history-page'
+import HelpUnlockPage from '@/components/help-unlock-page'
 import Preloader from '@/components/ui/preloader'
 import { PaymentDrawer } from '@/components/payment-drawer'
 import { apiClient } from '@/lib/api'
@@ -32,6 +33,8 @@ export default function Home() {
   const [showProfile, setShowProfile] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [showMiniMe, setShowMiniMe] = useState(false)
+  const [showHelpUnlock, setShowHelpUnlock] = useState(false)
+  const [helpUnlockShareCode, setHelpUnlockShareCode] = useState<string | null>(null)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -52,6 +55,22 @@ export default function Home() {
   useEffect(() => {
     const checkUserStatus = async () => {
       try {
+        // 解析 Telegram startapp 参数
+        const webApp = (window as any).Telegram?.WebApp
+        const startParam = webApp?.initDataUnsafe?.start_param
+        
+        // 检查是否是分享链接 (格式: char_{characterId}_{shareCode})
+        if (startParam && startParam.startsWith('char_')) {
+          const parts = startParam.split('_')
+          if (parts.length >= 3) {
+            const shareCode = parts.slice(2).join('_') // 支持分享码中包含下划线
+            setHelpUnlockShareCode(shareCode)
+            setShowHelpUnlock(true)
+            setIsLoading(false)
+            return
+          }
+        }
+        
         const user = await apiClient.getMe() as any
         if (user && user.name && user.gender && user.birth_date) {
           // 用户已完成引导，直接跳转到 Dashboard
@@ -155,8 +174,8 @@ export default function Home() {
         // Loading before results - auto progress after 3 seconds
         setTimeout(() => setStep(8), 3000)
       } else if (step === 10) {
-        // 在选择族裔后（step 10），弹出支付弹窗，而不是直接进入 Drawing
-        handleOpenPayment()
+        // 选择族裔后，直接进入 Drawing 页面（支付移到结果页）
+        setStep(11)
       } else {
         // step 11 (DrawingLoading) 由 createCharacter 完成后自动跳转到 step 12
         setStep(step + 1)
@@ -176,11 +195,9 @@ export default function Home() {
     setStep(11)
   }
 
-  // 创建角色并生成图片（在 step 11 且支付完成后触发）
+  // 创建角色并生成图片（在 step 11 时触发，支付移到结果页）
   useEffect(() => {
-    if (step === 11 && paymentCompleted && !isGenerating) {
-      // 重置支付状态，防止重复触发
-      setPaymentCompleted(false)
+    if (step === 11 && !isGenerating) {
       setIsGenerating(true)
       setGenerationError(null)
       
@@ -202,10 +219,16 @@ export default function Home() {
             throw new Error('创建角色失败：未返回有效的角色数据')
           }
 
-          // 生成角色图片
-          const imageResult = await apiClient.generateImage((character as any).id.toString())
-          if (imageResult && (imageResult as any).image_url) {
-            ;(character as any).image_url = (imageResult as any).image_url
+          // 生成角色图片（包含 3 张模糊图）
+          const imageResult = await apiClient.generateImage((character as any).id.toString()) as any
+          if (imageResult && imageResult.image_url) {
+            ;(character as any).image_url = imageResult.image_url
+            // 保存所有图片字段
+            ;(character as any).full_blur_image_url = imageResult.full_blur_image_url
+            ;(character as any).half_blur_image_url = imageResult.half_blur_image_url
+            ;(character as any).clear_image_url = imageResult.clear_image_url
+            ;(character as any).unlock_status = imageResult.unlock_status
+            ;(character as any).share_code = imageResult.share_code
           } else {
             throw new Error('生成图片失败：未返回有效的图片数据')
           }
@@ -213,7 +236,7 @@ export default function Home() {
           // 保存角色数据并跳转到下一步
           // 确保 id 是字符串格式，与 Dashboard 传递的格式一致
           const characterData = {
-            ...character,
+            ...(character as any),
             id: (character as any).id.toString(),
           }
           setSelectedCharacterData(characterData)
@@ -227,7 +250,7 @@ export default function Home() {
       }
       createCharacter()
     }
-  }, [step, paymentCompleted, isGenerating, creatingCharacterType, formData.soulmateGender, formData.soulmateEthnicity])
+  }, [step, isGenerating, creatingCharacterType, formData.soulmateGender, formData.soulmateEthnicity])
 
   // Auto-trigger loading states (只针对 step 7)
   React.useEffect(() => {
@@ -382,7 +405,22 @@ export default function Home() {
     <SoulmateGenderSelect key="soulmateGender" value={formData.soulmateGender} onChange={(val) => updateFormData('soulmateGender', val)} onNext={handleNext} onBack={creatingCharacterType ? handleGoToDashboard : handleBack} characterTitle={creatingCharacterType?.title || 'Soulmate'} />,
     <SoulmateEthnicitySelect key="soulmateEthnicity" value={formData.soulmateEthnicity} onChange={(val) => updateFormData('soulmateEthnicity', val)} onNext={handleNext} onBack={handleBack} characterTitle={creatingCharacterType?.title || 'Soulmate'} />,
     <DrawingLoading key="drawing" onBack={handleBack} error={generationError} onRetry={() => { setIsGenerating(false); setGenerationError(null); }} />,
-    <SoulmateDetailPage key="detail" character={selectedCharacterData} onNext={handleOpenChat} onBack={handleGoToDashboard} />,
+    <SoulmateDetailPage 
+      key="detail" 
+      character={selectedCharacterData} 
+      onNext={handleOpenChat} 
+      onBack={handleGoToDashboard}
+      onUnlockSuccess={() => {
+        // 解锁成功后，更新角色数据以显示清晰图片
+        if (selectedCharacterData) {
+          setSelectedCharacterData({
+            ...selectedCharacterData,
+            unlock_status: 2, // FullUnlocked
+            image_url: selectedCharacterData.clear_image_url || selectedCharacterData.image_url
+          })
+        }
+      }}
+    />,
     <Dashboard 
       key={`dashboard-${dashboardKey}`} 
       onSelectCharacter={handleOpenDetail} 
@@ -403,6 +441,34 @@ export default function Home() {
           API: {apiClient.baseURL}
         </div>
       </div>
+    )
+  }
+
+  // 帮助解锁完成后的处理
+  const handleHelpUnlockComplete = async () => {
+    setShowHelpUnlock(false)
+    setHelpUnlockShareCode(null)
+    // 检查用户状态，决定显示欢迎页还是 Dashboard
+    try {
+      const user = await apiClient.getMe() as any
+      if (user && user.name && user.gender && user.birth_date) {
+        setStep(13)
+      } else {
+        setStep(0)
+      }
+    } catch {
+      setStep(0)
+    }
+  }
+
+  // 如果是帮助解锁流程，显示帮助解锁页面
+  if (showHelpUnlock && helpUnlockShareCode) {
+    return (
+      <HelpUnlockPage
+        shareCode={helpUnlockShareCode}
+        onComplete={handleHelpUnlockComplete}
+        onSkip={handleHelpUnlockComplete}
+      />
     )
   }
 
