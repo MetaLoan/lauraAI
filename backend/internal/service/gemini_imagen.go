@@ -88,19 +88,41 @@ func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, pro
 
 func (s *GeminiImagenService) buildImagePrompt(character *model.Character) string {
 	var stylePrompt string
+	var agePrompt string
 
+	// 1. 根据角色类型确定基础风格和年龄段描述
 	switch character.Type {
 	case model.CharacterTypeSoulmate:
 		stylePrompt = "A breathtakingly beautiful portrait of a soulmate, "
-	case "future_husband", "future_wife":
-		stylePrompt = "A realistic and romantic wedding-style portrait of a future spouse, "
-	case "future_baby":
+		agePrompt = "young adult (20-30 years old), "
+	case model.CharacterTypeFutureHusband:
+		stylePrompt = "A realistic and romantic wedding-style portrait of a future husband, "
+		agePrompt = "mature young man (25-35 years old), "
+	case model.CharacterTypeFutureWife:
+		stylePrompt = "A realistic and romantic wedding-style portrait of a future wife, "
+		agePrompt = "elegant young woman (23-33 years old), "
+	case model.CharacterTypeFutureBaby:
 		stylePrompt = "A cute and adorable portrait of a future baby, "
+		agePrompt = "infant (0-1 year old), "
+	case model.CharacterTypeBoyfriend:
+		stylePrompt = "A charming and handsome portrait of a boyfriend, "
+		agePrompt = "young man (18-28 years old), "
+	case model.CharacterTypeGirlfriend:
+		stylePrompt = "A sweet and beautiful portrait of a girlfriend, "
+		agePrompt = "young woman (18-28 years old), "
+	case model.CharacterTypeBestFriend:
+		stylePrompt = "A friendly and relatable portrait of a best friend, "
+		agePrompt = "young adult (same age as user), "
+	case model.CharacterTypeWiseMentor:
+		stylePrompt = "A dignified and knowledgeable portrait of a wise mentor, "
+		agePrompt = "distinguished older person (50-70 years old), "
 	default:
 		stylePrompt = "A high-quality professional portrait of a character, "
+		agePrompt = "adult, "
 	}
 
-	prompt := fmt.Sprintf("%s%s person, %s ethnicity, ", stylePrompt, character.Gender, character.Ethnicity)
+	// 2. 组合提示词
+	prompt := fmt.Sprintf("%s%s %s person, %s ethnicity, ", stylePrompt, agePrompt, character.Gender, character.Ethnicity)
 
 	if character.Description != "" {
 		prompt += fmt.Sprintf("with these traits: %s, ", character.Description)
