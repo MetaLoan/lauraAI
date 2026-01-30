@@ -3,12 +3,13 @@ package service
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"image"
 	"image/jpeg"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
@@ -163,9 +164,20 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 	return fullBlurURL, nil
 }
 
+// generateSecureFilename 生成加密安全的随机文件名
+func generateSecureFilename(ext string) string {
+	// 使用 32 字节（256 位）的加密随机数，生成 64 字符的十六进制字符串
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		// 如果加密随机失败，使用时间戳作为后备
+		return fmt.Sprintf("fallback_%d.%s", time.Now().UnixNano(), ext)
+	}
+	return fmt.Sprintf("%s.%s", hex.EncodeToString(bytes), ext)
+}
+
 // saveImage 保存图片到本地 uploads 目录并返回完整 URL
 func (s *GeminiImagenService) saveImage(img image.Image) (string, error) {
-	filename := fmt.Sprintf("%d_%d.jpg", time.Now().UnixNano(), rand.Intn(1000))
+	filename := generateSecureFilename("jpg")
 	filepath := filepath.Join("uploads", filename)
 
 	file, err := os.Create(filepath)
@@ -183,7 +195,7 @@ func (s *GeminiImagenService) saveImage(img image.Image) (string, error) {
 
 // saveImageBytes 保存图片字节到本地 uploads 目录并返回完整 URL
 func (s *GeminiImagenService) saveImageBytes(data []byte, ext string) (string, error) {
-	filename := fmt.Sprintf("%d_%d.%s", time.Now().UnixNano(), rand.Intn(1000), ext)
+	filename := generateSecureFilename(ext)
 	filepath := filepath.Join("uploads", filename)
 
 	if err := os.WriteFile(filepath, data, 0644); err != nil {

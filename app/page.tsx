@@ -251,16 +251,15 @@ export default function Home() {
             throw new Error('创建角色失败：未返回有效的角色数据')
           }
 
-          // 生成角色图片（包含 3 张模糊图）
+          // 生成角色图片（后端只返回授权的图片URL）
           const imageResult = await apiClient.generateImage((character as any).id.toString()) as any
           if (imageResult && imageResult.image_url) {
+            // 只保存后端安全返回的字段
             ;(character as any).image_url = imageResult.image_url
-            // 保存所有图片字段
             ;(character as any).full_blur_image_url = imageResult.full_blur_image_url
-            ;(character as any).half_blur_image_url = imageResult.half_blur_image_url
-            ;(character as any).clear_image_url = imageResult.clear_image_url
             ;(character as any).unlock_status = imageResult.unlock_status
             ;(character as any).share_code = imageResult.share_code
+            // 注意：half_blur_image_url 和 clear_image_url 只有在相应解锁状态下才会返回
           } else {
             throw new Error('生成图片失败：未返回有效的图片数据')
           }
@@ -563,7 +562,7 @@ export default function Home() {
             onClose={() => setIsPaymentOpen(false)}
             characterName={creatingCharacterType?.title || selectedCharacterData?.title || 'AI Companion'}
             characterType={creatingCharacterType?.type || 'Soulmate'}
-            characterImage={selectedCharacterData?.full_blur_image_url || selectedCharacterData?.half_blur_image_url || creatingCharacterType?.placeholder}
+            characterImage={selectedCharacterData?.image_url || selectedCharacterData?.image || creatingCharacterType?.placeholder}
             onPaymentSuccess={handlePaymentSuccess}
           />
         </>
