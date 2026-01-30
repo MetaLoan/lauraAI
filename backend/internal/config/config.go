@@ -13,6 +13,7 @@ type Config struct {
 	GeminiAPIKey     string
 	PostgresDSN      string
 	DevMode          bool
+	BaseURL          string
 }
 
 var AppConfig *Config
@@ -33,6 +34,7 @@ func LoadConfig() {
 		GeminiAPIKey:     getEnv("GEMINI_API_KEY", ""),
 		PostgresDSN:      dbDSN,
 		DevMode:          getEnv("DEV_MODE", "false") == "true",
+		BaseURL:          getEnv("BASE_URL", "https://lauraai-backend.fly.dev"),
 	}
 
 	if AppConfig.TelegramBotToken == "" {
