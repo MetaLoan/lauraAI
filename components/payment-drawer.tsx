@@ -53,9 +53,6 @@ export function PaymentDrawer({
   }, [isOpen])
 
   const handlePayment = async (method: 'stars' | 'ton') => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/payment-drawer.tsx:53',message:'handlePayment called',data:{method, hasOnPay: !!onPay},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     setStatus('processing')
     
     try {
