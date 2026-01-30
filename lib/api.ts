@@ -37,7 +37,21 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`
     
     // 从 Telegram Mini App 获取 initData
-    let initData = (window as any).Telegram?.WebApp?.initData
+    const webApp = (window as any).Telegram?.WebApp
+    let initData = webApp?.initData
+    
+    // 获取邀请码 (支持 invite_CODE 和 char_ID_CODE 两种格式)
+    let inviterCode = ''
+    const startParam = webApp?.initDataUnsafe?.start_param
+    if (startParam) {
+      if (startParam.startsWith('invite_')) {
+        inviterCode = startParam.replace('invite_', '')
+      } else if (startParam.startsWith('char_')) {
+        // 分享链接格式: char_ID_SHARECODE，我们需要通过后端获取该角色的所有者邀请码
+        // 但为了简化，我们可以在这里先尝试解析，或者由后端根据 character_id 自动处理
+        // 目前先处理明确的 invite_ 格式
+      }
+    }
     
     // 备用方案：尝试从 URL 获取 initData (有些环境可能需要)
     if (!initData && typeof window !== 'undefined') {
@@ -57,6 +71,10 @@ class ApiClient {
     
     if (initData) {
       headers['X-Telegram-Init-Data'] = initData
+    }
+
+    if (inviterCode) {
+      headers['X-Inviter-Code'] = inviterCode
     }
 
     // 添加超时控制
