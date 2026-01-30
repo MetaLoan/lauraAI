@@ -129,7 +129,17 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 	}
 
 	// 检查帮助者是否是角色所有者邀请的用户
+	// 1. 检查 InviterID 是否匹配
 	isInvitedByOwner := helper.InviterID != nil && *helper.InviterID == character.UserID
+	
+	// 2. 如果不匹配，尝试通过分享链接的逻辑自动绑定（如果用户还没有邀请人）
+	if !isInvitedByOwner && helper.InviterID == nil {
+		// 如果用户是通过分享链接进来的，且还没有邀请人，自动绑定为该角色的所有者
+		_ = h.userRepo.SetInviter(helper.ID, character.UserID)
+		isInvitedByOwner = true
+		log.Printf("HelpUnlock: 自动为用户 %d 绑定邀请人 %d", helper.ID, character.UserID)
+	}
+
 	// #region agent log
 	debugLog("F", "检查邀请关系", map[string]interface{}{"helperInviterID": helper.InviterID, "characterUserID": character.UserID, "isInvitedByOwner": isInvitedByOwner})
 	// #endregion

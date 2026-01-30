@@ -110,13 +110,26 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 		if err != nil {
 			// 用户不存在，创建新用户
 			inviteCode := repository.GenerateInviteCode()
+			
+			// 尝试从 Header 获取邀请码并自动绑定
+			inviterCode := c.GetHeader("X-Inviter-Code")
+			var inviterID *uint64
+			if inviterCode != "" {
+				inviter, err := userRepo.GetByInviteCode(inviterCode)
+				if err == nil && inviter != nil {
+					inviterID = &inviter.ID
+					log.Printf("TelegramAuth: 发现邀请码 %s, 绑定邀请人 ID=%d", inviterCode, inviter.ID)
+				}
+			}
+
 			// #region agent log
-			debugLog("B", "用户不存在-创建新用户", map[string]interface{}{"telegramID": telegramUser.ID, "name": telegramUser.FirstName, "inviteCode": inviteCode})
+			debugLog("B", "用户不存在-创建新用户", map[string]interface{}{"telegramID": telegramUser.ID, "name": telegramUser.FirstName, "inviteCode": inviteCode, "inviterID": inviterID})
 			// #endregion
 			user = &model.User{
 				TelegramID: telegramUser.ID,
 				Name:       telegramUser.FirstName,
 				InviteCode: inviteCode,
+				InviterID:  inviterID,
 			}
 			if err := userRepo.Create(user); err != nil {
 				// #region agent log
