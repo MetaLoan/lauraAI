@@ -173,7 +173,7 @@ export default function Dashboard({
         }
       }
       const displayImage = getDisplayImage()
-      const blurLabel = existingChar.unlock_status === 2 ? '0% blur' : existingChar.unlock_status === 1 ? '50% blur' : '100% blur'
+      const blurLabel = existingChar.unlock_status === 2 ? '0% blur' : existingChar.unlock_status === 1 ? '20% blur' : '100% blur'
       
       // 已创建的角色 - 显示图片
       return (

@@ -133,8 +133,8 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 		fullBlurURL = clearURL
 	}
 
-	// 生成半模糊版本 (sigma=15)
-	halfBlurImg := imaging.Blur(img, 15)
+	// 生成半模糊版本 (sigma=6, 约20%模糊)
+	halfBlurImg := imaging.Blur(img, 6)
 	halfBlurURL, err := imageToDataURL(halfBlurImg)
 	if err != nil {
 		log.Printf("[Imagen] 生成半模糊图失败: %v", err)
