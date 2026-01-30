@@ -1,14 +1,19 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
+	"image"
+	"image/jpeg"
 	"log"
 
 	"lauraai-backend/internal/config"
 	"lauraai-backend/internal/model"
+	"lauraai-backend/internal/repository"
 
+	"github.com/disintegration/imaging"
 	"google.golang.org/genai"
 )
 
@@ -50,14 +55,114 @@ func (s *GeminiImagenService) GenerateMiniMeImage(ctx context.Context, descripti
 func (s *GeminiImagenService) GenerateImage(ctx context.Context, character *model.Character) (string, error) {
 	if s.client == nil {
 		log.Println("开发模式: 返回模拟图片 URL")
+		var clearURL string
 		if character.Gender == "Male" {
-			return "/avatars/soulmate-male.jpg", nil
+			clearURL = "/avatars/soulmate-male.jpg"
+		} else {
+			clearURL = "/avatars/soulmate-female.jpg"
 		}
-		return "/avatars/soulmate-female.jpg", nil
+		// 开发模式下，使用相同的图片作为模拟
+		character.ClearImageURL = clearURL
+		character.FullBlurImageURL = clearURL
+		character.HalfBlurImageURL = clearURL
+		character.ShareCode = repository.GenerateShareCode()
+		character.UnlockStatus = model.UnlockStatusLocked
+		return clearURL, nil
 	}
 
 	prompt := s.buildImagePrompt(character)
-	return s.doGenerateImageWithPrompt(ctx, prompt)
+	return s.doGenerateImageWithBlurVersions(ctx, prompt, character)
+}
+
+// doGenerateImageWithBlurVersions 生成清晰图片后，创建模糊版本
+func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Context, prompt string, character *model.Character) (string, error) {
+	log.Printf("[Imagen] 开始生成图片，提示词: %s", prompt)
+
+	// 使用 gemini-2.5-flash-image 生成清晰图片
+	resp, err := s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), nil)
+	if err != nil {
+		return "", fmt.Errorf("生成图片失败: %v", err)
+	}
+
+	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
+		return "", fmt.Errorf("未生成图片")
+	}
+
+	var imageData []byte
+	var mimeType string
+
+	for _, part := range resp.Candidates[0].Content.Parts {
+		if part.InlineData != nil {
+			imageData = part.InlineData.Data
+			mimeType = part.InlineData.MIMEType
+			break
+		}
+		if part.Text != "" {
+			log.Printf("[Imagen] 收到文本响应: %s", part.Text)
+		}
+	}
+
+	if imageData == nil {
+		return "", fmt.Errorf("响应中未找到图片数据")
+	}
+
+	// 解码图片
+	img, _, err := image.Decode(bytes.NewReader(imageData))
+	if err != nil {
+		// 如果解码失败，返回原始图片（可能是不支持的格式）
+		log.Printf("[Imagen] 图片解码失败，使用原始图片: %v", err)
+		encoded := base64.StdEncoding.EncodeToString(imageData)
+		clearURL := fmt.Sprintf("data:%s;base64,%s", mimeType, encoded)
+		character.ClearImageURL = clearURL
+		character.FullBlurImageURL = clearURL
+		character.HalfBlurImageURL = clearURL
+		character.ShareCode = repository.GenerateShareCode()
+		character.UnlockStatus = model.UnlockStatusLocked
+		return clearURL, nil
+	}
+
+	// 生成清晰图片的 base64
+	clearEncoded := base64.StdEncoding.EncodeToString(imageData)
+	clearURL := fmt.Sprintf("data:%s;base64,%s", mimeType, clearEncoded)
+
+	// 生成完全模糊版本 (sigma=30)
+	fullBlurImg := imaging.Blur(img, 30)
+	fullBlurURL, err := imageToDataURL(fullBlurImg)
+	if err != nil {
+		log.Printf("[Imagen] 生成完全模糊图失败: %v", err)
+		fullBlurURL = clearURL
+	}
+
+	// 生成半模糊版本 (sigma=15)
+	halfBlurImg := imaging.Blur(img, 15)
+	halfBlurURL, err := imageToDataURL(halfBlurImg)
+	if err != nil {
+		log.Printf("[Imagen] 生成半模糊图失败: %v", err)
+		halfBlurURL = clearURL
+	}
+
+	// 设置角色的图片字段
+	character.ClearImageURL = clearURL
+	character.FullBlurImageURL = fullBlurURL
+	character.HalfBlurImageURL = halfBlurURL
+	character.ShareCode = repository.GenerateShareCode()
+	character.UnlockStatus = model.UnlockStatusLocked
+
+	log.Printf("[Imagen] 成功生成3张图片: 清晰(%d bytes), 半模糊, 完全模糊", len(imageData))
+
+	// 返回模糊图片作为默认显示（未解锁状态）
+	return fullBlurURL, nil
+}
+
+// imageToDataURL 将图片转换为 data URL
+func imageToDataURL(img image.Image) (string, error) {
+	var buf bytes.Buffer
+	err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 85})
+	if err != nil {
+		return "", err
+	}
+	encoded := base64.StdEncoding.EncodeToString(buf.Bytes())
+	return fmt.Sprintf("data:image/jpeg;base64,%s", encoded), nil
 }
 
 func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, prompt string) (string, error) {

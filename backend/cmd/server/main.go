@@ -68,6 +68,10 @@ func main() {
 	{
 		authHandler := handler.NewAuthHandler()
 		api.POST("/auth/telegram", authHandler.TelegramAuth)
+
+		// 分享链接公开接口（无需认证）
+		unlockHandler := handler.NewUnlockHandler()
+		api.GET("/share/:code", unlockHandler.GetShareInfo)
 	}
 
 	// 需要认证的路由
@@ -86,6 +90,18 @@ func main() {
 		apiAuth.GET("/characters", characterHandler.List)
 		apiAuth.GET("/characters/:id", characterHandler.GetByID)
 		apiAuth.DELETE("/characters/cleanup", characterHandler.CleanupEmpty)
+
+		// 邀请相关
+		inviteHandler := handler.NewInviteHandler()
+		apiAuth.GET("/invite/code", inviteHandler.GetInviteCode)
+		apiAuth.GET("/invite/referrals", inviteHandler.GetReferrals)
+		apiAuth.POST("/invite/bind", inviteHandler.BindInviter)
+
+		// 解锁相关
+		unlockHandler := handler.NewUnlockHandler()
+		apiAuth.POST("/characters/:id/help-unlock", unlockHandler.HelpUnlock)
+		apiAuth.POST("/characters/:id/unlock", unlockHandler.Unlock)
+		apiAuth.GET("/characters/:id/unlock-price", unlockHandler.GetUnlockPrice)
 
 		// 聊天相关
 		if chatService != nil {

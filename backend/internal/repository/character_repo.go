@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+
 	"lauraai-backend/internal/model"
 )
 
@@ -50,4 +53,32 @@ func (r *CharacterRepository) Delete(id uint64) error {
 func (r *CharacterRepository) DeleteEmptyByUserID(userID uint64) (int64, error) {
 	result := DB.Unscoped().Where("user_id = ? AND (image_url IS NULL OR image_url = '')", userID).Delete(&model.Character{})
 	return result.RowsAffected, result.Error
+}
+
+// GetByShareCode 通过分享码查找角色
+func (r *CharacterRepository) GetByShareCode(shareCode string) (*model.Character, error) {
+	var character model.Character
+	err := DB.Where("share_code = ?", shareCode).First(&character).Error
+	if err != nil {
+		return nil, err
+	}
+	return &character, nil
+}
+
+// UpdateUnlockStatus 更新角色解锁状态
+func (r *CharacterRepository) UpdateUnlockStatus(characterID uint64, status model.UnlockStatus, helperID *uint64) error {
+	updates := map[string]interface{}{
+		"unlock_status": status,
+	}
+	if helperID != nil {
+		updates["unlock_helper_id"] = *helperID
+	}
+	return DB.Model(&model.Character{}).Where("id = ?", characterID).Updates(updates).Error
+}
+
+// GenerateShareCode 生成唯一的分享码
+func GenerateShareCode() string {
+	bytes := make([]byte, 6)
+	rand.Read(bytes)
+	return hex.EncodeToString(bytes)[:8]
 }

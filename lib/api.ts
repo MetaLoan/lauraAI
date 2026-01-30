@@ -39,9 +39,8 @@ class ApiClient {
       initData = 'query_id=AAGLk...&user=%7B%22id%22%3A999999999%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22test_user%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1700000000&hash=fake_hash'
     }
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(options.headers || {}),
     }
     
     if (initData) {
@@ -210,6 +209,83 @@ class ApiClient {
       }
       throw error
     }
+  }
+
+  // ========== 邀请相关 ==========
+
+  // 获取邀请码
+  async getInviteCode(): Promise<{ invite_code: string }> {
+    return this.request('/invite/code')
+  }
+
+  // 获取下级好友列表
+  async getReferrals(): Promise<{ referrals: Array<{ id: number; name: string; avatar_url: string; created_at: string }>; count: number }> {
+    return this.request('/invite/referrals')
+  }
+
+  // 绑定邀请人
+  async bindInviter(inviteCode: string): Promise<{ message: string; inviter_name: string }> {
+    return this.request('/invite/bind', {
+      method: 'POST',
+      body: JSON.stringify({ invite_code: inviteCode }),
+    })
+  }
+
+  // ========== 解锁相关 ==========
+
+  // 获取分享链接信息（公开接口）
+  async getShareInfo(shareCode: string): Promise<{
+    character: {
+      id: number
+      title: string
+      type: string
+      full_blur_image_url: string
+      half_blur_image_url: string
+      unlock_status: number
+      share_code: string
+    }
+    owner: {
+      id: number
+      name: string
+    }
+  }> {
+    return this.request(`/share/${shareCode}`)
+  }
+
+  // 帮助解锁
+  async helpUnlock(characterId: string): Promise<{ message: string; unlock_status: number; image_url: string }> {
+    return this.request(`/characters/${characterId}/help-unlock`, {
+      method: 'POST',
+    })
+  }
+
+  // 付费解锁
+  async unlockCharacter(characterId: string, paymentMethod: 'stars' | 'ton', transactionId?: string): Promise<{
+    message: string
+    unlock_status: number
+    image_url: string
+    description: string
+    price_paid: number
+    currency: string
+  }> {
+    return this.request(`/characters/${characterId}/unlock`, {
+      method: 'POST',
+      body: JSON.stringify({
+        payment_method: paymentMethod,
+        transaction_id: transactionId || '',
+      }),
+    })
+  }
+
+  // 获取解锁价格
+  async getUnlockPrice(characterId: string): Promise<{
+    unlock_status: number
+    price_type: 'free' | 'discounted' | 'full'
+    price_stars: number
+    price_ton: number
+    price_display: string
+  }> {
+    return this.request(`/characters/${characterId}/unlock-price`)
   }
 }
 

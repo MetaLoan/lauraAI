@@ -51,23 +51,30 @@ func (h *ImageHandler) GenerateImage(c *gin.Context) {
 		return
 	}
 
-	// 生成图片
+	// 生成图片（会同时生成3张：清晰、半模糊、完全模糊）
 	ctx := c.Request.Context()
-	imageURL, err := h.imagenService.GenerateImage(ctx, character)
+	_, err = h.imagenService.GenerateImage(ctx, character)
 	if err != nil {
 		response.Error(c, 500, "生成图片失败: "+err.Error())
 		return
 	}
 
-	// 更新角色的图片 URL
-	character.ImageURL = imageURL
+	// 设置 ImageURL 为当前应显示的图片（根据解锁状态）
+	character.ImageURL = character.GetDisplayImageURL()
+
+	// 更新角色的所有图片字段
 	if err := h.characterRepo.Update(character); err != nil {
 		response.Error(c, 500, "更新角色失败: "+err.Error())
 		return
 	}
 
 	response.Success(c, gin.H{
-		"image_url": imageURL,
-		"character": character,
+		"image_url":           character.GetDisplayImageURL(),
+		"full_blur_image_url": character.FullBlurImageURL,
+		"half_blur_image_url": character.HalfBlurImageURL,
+		"clear_image_url":     character.ClearImageURL,
+		"unlock_status":       character.UnlockStatus,
+		"share_code":          character.ShareCode,
+		"character":           character,
 	})
 }

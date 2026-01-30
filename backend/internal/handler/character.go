@@ -72,6 +72,7 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 		Compatibility: compatibility,
 		AstroSign:     astroSign,
 		Description:   description,
+		ShareCode:     repository.GenerateShareCode(), // 创建时就生成分享码
 	}
 
 	if character.Title == "" {
