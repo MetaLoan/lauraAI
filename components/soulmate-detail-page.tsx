@@ -125,12 +125,12 @@ export default function SoulmateDetailPage({
   const handleShare = () => {
     const webApp = (window as any).Telegram?.WebApp
     const shareLink = `https://t.me/laura_tst_bot/app?startapp=char_${character?.id}_${character?.share_code}`
-    
+
     if (unlockStatus === UnlockStatus.FULL_UNLOCKED) {
       // 1. 完全解锁状态：使用故事分享 (Stories) 展示高清图片
       const text = `OMG, my ${title} looks like this! You should try it too! 🔥`
       const imageUrl = getFullImageUrl(character?.clear_image_url || '')
-      
+
       if (webApp?.shareToStory) {
         // 使用 shareToStory API 分享到故事
         webApp.shareToStory(imageUrl, {

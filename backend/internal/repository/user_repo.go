@@ -51,6 +51,10 @@ func (r *UserRepository) Update(user *model.User) error {
 func (r *UserRepository) Delete(id uint64) error {
 	// 使用事务确保原子性，硬删除避免唯一键冲突
 	return DB.Transaction(func(tx *gorm.DB) error {
+		// 先清除所有指向该用户的 inviter_id（避免外键约束冲突）
+		if err := tx.Model(&model.User{}).Where("inviter_id = ?", id).Update("inviter_id", nil).Error; err != nil {
+			return err
+		}
 		// 硬删除用户消息
 		if err := tx.Unscoped().Where("user_id = ?", id).Delete(&model.Message{}).Error; err != nil {
 			return err
@@ -71,7 +75,7 @@ func (r *UserRepository) CreateOrUpdate(user *model.User) error {
 	var existing model.User
 	// 使用 Unscoped 查询包括软删除的记录
 	err := DB.Unscoped().Where("telegram_id = ?", user.TelegramID).First(&existing).Error
-	
+
 	if err != nil {
 		// 不存在，创建时生成邀请码
 		if user.InviteCode == "" {
@@ -79,7 +83,7 @@ func (r *UserRepository) CreateOrUpdate(user *model.User) error {
 		}
 		return DB.Create(user).Error
 	}
-	
+
 	// 存在（可能是被软删除的），恢复并更新
 	user.ID = existing.ID
 	// 清除 DeletedAt 以恢复记录
