@@ -22,6 +22,7 @@ import Dashboard from '@/components/dashboard'
 import Profile from '@/components/profile'
 import HistoryPage from '@/components/history-page'
 import Preloader from '@/components/ui/preloader'
+import { PaymentDrawer } from '@/components/payment-drawer'
 import { apiClient } from '@/lib/api'
 
 export default function Home() {
@@ -31,6 +32,7 @@ export default function Home() {
   const [showProfile, setShowProfile] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [showMiniMe, setShowMiniMe] = useState(false)
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     gender: '',
@@ -44,7 +46,7 @@ export default function Home() {
 
   const [selectedCharacterData, setSelectedCharacterData] = useState<any>(null)
   const [dashboardKey, setDashboardKey] = useState(0) // 用于强制刷新 Dashboard
-  const [creatingCharacterType, setCreatingCharacterType] = useState<{ type: string; title: string } | null>(null)
+  const [creatingCharacterType, setCreatingCharacterType] = useState<{ type: string; title: string; placeholder?: string } | null>(null)
 
   // 在 preloader 阶段检查用户状态并决定跳转
   useEffect(() => {
@@ -139,7 +141,7 @@ export default function Home() {
   }
 
   // 从 Dashboard 点击未创建的角色，开始创建流程
-  const handleStartCreateCharacter = (charType: { type: string; title: string }) => {
+  const handleStartCreateCharacter = (charType: { type: string; title: string; placeholder?: string }) => {
     setCreatingCharacterType(charType)
     // 清空之前的角色数据
     updateFormData('soulmateGender', '')
@@ -152,6 +154,9 @@ export default function Home() {
       if (step === 7) {
         // Loading before results - auto progress after 3 seconds
         setTimeout(() => setStep(8), 3000)
+      } else if (step === 10) {
+        // 在选择族裔后（step 10），弹出支付弹窗，而不是直接进入 Drawing
+        handleOpenPayment()
       } else {
         // step 11 (DrawingLoading) 由 createCharacter 完成后自动跳转到 step 12
         setStep(step + 1)
@@ -161,10 +166,21 @@ export default function Home() {
 
   const [generationError, setGenerationError] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [paymentCompleted, setPaymentCompleted] = useState(false)
 
-  // 创建角色并生成图片（在 step 11 时触发）
+  // 支付成功后的回调
+  const handlePaymentSuccess = () => {
+    // 标记支付完成，关闭弹窗，进入 Drawing 页面
+    setPaymentCompleted(true)
+    setIsPaymentOpen(false)
+    setStep(11)
+  }
+
+  // 创建角色并生成图片（在 step 11 且支付完成后触发）
   useEffect(() => {
-    if (step === 11 && !isGenerating) {
+    if (step === 11 && paymentCompleted && !isGenerating) {
+      // 重置支付状态，防止重复触发
+      setPaymentCompleted(false)
       setIsGenerating(true)
       setGenerationError(null)
       
@@ -189,7 +205,7 @@ export default function Home() {
           // 生成角色图片
           const imageResult = await apiClient.generateImage((character as any).id.toString())
           if (imageResult && (imageResult as any).image_url) {
-            character.image_url = (imageResult as any).image_url
+            ;(character as any).image_url = (imageResult as any).image_url
           } else {
             throw new Error('生成图片失败：未返回有效的图片数据')
           }
@@ -211,9 +227,9 @@ export default function Home() {
       }
       createCharacter()
     }
-  }, [step, formData.soulmateGender, formData.soulmateEthnicity, isGenerating, creatingCharacterType])
+  }, [step, paymentCompleted, isGenerating, creatingCharacterType, formData.soulmateGender, formData.soulmateEthnicity])
 
-  // Auto-trigger loading states (只针对 step 7，step 11 由 createCharacter 控制)
+  // Auto-trigger loading states (只针对 step 7)
   React.useEffect(() => {
     if (step === 7) {
       const timer = setTimeout(() => {
@@ -291,6 +307,10 @@ export default function Home() {
 
   const handleCloseMiniMe = () => {
     setShowMiniMe(false)
+  }
+
+  const handleOpenPayment = () => {
+    setIsPaymentOpen(true)
   }
 
   // Handle Telegram Back Button
@@ -434,6 +454,14 @@ export default function Home() {
               />
             </>
           )}
+          <PaymentDrawer
+            isOpen={isPaymentOpen}
+            onClose={() => setIsPaymentOpen(false)}
+            characterName={creatingCharacterType?.title || selectedCharacterData?.title || 'AI Companion'}
+            characterType={creatingCharacterType?.type || 'Soulmate'}
+            characterImage={selectedCharacterData?.image_url || selectedCharacterData?.image || creatingCharacterType?.placeholder}
+            onPaymentSuccess={handlePaymentSuccess}
+          />
         </>
       )}
     </div>

@@ -72,13 +72,13 @@ export default function Dashboard({
 }: { 
   onSelectCharacter?: (char: CharacterCard) => void
   onOpenProfile?: () => void
-  onCreateCharacter?: (charType: { type: string; title: string }) => void
+  onCreateCharacter?: (charType: { type: string; title: string; placeholder?: string }) => void
   onOpenHistory?: () => void
   onOpenMiniMe?: () => void
 }) {
   const [userCharacters, setUserCharacters] = useState<CharacterCard[]>([])
   const [loading, setLoading] = useState(true)
-  const [language, setLanguage] = useState<'en' | 'ru'>('en') // 语言状态：en=英语, ru=俄语
+  const [language, setLanguage] = useState<'en' | 'ru' | 'zh'>('en') // 语言状态：en=英语, ru=俄语, zh=中文
 
   // 从后端加载用户已创建的角色列表
   useEffect(() => {
@@ -136,8 +136,8 @@ export default function Dashboard({
         onOpenMiniMe()
       }
     } else if (onCreateCharacter) {
-      // 使用父组件的创建流程
-      onCreateCharacter({ type: charType.type, title: charType.title })
+      // 使用父组件的创建流程，包含占位图路径
+      onCreateCharacter({ type: charType.type, title: charType.title, placeholder: charType.placeholder })
     }
   }
 
@@ -153,7 +153,7 @@ export default function Dashboard({
           onClick={() => handleCharacterSelect(existingChar)}
           className="flex flex-col items-center gap-3 group flex-shrink-0"
         >
-          <div className={`w-32 h-32 rounded-2xl ${gradientClass} hover:opacity-90 transition-all flex items-center justify-center overflow-hidden relative`}>
+          <div className={`w-36 h-36 rounded-2xl ${gradientClass} hover:opacity-90 transition-all flex items-center justify-center overflow-hidden relative`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={getAssetPath(existingChar.image)}
@@ -172,7 +172,7 @@ export default function Dashboard({
           onClick={() => handleCreateNewCharacter(charType)}
           className="flex flex-col items-center gap-3 group flex-shrink-0"
         >
-          <div className={`w-32 h-32 rounded-2xl overflow-hidden relative hover:opacity-80 transition-all`}>
+          <div className={`w-36 h-36 rounded-2xl overflow-hidden relative hover:opacity-80 transition-all`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={getAssetPath(charType.placeholder)}
@@ -208,12 +208,16 @@ export default function Dashboard({
           </button>
         </div>
         <button 
-          onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}
+          onClick={() => {
+            if (language === 'en') setLanguage('ru')
+            else if (language === 'ru') setLanguage('zh')
+            else setLanguage('en')
+          }}
           className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
-          title={language === 'en' ? 'Switch to Russian' : 'Switch to English'}
+          title={language === 'en' ? 'Switch to Russian' : language === 'ru' ? 'Switch to Chinese' : 'Switch to English'}
         >
           <span className="text-2xl leading-none">
-            {language === 'en' ? '🇬🇧' : '🇷🇺'}
+            {language === 'en' ? '🇬🇧' : language === 'ru' ? '🇷🇺' : '🇨🇳'}
           </span>
         </button>
       </div>
