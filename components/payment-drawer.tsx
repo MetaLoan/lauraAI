@@ -11,7 +11,7 @@ import {
   DrawerFooter,
 } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
-import { Loader2, CheckCircle2, Star, Coins } from 'lucide-react'
+import { Loader2, CheckCircle2, Star } from 'lucide-react'
 import { cn, getAssetPath } from '@/lib/utils'
 
 interface PaymentDrawerProps {
@@ -99,7 +99,11 @@ export function PaymentDrawer({
                     onClick={() => handlePayment('stars')}
                     className="w-full h-14 rounded-xl bg-white text-black hover:bg-gray-200 font-bold text-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] border-none"
                   >
-                    <Star className="w-6 h-6 fill-black" />
+                    <img 
+                      src={getAssetPath('/TelegramStars@3x.png')} 
+                      alt="Telegram Stars" 
+                      className="w-6 h-6 object-contain"
+                    />
                     Pay with Telegram Stars
                   </Button>
 
@@ -108,7 +112,11 @@ export function PaymentDrawer({
                     variant="outline"
                     className="w-full h-14 rounded-xl border-white/20 bg-transparent hover:bg-white/5 text-white font-bold text-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                   >
-                    <Coins className="w-6 h-6 text-white" />
+                    <img 
+                      src={getAssetPath('/toncoin-ton-logo.png')} 
+                      alt="TON" 
+                      className="w-6 h-6 object-contain"
+                    />
                     Pay with TON
                   </Button>
                 </div>
