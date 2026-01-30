@@ -205,7 +205,7 @@ export default function SoulmateDetailPage({
               >
                 <Share2 className="w-5 h-5" />
                 <span className="text-sm">
-                  {unlockStatus === UnlockStatus.FULL_UNLOCKED ? 'Share' : 'Invite Friend to Clear Mist'}
+                  {unlockStatus === UnlockStatus.FULL_UNLOCKED ? 'Share' : 'Ask Friend to Help'}
                 </span>
               </button>
             )}
