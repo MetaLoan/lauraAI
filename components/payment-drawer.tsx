@@ -86,7 +86,7 @@ export function PaymentDrawer({
                 </DrawerDescription>
               </DrawerHeader>
 
-              <div className="px-2 py-6 space-y-6">
+              <div className="px-[0.8rem] py-6 space-y-6">
                 <div className="bg-white/5 rounded-2xl p-5 border border-white/10 flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="text-xs uppercase tracking-wider text-gray-500 font-medium">{characterName}</p>
