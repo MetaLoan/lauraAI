@@ -72,6 +72,29 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
+	// 临时清理接口（仅用于调试，之后删除）
+	r.DELETE("/debug/clear-all-data", func(c *gin.Context) {
+		// 安全检查：需要特定的header
+		if c.GetHeader("X-Debug-Key") != "lauraai-clear-2026" {
+			c.JSON(403, gin.H{"error": "Forbidden"})
+			return
+		}
+		// 清理所有数据
+		if err := repository.DB.Exec("DELETE FROM messages").Error; err != nil {
+			c.JSON(500, gin.H{"error": "Failed to delete messages: " + err.Error()})
+			return
+		}
+		if err := repository.DB.Exec("DELETE FROM characters").Error; err != nil {
+			c.JSON(500, gin.H{"error": "Failed to delete characters: " + err.Error()})
+			return
+		}
+		if err := repository.DB.Exec("DELETE FROM users").Error; err != nil {
+			c.JSON(500, gin.H{"error": "Failed to delete users: " + err.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"message": "All data cleared"})
+	})
+
 	// 公开路由
 	api := r.Group("/api")
 	{
