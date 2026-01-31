@@ -168,7 +168,17 @@ export default function Dashboard({
   const renderCharacterSlot = (charType: CharacterType, gradientClass: string) => {
     const existingChar = getCharacterByType(charType.type)
     
-    if (existingChar && existingChar.image) {
+    // 修复：检查是否有任何图片URL，而不仅仅是image字段
+    // 因为image字段可能是空字符串，但full_blur_image_url等可能有值
+    const hasAnyImage = existingChar && (
+      existingChar.image || 
+      existingChar.image_url || 
+      existingChar.full_blur_image_url || 
+      existingChar.half_blur_image_url || 
+      existingChar.clear_image_url
+    )
+    
+    if (hasAnyImage) {
       // 根据解锁状态选择显示的图片
       const getDisplayImage = () => {
         switch (existingChar.unlock_status) {
@@ -182,7 +192,7 @@ export default function Dashboard({
       }
       const displayImage = getDisplayImage()
       const blurLabel = existingChar.unlock_status === 2 ? '0% blur' : existingChar.unlock_status === 1 ? '20% blur' : '100% blur'
-      const finalImageUrl = getFullImageUrl(displayImage)
+      const finalImageUrl = getFullImageUrl(displayImage || '')
       
       // #region agent log
       fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/dashboard.tsx:renderCharacterSlot',message:'Rendering image',data:{charType: charType.type, unlockStatus: existingChar.unlock_status, displayImage, finalImageUrl, hasImage: !!displayImage},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
