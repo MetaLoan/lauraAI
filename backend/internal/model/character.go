@@ -1,6 +1,7 @@
 package model
 
 import (
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -91,6 +92,32 @@ func (c *Character) IsDescriptionVisible() bool {
 	return c.UnlockStatus == UnlockStatusFullUnlocked
 }
 
+// normalizeImageURL 将图片URL规范化：
+// - 如果是完整URL（http/https开头），提取相对路径部分
+// - 如果是base64（data:开头），直接返回
+// - 如果已经是相对路径，直接返回
+func normalizeImageURL(url string) string {
+	if url == "" {
+		return ""
+	}
+	// base64格式直接返回
+	if strings.HasPrefix(url, "data:") {
+		return url
+	}
+	// 如果是完整URL，提取相对路径
+	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+		// 查找 /uploads/ 的位置
+		idx := strings.Index(url, "/uploads/")
+		if idx >= 0 {
+			return url[idx:]
+		}
+		// 如果找不到 /uploads/，返回原URL（可能是其他格式）
+		return url
+	}
+	// 已经是相对路径，直接返回
+	return url
+}
+
 // ToSafeResponse 根据解锁状态返回安全的响应数据，隐藏未解锁的图片URL
 func (c *Character) ToSafeResponse() map[string]interface{} {
 	result := map[string]interface{}{
@@ -109,24 +136,25 @@ func (c *Character) ToSafeResponse() map[string]interface{} {
 	}
 
 	// 根据解锁状态决定返回哪些图片 URL
+	// 规范化URL：将完整URL转换为相对路径，兼容旧数据
 	switch c.UnlockStatus {
 	case UnlockStatusFullUnlocked:
 		// 完全解锁：返回所有图片和描述
-		result["image_url"] = c.ClearImageURL
-		result["full_blur_image_url"] = c.FullBlurImageURL
-		result["half_blur_image_url"] = c.HalfBlurImageURL
-		result["clear_image_url"] = c.ClearImageURL
+		result["image_url"] = normalizeImageURL(c.ClearImageURL)
+		result["full_blur_image_url"] = normalizeImageURL(c.FullBlurImageURL)
+		result["half_blur_image_url"] = normalizeImageURL(c.HalfBlurImageURL)
+		result["clear_image_url"] = normalizeImageURL(c.ClearImageURL)
 		result["description"] = c.Description
 	case UnlockStatusHalfUnlocked:
 		// 半解锁：只返回模糊图，不返回清晰图和描述
-		result["image_url"] = c.HalfBlurImageURL
-		result["full_blur_image_url"] = c.FullBlurImageURL
-		result["half_blur_image_url"] = c.HalfBlurImageURL
+		result["image_url"] = normalizeImageURL(c.HalfBlurImageURL)
+		result["full_blur_image_url"] = normalizeImageURL(c.FullBlurImageURL)
+		result["half_blur_image_url"] = normalizeImageURL(c.HalfBlurImageURL)
 		// 不返回 clear_image_url 和 description
 	default:
 		// 未解锁：只返回完全模糊图
-		result["image_url"] = c.FullBlurImageURL
-		result["full_blur_image_url"] = c.FullBlurImageURL
+		result["image_url"] = normalizeImageURL(c.FullBlurImageURL)
+		result["full_blur_image_url"] = normalizeImageURL(c.FullBlurImageURL)
 		// 不返回 half_blur_image_url, clear_image_url 和 description
 	}
 

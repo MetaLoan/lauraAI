@@ -190,8 +190,10 @@ func (s *GeminiImagenService) saveImage(img image.Image) (string, error) {
 		return "", err
 	}
 
-	imageURL := fmt.Sprintf("%s/uploads/%s", config.AppConfig.BaseURL, filename)
-	log.Printf("[Imagen] 保存图片，URL: %s, BaseURL: %s, filename: %s", imageURL, config.AppConfig.BaseURL, filename)
+	// 只返回相对路径，让前端根据当前环境拼接完整URL
+	// 这样可以避免BaseURL变化导致旧图片无法加载的问题
+	imageURL := fmt.Sprintf("/uploads/%s", filename)
+	log.Printf("[Imagen] 保存图片，相对路径: %s, BaseURL: %s, filename: %s", imageURL, config.AppConfig.BaseURL, filename)
 	return imageURL, nil
 }
 
@@ -204,8 +206,10 @@ func (s *GeminiImagenService) saveImageBytes(data []byte, ext string) (string, e
 		return "", err
 	}
 
-	imageURL := fmt.Sprintf("%s/uploads/%s", config.AppConfig.BaseURL, filename)
-	log.Printf("[Imagen] 保存图片字节，URL: %s, BaseURL: %s, filename: %s", imageURL, config.AppConfig.BaseURL, filename)
+	// 只返回相对路径，让前端根据当前环境拼接完整URL
+	// 这样可以避免BaseURL变化导致旧图片无法加载的问题
+	imageURL := fmt.Sprintf("/uploads/%s", filename)
+	log.Printf("[Imagen] 保存图片字节，相对路径: %s, BaseURL: %s, filename: %s", imageURL, config.AppConfig.BaseURL, filename)
 	return imageURL, nil
 }
 
