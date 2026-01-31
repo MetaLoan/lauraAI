@@ -73,15 +73,21 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 		return
 	}
 
-	// 4. 创建 Character 记录
+	// 4. 删除之前的 mini_me 角色（每个用户只能有一个）
+	if err := h.characterRepo.DeleteByUserIDAndType(user.ID, model.CharacterTypeMiniMe); err != nil {
+		// 忽略删除错误，继续创建
+	}
+
+	// 5. 创建 Character 记录
 	character := &model.Character{
 		UserID:      user.ID,
-		Type:        "mini_me",
+		Type:        model.CharacterTypeMiniMe,
 		Title:       "Mini Me",
 		ImageURL:    imageURL,
 		Description: fmt.Sprintf("Generated from selfie analysis: %s", description),
 		Gender:      "Unknown", // 可以尝试从描述中提取，或者让用户确认
 		Ethnicity:   "Unknown",
+		ShareCode:   repository.GenerateShareCode(), // 生成分享码，避免唯一约束冲突
 	}
 
 	if err := h.characterRepo.Create(character); err != nil {
