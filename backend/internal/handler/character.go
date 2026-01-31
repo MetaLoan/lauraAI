@@ -117,7 +117,14 @@ func (h *CharacterHandler) List(c *gin.Context) {
 	// 转换为安全响应，过滤敏感图片URL
 	safeCharacters := make([]map[string]interface{}, len(characters))
 	for i, char := range characters {
-		safeCharacters[i] = char.ToSafeResponse()
+		safeResponse := char.ToSafeResponse()
+		// 记录返回的图片URL
+		if i < 3 { // 只记录前3个，避免日志过多
+			log.Printf("[Character] 返回角色图片URL - ID: %d, image_url: %s, full_blur: %s, half_blur: %s, clear: %s", 
+				char.ID, safeResponse["image_url"], safeResponse["full_blur_image_url"], 
+				safeResponse["half_blur_image_url"], safeResponse["clear_image_url"])
+		}
+		safeCharacters[i] = safeResponse
 	}
 
 	response.Success(c, safeCharacters)
