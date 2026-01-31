@@ -190,7 +190,9 @@ func (s *GeminiImagenService) saveImage(img image.Image) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("%s/uploads/%s", config.AppConfig.BaseURL, filename), nil
+	imageURL := fmt.Sprintf("%s/uploads/%s", config.AppConfig.BaseURL, filename)
+	log.Printf("[Imagen] 保存图片，URL: %s, BaseURL: %s, filename: %s", imageURL, config.AppConfig.BaseURL, filename)
+	return imageURL, nil
 }
 
 // saveImageBytes 保存图片字节到本地 uploads 目录并返回完整 URL
@@ -202,7 +204,9 @@ func (s *GeminiImagenService) saveImageBytes(data []byte, ext string) (string, e
 		return "", err
 	}
 
-	return fmt.Sprintf("%s/uploads/%s", config.AppConfig.BaseURL, filename), nil
+	imageURL := fmt.Sprintf("%s/uploads/%s", config.AppConfig.BaseURL, filename)
+	log.Printf("[Imagen] 保存图片字节，URL: %s, BaseURL: %s, filename: %s", imageURL, config.AppConfig.BaseURL, filename)
+	return imageURL, nil
 }
 
 func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, prompt string) (string, error) {

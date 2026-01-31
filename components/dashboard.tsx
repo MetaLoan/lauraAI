@@ -96,6 +96,10 @@ export default function Dashboard({
       try {
         const data = await apiClient.getCharacters() as BackendCharacter[]
         
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/dashboard.tsx:loadCharacters',message:'Received characters from API',data:{count: data.length, sampleChar: data[0] ? {id: data[0].id, image_url: data[0].image_url, full_blur_image_url: data[0].full_blur_image_url, half_blur_image_url: data[0].half_blur_image_url, clear_image_url: data[0].clear_image_url} : null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        
         // 将后端数据转换为 CharacterCard 格式
         const characters: CharacterCard[] = data.map((char) => ({
           id: char.id.toString(),
@@ -115,6 +119,10 @@ export default function Dashboard({
           gender: char.gender,
           ethnicity: char.ethnicity,
         }))
+
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/dashboard.tsx:loadCharacters',message:'Mapped characters',data:{count: characters.length, sampleChar: characters[0] ? {id: characters[0].id, image_url: characters[0].image_url, full_blur_image_url: characters[0].full_blur_image_url} : null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
 
         setUserCharacters(characters)
       } catch (error) {
@@ -174,6 +182,11 @@ export default function Dashboard({
       }
       const displayImage = getDisplayImage()
       const blurLabel = existingChar.unlock_status === 2 ? '0% blur' : existingChar.unlock_status === 1 ? '20% blur' : '100% blur'
+      const finalImageUrl = getFullImageUrl(displayImage)
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/dashboard.tsx:renderCharacterSlot',message:'Rendering image',data:{charType: charType.type, unlockStatus: existingChar.unlock_status, displayImage, finalImageUrl, hasImage: !!displayImage},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       
       // 已创建的角色 - 显示图片
       return (
@@ -185,7 +198,7 @@ export default function Dashboard({
           <div className={`w-36 h-36 rounded-2xl ${gradientClass} hover:opacity-90 transition-all flex items-center justify-center overflow-hidden relative`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={getFullImageUrl(displayImage)}
+              src={finalImageUrl}
               alt={existingChar.title}
               className="w-full h-full object-cover"
             />
