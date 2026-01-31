@@ -168,17 +168,7 @@ export default function Dashboard({
   const renderCharacterSlot = (charType: CharacterType, gradientClass: string) => {
     const existingChar = getCharacterByType(charType.type)
     
-    // 修复：检查是否有任何图片URL，而不仅仅是image字段
-    // 因为image字段可能是空字符串，但full_blur_image_url等可能有值
-    const hasAnyImage = existingChar && (
-      existingChar.image || 
-      existingChar.image_url || 
-      existingChar.full_blur_image_url || 
-      existingChar.half_blur_image_url || 
-      existingChar.clear_image_url
-    )
-    
-    if (hasAnyImage) {
+    if (existingChar && existingChar.image) {
       // 根据解锁状态选择显示的图片
       const getDisplayImage = () => {
         switch (existingChar.unlock_status) {
@@ -192,10 +182,11 @@ export default function Dashboard({
       }
       const displayImage = getDisplayImage()
       const blurLabel = existingChar.unlock_status === 2 ? '0% blur' : existingChar.unlock_status === 1 ? '20% blur' : '100% blur'
-      const finalImageUrl = getFullImageUrl(displayImage || '')
+      // 如果图片URL为空，使用占位图
+      const finalImageUrl = displayImage ? getFullImageUrl(displayImage) : getFullImageUrl(charType.placeholder || '/avatars/placeholders/placeholder.png')
       
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/dashboard.tsx:renderCharacterSlot',message:'Rendering image',data:{charType: charType.type, unlockStatus: existingChar.unlock_status, displayImage, finalImageUrl, hasImage: !!displayImage},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/dashboard.tsx:renderCharacterSlot',message:'Rendering image',data:{charType: charType.type, unlockStatus: existingChar.unlock_status, displayImage, finalImageUrl, hasImage: !!displayImage, usingPlaceholder: !displayImage},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
       // #endregion
       
       // 已创建的角色 - 显示图片
@@ -211,6 +202,11 @@ export default function Dashboard({
               src={finalImageUrl}
               alt={existingChar.title}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                // 如果图片加载失败，使用占位图
+                const target = e.target as HTMLImageElement
+                target.src = getFullImageUrl(charType.placeholder || '/avatars/placeholders/placeholder.png')
+              }}
             />
             {/* 模糊状态标签 */}
             <div className="absolute top-2 left-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full">
