@@ -96,6 +96,7 @@ func (c *Character) IsDescriptionVisible() bool {
 // - 如果是完整URL（http/https开头），提取相对路径部分
 // - 如果是base64（data:开头），直接返回
 // - 如果已经是相对路径，直接返回
+// - 如果是空字符串，返回空字符串
 func normalizeImageURL(url string) string {
 	if url == "" {
 		return ""
@@ -111,7 +112,18 @@ func normalizeImageURL(url string) string {
 		if idx >= 0 {
 			return url[idx:]
 		}
-		// 如果找不到 /uploads/，返回原URL（可能是其他格式）
+		// 如果找不到 /uploads/，可能是其他格式的URL，尝试提取路径部分
+		// 例如：https://example.com/path/to/image.jpg -> /path/to/image.jpg
+		if strings.Contains(url, "://") {
+			parts := strings.SplitN(url, "://", 2)
+			if len(parts) == 2 {
+				pathIdx := strings.Index(parts[1], "/")
+				if pathIdx >= 0 {
+					return parts[1][pathIdx:]
+				}
+			}
+		}
+		// 如果无法提取，返回原URL（可能是其他格式）
 		return url
 	}
 	// 已经是相对路径，直接返回
