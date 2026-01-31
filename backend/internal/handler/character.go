@@ -119,10 +119,13 @@ func (h *CharacterHandler) List(c *gin.Context) {
 	safeCharacters := make([]map[string]interface{}, len(characters))
 	for i, char := range characters {
 		safeResponse := char.ToSafeResponse()
-		// 记录返回的图片URL
+		// 记录返回的图片URL（包括原始值和规范化后的值）
 		if i < 3 { // 只记录前3个，避免日志过多
-			log.Printf("[Character] 返回角色图片URL - ID: %d, image_url: %s, full_blur: %s, half_blur: %s, clear: %s", 
-				char.ID, safeResponse["image_url"], safeResponse["full_blur_image_url"], 
+			log.Printf("[Character] 返回角色图片URL - ID: %d, type: %s, unlock_status: %d", char.ID, char.Type, char.UnlockStatus)
+			log.Printf("[Character] 原始URL - FullBlur: %q, HalfBlur: %q, Clear: %q", 
+				char.FullBlurImageURL, char.HalfBlurImageURL, char.ClearImageURL)
+			log.Printf("[Character] 规范化后URL - image_url: %q, full_blur: %q, half_blur: %q, clear: %q", 
+				safeResponse["image_url"], safeResponse["full_blur_image_url"], 
 				safeResponse["half_blur_image_url"], safeResponse["clear_image_url"])
 		}
 		safeCharacters[i] = safeResponse
