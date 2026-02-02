@@ -73,13 +73,14 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 
 	// 4. 创建 Character 记录（先创建，让 GenerateMiniMeImage 填充图片字段）
 	// Mini Me 和其他角色一样，需要通过好友助力或付费解锁
+	// Mini Me 没有详细报告，只存储英文描述用于后续 AI 处理
 	character := &model.Character{
-		UserID:      user.ID,
-		Type:        model.CharacterTypeMiniMe,
-		Title:       "Mini Me",
-		Description: fmt.Sprintf("Generated from selfie analysis: %s", description),
-		Gender:      "Unknown", // 可以尝试从描述中提取，或者让用户确认
-		Ethnicity:   "Unknown",
+		UserID:        user.ID,
+		Type:          model.CharacterTypeMiniMe,
+		Title:         "Mini Me",
+		DescriptionEn: fmt.Sprintf("Generated from selfie analysis: %s", description),
+		Gender:        "Unknown", // 可以尝试从描述中提取，或者让用户确认
+		Ethnicity:     "Unknown",
 	}
 
 	// 5. 调用 Imagen API 生成 Mini Me（会设置 ClearImageURL, FullBlurImageURL, HalfBlurImageURL, ShareCode, UnlockStatus）
@@ -97,8 +98,9 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 		return
 	}
 
+	locale := middleware.GetLocaleFromContext(c)
 	response.Success(c, gin.H{
-		"character": character.ToSafeResponse(),
+		"character": character.ToSafeResponse(string(locale)),
 		"image_url": character.GetDisplayImageURL(),
 	})
 }

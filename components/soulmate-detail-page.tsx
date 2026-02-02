@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Share2, Lock, Unlock, Loader2, CloudFog } from 'lucide-react'
+import { ChevronDown, Share2, Lock, Unlock, Loader2, CloudFog, MessageSquare } from 'lucide-react'
 import { getFullImageUrl } from '@/lib/utils'
 import { PaymentDrawer } from '@/components/payment-drawer'
 import { apiClient } from '@/lib/api'
 import { useTranslations, useI18n } from '@/components/i18n-provider'
+import ReportLoading from '@/components/report-loading'
 
 // 解锁状态枚举
 const UnlockStatus = {
@@ -45,6 +46,8 @@ interface SoulmateDetailPageProps {
     gender?: string
     ethnicity?: string
     description?: string
+    strength?: string      // AI 生成的优势分析
+    weakness?: string      // AI 生成的挑战分析
     compatibility?: number
     astro_sign?: string
   }
@@ -52,6 +55,7 @@ interface SoulmateDetailPageProps {
   onBack: () => void
   onShare?: (shareCode: string) => void
   onUnlockSuccess?: () => void
+  onCharacterUpdate?: (character: any) => void
 }
 
 export default function SoulmateDetailPage({
@@ -60,6 +64,7 @@ export default function SoulmateDetailPage({
   onBack,
   onShare,
   onUnlockSuccess,
+  onCharacterUpdate,
 }: SoulmateDetailPageProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const [score, setScore] = useState(0)
@@ -103,7 +108,86 @@ export default function SoulmateDetailPage({
 
   // 性格报告只有完全解锁才可见
   const isDescriptionVisible = unlockStatus === UnlockStatus.FULL_UNLOCKED
-  const description = character?.description || t('description')
+  // 检查报告内容是否已生成（如果为空或为默认值，说明还在生成中）
+  // 注意：后端如果生成失败，可能会返回空字符串，或者旧的默认值
+  // 我们认为如果 description 存在且不为空，就是生成好了
+  const hasReportContent = character?.description && character.description.length > 0
+  const isReportLoading = isDescriptionVisible && !hasReportContent && !isMiniMe
+
+  // 轮询检查报告状态
+  const [isPolling, setIsPolling] = useState(false)
+  const [pollStartTime, setPollStartTime] = useState<number | null>(null)
+  const [isTimeout, setIsTimeout] = useState(false)
+
+  // 初始化轮询状态
+  useEffect(() => {
+    if (isReportLoading && !isPolling && !isTimeout) {
+      setIsPolling(true)
+      setPollStartTime(Date.now())
+    }
+  }, [isReportLoading, isPolling, isTimeout, character, unlockStatus, hasReportContent])
+
+  // 使用 ref 存储最新的 character，避免闭包陷阱
+  const characterRef = useRef(character)
+  useEffect(() => {
+    characterRef.current = character
+  }, [character])
+
+  // 轮询逻辑
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout
+
+    if (isPolling && character?.id) {
+      intervalId = setInterval(async () => {
+        // 检查是否超时 (30秒)
+        if (pollStartTime && Date.now() - pollStartTime > 30000) {
+          setIsPolling(false)
+          setIsTimeout(true)
+          return
+        }
+
+        try {
+          const updatedChar = await apiClient.getCharacter(character.id)
+
+          if (updatedChar.description && updatedChar.description.length > 0) {
+            // 更新本地数据，避免页面刷新
+            if (onCharacterUpdate) {
+              const currentCharacter = characterRef.current
+              onCharacterUpdate({
+                ...currentCharacter,
+                description: updatedChar.description,
+                strength: updatedChar.strength,
+                weakness: updatedChar.weakness,
+              })
+            }
+            
+            // 停止轮询
+            setIsPolling(false)
+          }
+        } catch (error) {
+          console.error('Failed to poll character status:', error)
+        }
+      }, 10000) // 每10秒请求一次
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [isPolling, character?.id, pollStartTime, onCharacterUpdate])
+
+  const handleRetryReport = async () => {
+    if (!character?.id) return
+    try {
+      await apiClient.retryReport(character.id)
+      setIsTimeout(false)
+      setIsPolling(true)
+      setPollStartTime(Date.now())
+    } catch (error) {
+      console.error('Failed to retry report:', error)
+    }
+  }
+
+  const description = character?.description || ''
 
   useEffect(() => {
     // 更新解锁状态
@@ -241,10 +325,6 @@ export default function SoulmateDetailPage({
                 alt={title}
                 className="w-full h-full object-cover"
               />
-              {/* 模糊状态标签 */}
-              <div className="absolute top-3 left-3 bg-black/70 text-white text-xs px-3 py-1 rounded-full">
-                {unlockStatus === UnlockStatus.FULL_UNLOCKED ? '0% blur' : unlockStatus === UnlockStatus.HALF_UNLOCKED ? '20% blur' : '100% blur'}
-              </div>
               {/* Lock overlay for locked states */}
               {unlockStatus !== UnlockStatus.FULL_UNLOCKED && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
@@ -308,19 +388,36 @@ export default function SoulmateDetailPage({
             {/* Personality Report */}
             <div className="relative">
               {isDescriptionVisible ? (
-                <p className="text-center text-body-sm text-gray-300 leading-relaxed mb-8">
-                  {description}
-                </p>
+                isReportLoading ? (
+                  isTimeout ? (
+                    <div className="w-full bg-white/5 border border-white/10 rounded-xl p-8 flex flex-col items-center justify-center min-h-[200px] space-y-4">
+                      <p className="text-center text-red-400 font-medium text-lg">
+                        {t('loading.timeout')}
+                      </p>
+                      <Button 
+                        onClick={handleRetryReport}
+                        variant="outline"
+                        className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
+                      >
+                        {t('loading.retryReport')}
+                      </Button>
+                    </div>
+                  ) : (
+                    <ReportLoading />
+                  )
+                ) : (
+                  <p className="text-center text-body-sm text-gray-300 leading-relaxed mb-8">
+                    {description || t('noDescription')}
+                  </p>
+                )
               ) : (
                 <div className="bg-white/5 rounded-xl p-6 border border-white/10">
                   <div className="flex items-center justify-center gap-2 mb-3">
                     <Lock className="w-5 h-5 text-gray-400" />
-                    <span className="text-gray-400 font-medium">{t('description')} 🔒</span>
+                    <span className="text-gray-400 font-medium">{t('unlockDescription')} 🔒</span>
                   </div>
                   <p className="text-center text-body-sm text-gray-500">
-                    {unlockStatus === UnlockStatus.HALF_UNLOCKED 
-                      ? `${priceStars} Stars / ${priceTON} TON`
-                      : t('blurMessage')}
+                    {t('unlockDescriptionHint')}
                   </p>
                 </div>
               )}
@@ -329,7 +426,7 @@ export default function SoulmateDetailPage({
         )}
 
         {/* Expandable Sections - Only visible when unlocked and not Mini Me */}
-        {isDescriptionVisible && !isMiniMe && (
+        {isDescriptionVisible && !isMiniMe && !isReportLoading && (
           <div className="space-y-3">
             {/* Strength */}
             <button
@@ -337,7 +434,7 @@ export default function SoulmateDetailPage({
               className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
             >
               <div className="flex items-center justify-between">
-                <h4 className="text-title-md font-bold">Strength</h4>
+                <h4 className="text-title-md font-bold">{t('strength')}</h4>
                 <ChevronDown
                   className={`w-5 h-5 transition-transform ${
                     expandedSection === 'strength' ? 'rotate-180' : ''
@@ -346,8 +443,7 @@ export default function SoulmateDetailPage({
               </div>
               {expandedSection === 'strength' && (
                 <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
-                  Together you radiate loyalty, passion, and determination. Your bond thrives on
-                  honesty, shared goals, and the ability to support each other's dreams.
+                  {character?.strength || t('strengthDesc')}
                 </p>
               )}
             </button>
@@ -358,7 +454,7 @@ export default function SoulmateDetailPage({
               className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
             >
               <div className="flex items-center justify-between">
-                <h4 className="text-title-md font-bold">Weakness</h4>
+                <h4 className="text-title-md font-bold">{t('weakness')}</h4>
                 <ChevronDown
                   className={`w-5 h-5 transition-transform ${
                     expandedSection === 'weakness' ? 'rotate-180' : ''
@@ -367,9 +463,7 @@ export default function SoulmateDetailPage({
               </div>
               {expandedSection === 'weakness' && (
                 <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
-                  At times, stubbornness and emotional intensity may create friction. Misunderstandings
-                  can arise if space and patience are not given, but awareness helps transform these
-                  into growth.
+                  {character?.weakness || t('weaknessDesc')}
                 </p>
               )}
             </button>
@@ -384,13 +478,22 @@ export default function SoulmateDetailPage({
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-transparent z-50">
         <div className="max-w-md mx-auto">
           {unlockStatus === UnlockStatus.FULL_UNLOCKED ? (
-            <Button
-              onClick={handleShare}
-              className="btn-primary flex items-center justify-center gap-2"
-            >
-              <Share2 className="w-5 h-5" />
-              {t('share')}
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={onNext}
+                className="btn-primary flex-1 flex items-center justify-center gap-2"
+              >
+                <MessageSquare className="w-5 h-5" />
+                {t('startChat')}
+              </Button>
+              <Button
+                onClick={handleShare}
+                className="btn-primary flex-1 flex items-center justify-center gap-2"
+              >
+                <Share2 className="w-5 h-5" />
+                {t('share')}
+              </Button>
+            </div>
           ) : (
             <Button
               onClick={handleOpenPayment}
@@ -405,7 +508,7 @@ export default function SoulmateDetailPage({
               ) : (
                 <>
                   <Unlock className="w-5 h-5" />
-                  {t('unlockFull')}
+                  {isMiniMe ? t('unlock') : t('unlockFull')}
                 </>
               )}
             </Button>
@@ -418,8 +521,8 @@ export default function SoulmateDetailPage({
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}
         characterName={title}
-        characterType={character?.astro_sign || 'Soulmate'}
-        characterImage={character?.full_blur_image_url}
+        characterType={unlockStatus === UnlockStatus.LOCKED ? t('locked') : unlockStatus === UnlockStatus.HALF_UNLOCKED ? t('halfUnlocked') : t('fullUnlocked')}
+        characterImage={unlockStatus === UnlockStatus.HALF_UNLOCKED ? character?.half_blur_image_url : character?.full_blur_image_url}
         priceStars={priceStars}
         priceTON={priceTON}
         isDiscounted={unlockStatus === UnlockStatus.HALF_UNLOCKED}

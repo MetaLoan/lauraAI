@@ -1,15 +1,15 @@
 package handler
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"log"
 	"strconv"
-	"time"
 
 	"lauraai-backend/internal/middleware"
 	"lauraai-backend/internal/model"
 	"lauraai-backend/internal/repository"
+	"lauraai-backend/internal/service"
 	"lauraai-backend/pkg/response"
 
 	"github.com/gin-gonic/gin"
@@ -26,12 +26,14 @@ const (
 type UnlockHandler struct {
 	characterRepo *repository.CharacterRepository
 	userRepo      *repository.UserRepository
+	reportService *service.GeminiReportService
 }
 
-func NewUnlockHandler() *UnlockHandler {
+func NewUnlockHandler(reportService *service.GeminiReportService) *UnlockHandler {
 	return &UnlockHandler{
 		characterRepo: repository.NewCharacterRepository(),
 		userRepo:      repository.NewUserRepository(),
+		reportService: reportService,
 	}
 }
 
@@ -80,22 +82,8 @@ func (h *UnlockHandler) GetShareInfo(c *gin.Context) {
 // HelpUnlock 好友帮助解锁（将解锁状态从0改为1）
 // 条件：帮助者必须是角色所有者邀请的用户，且只能帮助邀请者解锁一次
 func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
-	// #region agent log
-	debugLog := func(hypo, msg string, data map[string]interface{}) {
-		logData := map[string]interface{}{"hypothesisId": hypo, "location": "unlock.go:HelpUnlock", "message": msg, "data": data, "timestamp": time.Now().UnixMilli()}
-		jsonBytes, _ := json.Marshal(logData)
-		log.Printf("[DEBUG] %s", string(jsonBytes))
-	}
-	// #endregion
-
 	helper, exists := middleware.GetUserFromContext(c)
-	// #region agent log
-	debugLog("A", "检查用户上下文", map[string]interface{}{"exists": exists, "helperID": fmt.Sprintf("%v", helper)})
-	// #endregion
 	if !exists {
-		// #region agent log
-		debugLog("A", "用户未认证-返回401", map[string]interface{}{})
-		// #endregion
 		response.Error(c, 401, "Unauthorized")
 		return
 	}
@@ -108,25 +96,13 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 	}
 
 	character, err := h.characterRepo.GetByID(characterID)
-	// #region agent log
-	debugLog("C,D", "获取角色信息", map[string]interface{}{"characterID": characterID, "found": err == nil, "unlockStatus": func() int { if character != nil { return int(character.UnlockStatus) }; return -1 }()})
-	// #endregion
 	if err != nil {
-		// #region agent log
-		debugLog("D", "角色不存在", map[string]interface{}{"characterID": characterID, "error": err.Error()})
-		// #endregion
 		response.Error(c, 404, "Character not found")
 		return
 	}
 
 	// 不能帮自己解锁
-	// #region agent log
-	debugLog("E", "检查是否自己帮自己", map[string]interface{}{"helperID": helper.ID, "characterUserID": character.UserID, "isSelf": character.UserID == helper.ID})
-	// #endregion
 	if character.UserID == helper.ID {
-		// #region agent log
-		debugLog("E", "不能帮自己解锁", map[string]interface{}{})
-		// #endregion
 		response.Error(c, 400, "Cannot help yourself unlock")
 		return
 	}
@@ -143,9 +119,6 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 		log.Printf("HelpUnlock: 自动为用户 %d 绑定邀请人 %d", helper.ID, character.UserID)
 	}
 
-	// #region agent log
-	debugLog("F", "检查邀请关系", map[string]interface{}{"helperInviterID": helper.InviterID, "characterUserID": character.UserID, "isInvitedByOwner": isInvitedByOwner})
-	// #endregion
 	if !isInvitedByOwner {
 		response.ErrorWithCode(c, 403, "NOT_INVITED", "You are not invited by this user")
 		return
@@ -153,9 +126,6 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 
 	// 检查帮助者是否曾经帮助过这个用户的任何角色
 	hasHelped, err := h.characterRepo.HasUserHelpedOwner(helper.ID, character.UserID)
-	// #region agent log
-	debugLog("G", "检查是否已帮助过", map[string]interface{}{"helperID": helper.ID, "ownerID": character.UserID, "hasHelped": hasHelped})
-	// #endregion
 	if err != nil {
 		response.Error(c, 500, "Failed to check help record: "+err.Error())
 		return
@@ -166,13 +136,7 @@ func (h *UnlockHandler) HelpUnlock(c *gin.Context) {
 	}
 
 	// 只有未解锁状态才能帮忙解锁
-	// #region agent log
-	debugLog("C", "检查解锁状态", map[string]interface{}{"unlockStatus": character.UnlockStatus, "isLocked": character.UnlockStatus == model.UnlockStatusLocked})
-	// #endregion
 	if character.UnlockStatus != model.UnlockStatusLocked {
-		// #region agent log
-		debugLog("C", "角色已被解锁或已有人帮助", map[string]interface{}{"unlockStatus": character.UnlockStatus})
-		// #endregion
 		response.Error(c, 400, "Character already unlocked or already helped")
 		return
 	}
@@ -269,11 +233,59 @@ func (h *UnlockHandler) Unlock(c *gin.Context) {
 		return
 	}
 
+	// 如果报告尚未生成（例如创建时失败），在解锁时异步生成
+	// 注意：这里不会阻塞响应，前端需要处理报告为空的情况（显示加载动画）
+	if character.DescriptionEn == "" {
+		go func(charID uint64, userID uint64) {
+			// 创建新的上下文，因为请求上下文会随请求结束而取消
+			ctx := context.Background()
+			
+			// 重新获取最新数据
+			char, err := h.characterRepo.GetByID(charID)
+			if err != nil {
+				log.Printf("[Unlock] 异步生成报告失败: 获取角色失败 %v", err)
+				return
+			}
+			
+			user, err := h.userRepo.GetByID(userID)
+			if err != nil {
+				log.Printf("[Unlock] 异步生成报告失败: 获取用户失败 %v", err)
+				return
+			}
+
+			log.Printf("[Unlock] 开始为角色 %d 补生成报告...", charID)
+			report, err := h.reportService.GenerateMultiLangReport(ctx, user, char)
+			if err != nil {
+				log.Printf("[Unlock] 补生成报告失败: %v", err)
+				return
+			}
+
+			char.DescriptionEn = report.DescriptionEn
+			char.DescriptionZh = report.DescriptionZh
+			char.DescriptionRu = report.DescriptionRu
+			char.StrengthEn = report.StrengthEn
+			char.StrengthZh = report.StrengthZh
+			char.StrengthRu = report.StrengthRu
+			char.WeaknessEn = report.WeaknessEn
+			char.WeaknessZh = report.WeaknessZh
+			char.WeaknessRu = report.WeaknessRu
+
+			if err := h.characterRepo.Update(char); err != nil {
+				log.Printf("[Unlock] 保存补生成的报告失败: %v", err)
+			} else {
+				log.Printf("[Unlock] 成功补生成报告")
+			}
+		}(character.ID, user.ID)
+	}
+
+	locale := middleware.GetLocaleFromContext(c)
 	response.Success(c, gin.H{
 		"message":       "解锁成功",
 		"unlock_status": model.UnlockStatusFullUnlocked,
 		"image_url":     character.ClearImageURL,
-		"description":   character.Description,
+		"description":   character.GetDescription(string(locale)),
+		"strength":      character.GetStrength(string(locale)),
+		"weakness":      character.GetWeakness(string(locale)),
 		"price_paid":    expectedPrice,
 		"currency":      req.PaymentMethod,
 	})
@@ -319,4 +331,80 @@ func (h *UnlockHandler) GetUnlockPrice(c *gin.Context) {
 		"price_ton":     priceTON,
 		"price_display": fmt.Sprintf("%d Stars / %d TON", priceStars, priceTON),
 	})
+}
+
+// RetryReport 手动触发重新生成报告
+func (h *UnlockHandler) RetryReport(c *gin.Context) {
+	user, exists := middleware.GetUserFromContext(c)
+	if !exists {
+		response.Error(c, 401, "Unauthorized")
+		return
+	}
+
+	idStr := c.Param("id")
+	characterID, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.Error(c, 400, "Invalid character ID")
+		return
+	}
+
+	character, err := h.characterRepo.GetByID(characterID)
+	if err != nil {
+		response.Error(c, 404, "Character not found")
+		return
+	}
+
+	// 验证角色属于当前用户
+	if character.UserID != user.ID {
+		response.Error(c, 403, "Access denied")
+		return
+	}
+
+	// 只有完全解锁且报告为空时才允许重试
+	if character.UnlockStatus != model.UnlockStatusFullUnlocked {
+		response.Error(c, 400, "Character not unlocked yet")
+		return
+	}
+
+	// 异步生成报告
+	go func(charID uint64, userID uint64) {
+		ctx := context.Background()
+		
+		char, err := h.characterRepo.GetByID(charID)
+		if err != nil {
+			log.Printf("[Retry] 获取角色失败: %v", err)
+			return
+		}
+		
+		u, err := h.userRepo.GetByID(userID)
+		if err != nil {
+			log.Printf("[Retry] 获取用户失败: %v", err)
+			return
+		}
+
+		log.Printf("[Retry] 开始重试生成报告 %d...", charID)
+		report, err := h.reportService.GenerateMultiLangReport(ctx, u, char)
+		if err != nil {
+			log.Printf("[Retry] 生成报告失败: %v", err)
+			return
+		}
+
+		char.DescriptionEn = report.DescriptionEn
+		char.DescriptionZh = report.DescriptionZh
+		char.DescriptionRu = report.DescriptionRu
+		char.StrengthEn = report.StrengthEn
+		char.StrengthZh = report.StrengthZh
+		char.StrengthRu = report.StrengthRu
+		char.WeaknessEn = report.WeaknessEn
+		char.WeaknessZh = report.WeaknessZh
+		char.WeaknessRu = report.WeaknessRu
+
+		if err := h.characterRepo.Update(char); err != nil {
+			log.Printf("[Retry] 保存报告失败: %v", err)
+		} else {
+			log.Printf("[Retry] 报告生成成功")
+		}
+	}(character.ID, user.ID)
+
+	response.Success(c, gin.H{"message": "Report generation started"})
 }

@@ -38,6 +38,7 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
   }>>([])
   const [inputValue, setInputValue] = useState('')
   const [loading, setLoading] = useState(false)
+  const [messagesLoaded, setMessagesLoaded] = useState(false)
   
   const { t } = useTranslations('chat')
   const { t: tCharacters } = useTranslations('characters')
@@ -73,6 +74,8 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
       })))
     } catch (error) {
       console.error('加载消息失败:', error)
+    } finally {
+      setMessagesLoaded(true)
     }
   }
 
@@ -228,7 +231,7 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
         <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
           {messages.length === 0 && (
             <div className="text-center text-gray-500 py-8">
-              {t('loading')}
+              {messagesLoaded ? t('noMessages') : t('loading')}
             </div>
           )}
           {messages.map(message => (

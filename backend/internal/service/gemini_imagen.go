@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"lauraai-backend/internal/config"
@@ -50,13 +51,12 @@ func NewGeminiImagenService() (*GeminiImagenService, error) {
 func (s *GeminiImagenService) GenerateMiniMeImage(ctx context.Context, description string, character *model.Character) (string, error) {
 	if s.client == nil {
 		log.Println("开发模式: 返回模拟 Mini Me 图片")
-		mockURL := "/avatars/placeholders/mini_me.png"
-		character.ClearImageURL = mockURL
-		character.FullBlurImageURL = mockURL
-		character.HalfBlurImageURL = mockURL
+		character.ClearImageURL = "/avatars/placeholders/mini_me.png"
+		character.FullBlurImageURL = "/avatars/placeholders/mini_me_blur_full.png"
+		character.HalfBlurImageURL = "/avatars/placeholders/mini_me_blur_half.png"
 		character.ShareCode = repository.GenerateShareCode()
 		character.UnlockStatus = model.UnlockStatusLocked
-		return mockURL, nil
+		return character.FullBlurImageURL, nil
 	}
 
 	prompt := fmt.Sprintf("A cute 'Mini-Me' 3D chibi-style character avatar based on these features: %s. The style should be adorable low-age mini style (Chibi), with a large head and small body, big expressive soulful eyes, and simplified but high-quality 3D textures. Modern 3D animation aesthetic (like a high-end toy or a stylized game character). Soft cinematic studio lighting, vibrant colors, solid neutral background. 8k resolution, masterpiece, extremely cute, clean lines, sharp focus.", description)
@@ -68,19 +68,19 @@ func (s *GeminiImagenService) GenerateMiniMeImage(ctx context.Context, descripti
 func (s *GeminiImagenService) GenerateImage(ctx context.Context, character *model.Character) (string, error) {
 	if s.client == nil {
 		log.Println("开发模式: 返回模拟图片 URL")
-		var clearURL string
+		var baseURL string
 		if character.Gender == "Male" {
-			clearURL = "/avatars/soulmate-male.jpg"
+			baseURL = "/avatars/soulmate-male"
 		} else {
-			clearURL = "/avatars/soulmate-female.jpg"
+			baseURL = "/avatars/soulmate-female"
 		}
-		// 开发模式下，使用相同的图片作为模拟
-		character.ClearImageURL = clearURL
-		character.FullBlurImageURL = clearURL
-		character.HalfBlurImageURL = clearURL
+		// 开发模式下，使用不同的模糊图片
+		character.ClearImageURL = baseURL + ".jpg"
+		character.FullBlurImageURL = baseURL + "_blur_full.jpg"
+		character.HalfBlurImageURL = baseURL + "_blur_half.jpg"
 		character.ShareCode = repository.GenerateShareCode()
 		character.UnlockStatus = model.UnlockStatusLocked
-		return clearURL, nil
+		return character.FullBlurImageURL, nil
 	}
 
 	prompt := s.buildImagePrompt(character)
@@ -91,10 +91,32 @@ func (s *GeminiImagenService) GenerateImage(ctx context.Context, character *mode
 func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Context, prompt string, character *model.Character) (string, error) {
 	log.Printf("[Imagen] 开始生成图片，提示词: %s", prompt)
 
-	// 使用 gemini-2.5-flash-image 生成清晰图片
-	resp, err := s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), nil)
-	if err != nil {
-		return "", fmt.Errorf("Failed to generate image: %v", err)
+	// 使用 gemini-2.5-flash-image 生成清晰图片（带重试逻辑）
+	var resp *genai.GenerateContentResponse
+	var err error
+	maxRetries := 3
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		resp, err = s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), nil)
+		if err == nil {
+			break
+		}
+		
+		// 检查是否是可重试的错误（网络错误、EOF、超时等）
+		errStr := err.Error()
+		isRetryable := strings.Contains(errStr, "EOF") ||
+			strings.Contains(errStr, "connection") ||
+			strings.Contains(errStr, "timeout") ||
+			strings.Contains(errStr, "RESOURCE_EXHAUSTED") ||
+			strings.Contains(errStr, "429")
+		
+		if !isRetryable || attempt == maxRetries {
+			return "", fmt.Errorf("Failed to generate image: %v", err)
+		}
+		
+		// 指数退避等待
+		waitTime := time.Duration(attempt*attempt) * 2 * time.Second
+		log.Printf("[Imagen] 图片生成失败 (尝试 %d/%d): %v, 等待 %v 后重试...", attempt, maxRetries, err, waitTime)
+		time.Sleep(waitTime)
 	}
 
 	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
@@ -122,19 +144,23 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 	// 解码图片
 	img, _, err := image.Decode(bytes.NewReader(imageData))
 	if err != nil {
-		// 如果解码失败，返回原始图片（可能是不支持的格式）
-		log.Printf("[Imagen] 图片解码失败，使用原始图片: %v", err)
-		// 尝试直接保存原始数据
-		clearURL, saveErr := s.saveImageBytes(imageData, "jpg") // 假设是 jpg
-		if saveErr != nil {
-			return "", fmt.Errorf("Failed to save image: %v", saveErr)
+		// 如果解码失败，尝试使用 imaging 库解码（支持更多格式）
+		log.Printf("[Imagen] 标准解码失败，尝试 imaging 库: %v", err)
+		img, err = imaging.Decode(bytes.NewReader(imageData))
+		if err != nil {
+			// 如果仍然失败，返回原始图片（不带模糊版本）
+			log.Printf("[Imagen] imaging 解码也失败，使用原始图片: %v", err)
+			clearURL, saveErr := s.saveImageBytes(imageData, "jpg")
+			if saveErr != nil {
+				return "", fmt.Errorf("Failed to save image: %v", saveErr)
+			}
+			character.ClearImageURL = clearURL
+			character.FullBlurImageURL = clearURL
+			character.HalfBlurImageURL = clearURL
+			character.ShareCode = repository.GenerateShareCode()
+			character.UnlockStatus = model.UnlockStatusLocked
+			return clearURL, nil
 		}
-		character.ClearImageURL = clearURL
-		character.FullBlurImageURL = clearURL
-		character.HalfBlurImageURL = clearURL
-		character.ShareCode = repository.GenerateShareCode()
-		character.UnlockStatus = model.UnlockStatusLocked
-		return clearURL, nil
 	}
 
 	// 保存清晰图片
@@ -224,10 +250,31 @@ func (s *GeminiImagenService) saveImageBytes(data []byte, ext string) (string, e
 func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, prompt string) (string, error) {
 	log.Printf("[Imagen] 开始生成图片，提示词: %s", prompt)
 
-	// 使用 gemini-2.5-flash-image，这是专门的图像生成模型
-	resp, err := s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), nil)
-	if err != nil {
-		return "", fmt.Errorf("Failed to generate image: %v", err)
+	// 使用 gemini-2.5-flash-image，带重试逻辑
+	var resp *genai.GenerateContentResponse
+	var err error
+	maxRetries := 3
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		resp, err = s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), nil)
+		if err == nil {
+			break
+		}
+		
+		// 检查是否是可重试的错误
+		errStr := err.Error()
+		isRetryable := strings.Contains(errStr, "EOF") ||
+			strings.Contains(errStr, "connection") ||
+			strings.Contains(errStr, "timeout") ||
+			strings.Contains(errStr, "RESOURCE_EXHAUSTED") ||
+			strings.Contains(errStr, "429")
+		
+		if !isRetryable || attempt == maxRetries {
+			return "", fmt.Errorf("Failed to generate image: %v", err)
+		}
+		
+		waitTime := time.Duration(attempt*attempt) * 2 * time.Second
+		log.Printf("[Imagen] 图片生成失败 (尝试 %d/%d): %v, 等待 %v 后重试...", attempt, maxRetries, err, waitTime)
+		time.Sleep(waitTime)
 	}
 
 	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
@@ -291,8 +338,8 @@ func (s *GeminiImagenService) buildImagePrompt(character *model.Character) strin
 	// 2. 组合提示词
 	prompt := fmt.Sprintf("%s%s %s person, %s ethnicity, ", stylePrompt, agePrompt, character.Gender, character.Ethnicity)
 
-	if character.Description != "" {
-		prompt += fmt.Sprintf("with these traits: %s, ", character.Description)
+	if character.DescriptionEn != "" {
+		prompt += fmt.Sprintf("with these traits: %s, ", character.DescriptionEn)
 	}
 
 	if character.AstroSign != "" {

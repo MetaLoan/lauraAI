@@ -41,7 +41,18 @@ type Character struct {
 	Gender          string        `gorm:"type:varchar(50)" json:"gender"`
 	Ethnicity       string        `gorm:"type:varchar(100)" json:"ethnicity"`
 	ImageURL        string        `gorm:"type:text" json:"image_url"` // 保持兼容，存储当前应显示的图片
-	Description     string        `gorm:"type:text" json:"description"`
+	
+	// AI 生成的多语言报告（一次生成三种语言，确保内容一致）
+	DescriptionEn   string        `gorm:"type:text" json:"-"` // 英文描述
+	DescriptionZh   string        `gorm:"type:text" json:"-"` // 中文描述
+	DescriptionRu   string        `gorm:"type:text" json:"-"` // 俄文描述
+	StrengthEn      string        `gorm:"type:text" json:"-"` // 英文优势
+	StrengthZh      string        `gorm:"type:text" json:"-"` // 中文优势
+	StrengthRu      string        `gorm:"type:text" json:"-"` // 俄文优势
+	WeaknessEn      string        `gorm:"type:text" json:"-"` // 英文挑战
+	WeaknessZh      string        `gorm:"type:text" json:"-"` // 中文挑战
+	WeaknessRu      string        `gorm:"type:text" json:"-"` // 俄文挑战
+	
 	Compatibility   int           `gorm:"type:int;default:0" json:"compatibility"`
 	AstroSign       string        `gorm:"type:varchar(100)" json:"astro_sign"`
 	PersonalityPrompt string      `gorm:"type:text" json:"personality_prompt"`
@@ -92,6 +103,52 @@ func (c *Character) IsDescriptionVisible() bool {
 	return c.UnlockStatus == UnlockStatusFullUnlocked
 }
 
+// GetDescription 根据语言获取描述
+func (c *Character) GetDescription(locale string) string {
+	switch locale {
+	case "zh":
+		if c.DescriptionZh != "" {
+			return c.DescriptionZh
+		}
+	case "ru":
+		if c.DescriptionRu != "" {
+			return c.DescriptionRu
+		}
+	}
+	// 默认返回英文
+	return c.DescriptionEn
+}
+
+// GetStrength 根据语言获取优势
+func (c *Character) GetStrength(locale string) string {
+	switch locale {
+	case "zh":
+		if c.StrengthZh != "" {
+			return c.StrengthZh
+		}
+	case "ru":
+		if c.StrengthRu != "" {
+			return c.StrengthRu
+		}
+	}
+	return c.StrengthEn
+}
+
+// GetWeakness 根据语言获取挑战
+func (c *Character) GetWeakness(locale string) string {
+	switch locale {
+	case "zh":
+		if c.WeaknessZh != "" {
+			return c.WeaknessZh
+		}
+	case "ru":
+		if c.WeaknessRu != "" {
+			return c.WeaknessRu
+		}
+	}
+	return c.WeaknessEn
+}
+
 // normalizeImageURL 将图片URL规范化：
 // - 如果是完整URL（http/https开头），提取相对路径部分
 // - 如果是base64（data:开头），直接返回
@@ -131,7 +188,8 @@ func normalizeImageURL(url string) string {
 }
 
 // ToSafeResponse 根据解锁状态返回安全的响应数据，隐藏未解锁的图片URL
-func (c *Character) ToSafeResponse() map[string]interface{} {
+// locale 参数用于返回对应语言的报告内容（en/zh/ru）
+func (c *Character) ToSafeResponse(locale string) map[string]interface{} {
 	result := map[string]interface{}{
 		"id":            c.ID,
 		"user_id":       c.UserID,
@@ -151,7 +209,7 @@ func (c *Character) ToSafeResponse() map[string]interface{} {
 	// 规范化URL：将完整URL转换为相对路径，兼容旧数据
 	switch c.UnlockStatus {
 	case UnlockStatusFullUnlocked:
-		// 完全解锁：返回所有图片和描述
+		// 完全解锁：返回所有图片和描述（根据语言）
 		normalizedClear := normalizeImageURL(c.ClearImageURL)
 		normalizedFullBlur := normalizeImageURL(c.FullBlurImageURL)
 		normalizedHalfBlur := normalizeImageURL(c.HalfBlurImageURL)
@@ -159,7 +217,9 @@ func (c *Character) ToSafeResponse() map[string]interface{} {
 		result["full_blur_image_url"] = normalizedFullBlur
 		result["half_blur_image_url"] = normalizedHalfBlur
 		result["clear_image_url"] = normalizedClear
-		result["description"] = c.Description
+		result["description"] = c.GetDescription(locale)
+		result["strength"] = c.GetStrength(locale)
+		result["weakness"] = c.GetWeakness(locale)
 	case UnlockStatusHalfUnlocked:
 		// 半解锁：只返回模糊图，不返回清晰图和描述
 		normalizedHalfBlur := normalizeImageURL(c.HalfBlurImageURL)

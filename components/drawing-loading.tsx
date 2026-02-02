@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { useTranslations, useI18n } from '@/components/i18n-provider'
 
@@ -64,7 +64,7 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
   const { t: tCharacters } = useTranslations('characters')
   const { locale } = useI18n()
 
-  const calculationSteps = getCalculationSteps(locale)
+  const calculationSteps = useMemo(() => getCalculationSteps(locale), [locale])
 
   // 获取本地化的角色名称
   const getLocalizedCharacterTitle = () => {
@@ -92,6 +92,8 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
     if (error) return
 
     const step = calculationSteps[stepIndex]
+    if (!step) return
+
     const startTime = Date.now()
     const stepProgress = (stepIndex / calculationSteps.length) * 100
 
@@ -106,7 +108,7 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
     // Move to next step after duration
     const timer = setTimeout(() => {
       if (stepIndex < calculationSteps.length - 1) {
-        setStepIndex(stepIndex + 1)
+        setStepIndex(prev => prev + 1)
       }
       // If on last step, just loop the progress bar at 95% to indicate ongoing work
     }, step.duration)
@@ -287,8 +289,8 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
         
         {/* Current Step Text */}
         <div className="text-center">
-          <p className="font-mono text-sm text-amber-400 mb-2 animate-pulse">
-            {calculationSteps[stepIndex].text}
+          <p className="font-mono text-sm text-amber-400 mb-2 animate-pulse min-h-[2.5rem] flex items-center justify-center">
+            {calculationSteps[stepIndex]?.text}
           </p>
           <p className="text-xs text-gray-500">
             {stepIndex + 1} / {calculationSteps.length}

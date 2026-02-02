@@ -203,7 +203,7 @@ func (s *GeminiChatService) buildSystemPrompt(character *model.Character, locale
 	6. Use emojis occasionally to express emotion, but don't overdo it.
 	7. Remember details the user shares and reference them to build a stronger bond.
 	8. Your goal is to make the user feel seen, understood, and special.`,
-		character.Title, character.Description, character.AstroSign, ageDescription, languageInstruction)
+		character.Title, character.DescriptionEn, character.AstroSign, ageDescription, languageInstruction)
 
 	return prompt
 }

@@ -24,16 +24,8 @@ export default function Welcome({
     setError(null)
     
     try {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/welcome.tsx:handleContinue',message:'Checking user status on Welcome continue',data:{},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'F'})}).catch(()=>{});
-      // #endregion
-
       const user = await apiClient.getMe() as any
       
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/welcome.tsx:handleContinue',message:'User check result',data:{userExists: !!user, name: user?.name},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'F'})}).catch(()=>{});
-      // #endregion
-
       if (user && user.name && user.gender && user.birth_date) {
         // User exists and has completed profile -> Go to Dashboard
         if (onUserFound) {
@@ -49,10 +41,6 @@ export default function Welcome({
     } catch (err) {
       console.error('Failed to check user status:', err)
       
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'components/welcome.tsx:handleContinue',message:'Check failed',data:{error: err instanceof Error ? err.message : String(err)},timestamp:Date.now(),sessionId:'debug-session-001',hypothesisId:'F'})}).catch(()=>{});
-      // #endregion
-
       // If it's a network error, stop and show error as requested
       setError(t('networkError'))
     } finally {

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Camera, ImageIcon, Loader2 } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 import imageCompression from 'browser-image-compression'
+import { useTranslations } from '@/components/i18n-provider'
 
 interface MiniMeUploadProps {
   onNext: (character: any) => void
@@ -12,6 +13,7 @@ interface MiniMeUploadProps {
 }
 
 export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
+  const { t } = useTranslations('miniMe')
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -23,7 +25,7 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
 
     setIsUploading(true)
     setError(null)
-    setUploadStatus('Processing image...')
+    setUploadStatus(t('processing'))
 
     try {
       // 1. 检查文件类型并进行初步处理
@@ -31,7 +33,7 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
       
       // 处理 iOS 特有的 HEIC 格式
       if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic') {
-        setUploadStatus('Converting HEIC format...')
+        setUploadStatus(t('converting'))
         const heic2any = (await import('heic2any')).default
         const convertedBlob = await heic2any({
           blob: file,
@@ -48,7 +50,7 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
 
       // 2. 统一压缩和格式转换
       // 无论是什么格式（JPG, PNG, WebP 等），都进行统一压缩并强制转换为 JPEG
-      setUploadStatus('Compressing image...')
+      setUploadStatus(t('compressing'))
       const options = {
         maxSizeMB: 0.8,          // 目标大小 0.8MB
         maxWidthOrHeight: 1024,  // 适度提高分辨率到 1024px，保证特征清晰
@@ -64,12 +66,12 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
       console.log('Processed size:', compressedFile.size / 1024 / 1024, 'MB')
       
       // 3. 直接上传并生成 Mini Me（无需预付费，和其他角色一样后置付费解锁）
-      setUploadStatus('Analyzing your features...')
+      setUploadStatus(t('analyzing'))
       const result = await apiClient.generateMiniMe(compressedFile)
       onNext(result.character)
     } catch (err) {
       console.error('Mini Me generation failed:', err)
-      setError('Please try again')
+      setError(t('tryAgain'))
     } finally {
       setIsUploading(false)
       setUploadStatus(null)
@@ -100,15 +102,15 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
         <div className="flex flex-col items-center justify-center min-h-full py-8">
           {/* Title */}
           <h1 className="text-title-lg text-balance text-center mb-2">
-            Let's bring your Mini Me to life ✨
+            {t('title')}
           </h1>
           <h2 className="text-title-lg text-balance text-center mb-6">
-            Upload Your Selfie
+            {t('uploadSelfie')}
           </h2>
 
           {/* Description */}
           <p className="text-body-md text-gray-400 text-center max-w-sm mb-8">
-            For the best results, upload a clear close-up selfie where your face is fully visible.
+            {t('uploadHint')}
           </p>
 
           {/* Phone Illustration */}
@@ -119,7 +121,7 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="w-10 h-10 animate-spin text-white" />
                     <span className="text-xs text-white/70 px-4 text-center">
-                      {uploadStatus || 'Analyzing...'}
+                      {uploadStatus || t('analyzing')}
                     </span>
                   </div>
                 ) : (
@@ -148,7 +150,7 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
             className="btn-primary flex items-center justify-center gap-2 w-full"
           >
             <Camera className="w-5 h-5" />
-            Take a Selfie
+            {t('takeSelfie')}
           </Button>
           <Button
             onClick={handleGalleryClick}
@@ -156,7 +158,7 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
             className="btn-primary flex items-center justify-center gap-2 w-full !bg-white/10 !text-white hover:!bg-white/20"
           >
             <ImageIcon className="w-5 h-5" />
-            Choose from Gallery
+            {t('chooseGallery')}
           </Button>
         </div>
       </div>

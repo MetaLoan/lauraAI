@@ -12,7 +12,20 @@
     "delete": "删除",
     "confirm": "确认",
     "close": "关闭",
-    "checking": "检查中..."
+    "checking": "检查中...",
+    "pleaseRetry": "请重试"
+  },
+  "loading": {
+    "analyzingStars": "正在解析星盘数据...",
+    "connectingSouls": "正在连接灵魂共鸣...",
+    "interpretingDestiny": "正在解读命运轨迹...",
+    "generatingReport": "正在生成专属报告...",
+    "pleaseWait": "请稍候，正在为您绘制...",
+    "timeout": "网络超时，请重新生成",
+    "retryReport": "开始生成报告",
+    "analyzing": "正在分析您的星象档案...",
+    "drawing": "正在绘制您的{character}...",
+    "generating": "正在生成您的匹配对象..."
   },
   "welcome": {
     "title": "欢迎来到",
@@ -87,33 +100,39 @@
     "mixed": "混血",
     "preferNotToSay": "不想透露"
   },
-  "loading": {
-    "analyzing": "正在分析您的星象档案...",
-    "drawing": "正在绘制您的{character}...",
-    "generating": "正在生成您的匹配对象...",
-    "pleaseWait": "请稍候"
-  },
   "results": {
-    "title": "您的星象档案",
-    "compatibility": "匹配度",
-    "astroSign": "星座",
-    "meetSoulmate": "遇见您的灵魂伴侣",
-    "viewDetails": "查看详情"
+    "title": "命中注定的相遇",
+    "compatibility": "灵魂契合度分析",
+    "astroSign": "星象密码解读",
+    "meetSoulmate": "揭晓您的命定之人",
+    "viewDetails": "探索星象奥秘"
   },
   "detail": {
     "startChat": "开始聊天",
     "askFriendHelp": "邀请好友帮助解锁",
     "friendHelped": "好友已帮助！已解锁 50%",
-    "unlockFull": "解锁完整图片",
+    "unlockFull": "解锁清晰照片和完整报告",
+    "unlock": "解锁",
     "share": "分享",
     "blurMessage": "邀请好友帮助解锁更清晰的视图！",
-    "description": "描述"
+    "unlockDescription": "解锁完整描述",
+    "unlockDescriptionHint": "支付解锁完整个人分析报告",
+    "description": "描述",
+    "noDescription": "根据您的星盘分析，你们之间存在着深厚的灵魂共鸣。这段关系建立在相互理解和心灵感应的基础上。",
+    "locked": "已锁定",
+    "halfUnlocked": "已解锁 50%",
+    "fullUnlocked": "已解锁 100%",
+    "strength": "优势",
+    "strengthDesc": "你们共同散发着忠诚、热情和坚定的光芒。你们的羁绊建立在真诚、共同目标，以及相互支持彼此梦想的能力之上。",
+    "weakness": "挑战",
+    "weaknessDesc": "有时，固执和情绪的强烈可能会产生摩擦。如果没有给予足够的空间和耐心，可能会产生误解，但意识到这一点有助于将这些转化为成长。"
   },
   "chat": {
     "send": "发送",
     "typeMessage": "输入消息...",
     "loading": "加载消息中...",
-    "sending": "发送中..."
+    "sending": "发送中...",
+    "noMessages": "你们还没开启对话"
   },
   "profile": {
     "title": "个人资料",
@@ -142,15 +161,23 @@
     "version": "版本"
   },
   "history": {
-    "title": "历史记录",
-    "noHistory": "暂无历史记录",
+    "title": "聊天记录",
+    "noHistory": "暂无聊天记录",
+    "noMessages": "暂无消息",
     "viewAll": "查看全部"
   },
   "miniMe": {
-    "title": "创建您的迷你我",
+    "title": "让我们唤醒您的迷你分身 ✨",
+    "uploadSelfie": "上传您的自拍",
     "uploadPhoto": "上传您的照片",
-    "uploadHint": "我们将根据您的照片创建 AI 头像",
-    "processing": "正在处理您的照片..."
+    "uploadHint": "为获得最佳效果，请上传一张清晰的正面自拍照，确保面部完整可见。",
+    "processing": "正在处理您的照片...",
+    "takeSelfie": "拍摄自拍",
+    "chooseGallery": "从相册选择",
+    "analyzing": "正在分析您的面部特征...",
+    "compressing": "正在压缩图片...",
+    "converting": "正在转换格式...",
+    "tryAgain": "请重试"
   },
   "helpUnlock": {
     "title": "帮助解锁",

@@ -12,7 +12,20 @@
     "delete": "Delete",
     "confirm": "Confirm",
     "close": "Close",
-    "checking": "Checking..."
+    "checking": "Checking...",
+    "pleaseRetry": "Please retry"
+  },
+  "loading": {
+    "analyzingStars": "Analyzing star chart data...",
+    "connectingSouls": "Connecting soul resonance...",
+    "interpretingDestiny": "Interpreting destiny path...",
+    "generatingReport": "Generating exclusive report...",
+    "pleaseWait": "Please wait...",
+    "timeout": "Network timeout, please regenerate",
+    "retryReport": "Start Generating Report",
+    "analyzing": "Analyzing your cosmic profile...",
+    "drawing": "Drawing your {character}...",
+    "generating": "Generating your match..."
   },
   "welcome": {
     "title": "Welcome to",
@@ -87,33 +100,39 @@
     "mixed": "Mixed",
     "preferNotToSay": "Prefer not to say"
   },
-  "loading": {
-    "analyzing": "Analyzing your cosmic profile...",
-    "drawing": "Drawing your {character}...",
-    "generating": "Generating your match...",
-    "pleaseWait": "Please wait a moment"
-  },
   "results": {
-    "title": "Your Cosmic Profile",
-    "compatibility": "Compatibility",
-    "astroSign": "Zodiac Sign",
-    "meetSoulmate": "Meet Your Soulmate",
-    "viewDetails": "View Details"
+    "title": "A Destined Encounter",
+    "compatibility": "Soul Compatibility Analysis",
+    "astroSign": "Celestial Code Revealed",
+    "meetSoulmate": "Unveil Your Destined One",
+    "viewDetails": "Explore Cosmic Mysteries"
   },
   "detail": {
     "startChat": "Start Chat",
     "askFriendHelp": "Ask Friend to Help",
     "friendHelped": "Friend helped! 50% unlocked",
-    "unlockFull": "Unlock Full Image",
+    "unlockFull": "Unlock Clear Photo & Full Report",
+    "unlock": "Unlock",
     "share": "Share",
     "blurMessage": "Invite a friend to help unlock a clearer view!",
-    "description": "Description"
+    "unlockDescription": "Unlock Full Description",
+    "unlockDescriptionHint": "Pay to unlock the full personality analysis report",
+    "description": "Description",
+    "noDescription": "Based on your birth chart analysis, there is a deep soul resonance between you. This relationship is built on mutual understanding and spiritual connection.",
+    "locked": "Locked",
+    "halfUnlocked": "50% Unlocked",
+    "fullUnlocked": "100% Unlocked",
+    "strength": "Strength",
+    "strengthDesc": "Together you radiate loyalty, passion, and determination. Your bond thrives on honesty, shared goals, and the ability to support each other's dreams.",
+    "weakness": "Challenge",
+    "weaknessDesc": "At times, stubbornness and emotional intensity may create friction. Misunderstandings can arise if space and patience are not given, but awareness helps transform these into growth."
   },
   "chat": {
     "send": "Send",
     "typeMessage": "Type a message...",
     "loading": "Loading messages...",
-    "sending": "Sending..."
+    "sending": "Sending...",
+    "noMessages": "You haven't started a conversation yet"
   },
   "profile": {
     "title": "Profile",
@@ -142,15 +161,23 @@
     "version": "Version"
   },
   "history": {
-    "title": "History",
-    "noHistory": "No history yet",
+    "title": "Chat History",
+    "noHistory": "No chat history found",
+    "noMessages": "No messages yet",
     "viewAll": "View All"
   },
   "miniMe": {
-    "title": "Create Your Mini Me",
+    "title": "Let's bring your Mini Me to life ✨",
+    "uploadSelfie": "Upload Your Selfie",
     "uploadPhoto": "Upload a photo of yourself",
-    "uploadHint": "We'll create an AI avatar based on your photo",
-    "processing": "Processing your photo..."
+    "uploadHint": "For the best results, upload a clear close-up selfie where your face is fully visible.",
+    "processing": "Processing your photo...",
+    "takeSelfie": "Take a Selfie",
+    "chooseGallery": "Choose from Gallery",
+    "analyzing": "Analyzing your features...",
+    "compressing": "Compressing image...",
+    "converting": "Converting format...",
+    "tryAgain": "Please try again"
   },
   "helpUnlock": {
     "title": "Help Unlock",

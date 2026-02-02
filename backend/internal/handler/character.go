@@ -52,11 +52,10 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 	signs := []string{"Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"}
 	astroSign := signs[rand.Intn(len(signs))]
 
-	// 获取语言
-	locale := middleware.GetLocaleFromContext(c)
-
-	// 根据性别和民族生成描述
-	description := generateCharacterDescription(astroSign, req.Gender, req.Ethnicity, locale)
+	// 生成三种语言的初始描述（这只是模板，真正的 AI 报告在图片生成时创建）
+	descriptionEn := generateCharacterDescription(astroSign, req.Gender, req.Ethnicity, i18n.LocaleEn)
+	descriptionZh := generateCharacterDescription(astroSign, req.Gender, req.Ethnicity, i18n.LocaleZh)
+	descriptionRu := generateCharacterDescription(astroSign, req.Gender, req.Ethnicity, i18n.LocaleRu)
 
 	character := &model.Character{
 		UserID:        user.ID,
@@ -66,7 +65,9 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 		Ethnicity:     req.Ethnicity,
 		Compatibility: compatibility,
 		AstroSign:     astroSign,
-		Description:   description,
+		DescriptionEn: descriptionEn,
+		DescriptionZh: descriptionZh,
+		DescriptionRu: descriptionRu,
 		ShareCode:     repository.GenerateShareCode(), // 创建时就生成分享码
 	}
 
@@ -92,7 +93,8 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, character.ToSafeResponse())
+	locale := middleware.GetLocaleFromContext(c)
+	response.Success(c, character.ToSafeResponse(string(locale)))
 }
 
 // List 获取用户的所有角色
@@ -110,9 +112,10 @@ func (h *CharacterHandler) List(c *gin.Context) {
 	}
 
 	// 转换为安全响应，过滤敏感图片URL
+	locale := middleware.GetLocaleFromContext(c)
 	safeCharacters := make([]map[string]interface{}, len(characters))
 	for i, char := range characters {
-		safeResponse := char.ToSafeResponse()
+		safeResponse := char.ToSafeResponse(string(locale))
 		// 记录返回的图片URL（包括原始值和规范化后的值）
 		if i < 3 { // 只记录前3个，避免日志过多
 			log.Printf("[Character] 返回角色图片URL - ID: %d, type: %s, unlock_status: %d", char.ID, char.Type, char.UnlockStatus)
@@ -155,7 +158,8 @@ func (h *CharacterHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, character.ToSafeResponse())
+	locale := middleware.GetLocaleFromContext(c)
+	response.Success(c, character.ToSafeResponse(string(locale)))
 }
 
 // CleanupEmpty 清理没有图片的角色
