@@ -145,10 +145,19 @@
   },
   "payment": {
     "title": "Unlock Full Image",
+    "unlockTitle": "Unlock {name}",
+    "chooseMethod": "Choose your preferred payment method to unlock {name}.",
+    "discountApplied": "Your friend helped! Enjoy the discounted price.",
+    "friendDiscount": "Friend discount applied! Save 67%",
     "price": "Price",
     "stars": "Stars",
+    "ton": "TON",
     "payNow": "Pay Now",
-    "processing": "Processing payment..."
+    "processing": "Processing",
+    "validating": "Validating transaction...",
+    "unlocked": "UNLOCKED!",
+    "welcomeMessage": "Welcome to the world of {name}.",
+    "termsAgreement": "By completing the payment, you agree to our Terms of Service and Privacy Policy."
   },
   "errors": {
     "networkFailed": "Network connection failed",

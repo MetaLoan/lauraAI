@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Loader2, CheckCircle2, Star, Sparkles } from 'lucide-react'
 import { cn, getAssetPath, getFullImageUrl } from '@/lib/utils'
+import { useI18n } from '@/components/i18n-provider'
 
 interface PaymentDrawerProps {
   isOpen: boolean
@@ -41,6 +42,7 @@ export function PaymentDrawer({
   onPaymentSuccess,
   onPay,
 }: PaymentDrawerProps) {
+  const { t } = useI18n()
   const [status, setStatus] = useState<PaymentStatus>('idle')
 
   // Reset status when drawer opens/closes
@@ -83,12 +85,12 @@ export function PaymentDrawer({
             <>
               <DrawerHeader className="pt-8 px-6">
                 <DrawerTitle className="text-2xl font-bold text-center tracking-tight">
-                  Unlock {characterName}
+                  {t('payment.unlockTitle', { name: characterName })}
                 </DrawerTitle>
                 <DrawerDescription className="text-gray-400 text-center mt-2">
                   {isDiscounted 
-                    ? 'Your friend helped! Enjoy the discounted price.'
-                    : `Choose your preferred payment method to unlock ${characterName}.`}
+                    ? t('payment.discountApplied')
+                    : t('payment.chooseMethod', { name: characterName })}
                 </DrawerDescription>
               </DrawerHeader>
 
@@ -111,7 +113,7 @@ export function PaymentDrawer({
                 {isDiscounted && (
                   <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-3 flex items-center justify-center gap-2">
                     <Sparkles className="w-4 h-4 text-green-400" />
-                    <span className="text-sm text-green-400 font-medium">Friend discount applied! Save 67%</span>
+                    <span className="text-sm text-green-400 font-medium">{t('payment.friendDiscount')}</span>
                   </div>
                 )}
 
@@ -126,7 +128,7 @@ export function PaymentDrawer({
                       className="w-6 h-6 object-contain"
                     />
                     {isDiscounted && <span className="line-through text-gray-400 text-sm mr-1">300</span>}
-                    {priceStars} Stars
+                    {priceStars} {t('payment.stars')}
                   </Button>
 
                   <Button
@@ -140,14 +142,14 @@ export function PaymentDrawer({
                       className="w-6 h-6 object-contain"
                     />
                     {isDiscounted && <span className="line-through text-gray-500 text-sm mr-1">3</span>}
-                    {priceTON} TON
+                    {priceTON} {t('payment.ton')}
                   </Button>
                 </div>
               </div>
 
               <DrawerFooter className="pb-10 px-6">
                 <p className="text-[10px] text-center text-gray-600 leading-relaxed uppercase tracking-tighter">
-                  By completing the payment, you agree to our <br/> Terms of Service and Privacy Policy.
+                  {t('payment.termsAgreement')}
                 </p>
               </DrawerFooter>
             </>
@@ -159,8 +161,8 @@ export function PaymentDrawer({
                 <Loader2 className="w-12 h-12 text-white animate-spin relative z-10" />
               </div>
               <div className="text-center space-y-2">
-                <h3 className="text-lg font-bold tracking-widest uppercase">Processing</h3>
-                <p className="text-gray-500 text-sm">Validating transaction...</p>
+                <h3 className="text-lg font-bold tracking-widest uppercase">{t('payment.processing')}</h3>
+                <p className="text-gray-500 text-sm">{t('payment.validating')}</p>
               </div>
             </div>
           )}
@@ -169,8 +171,8 @@ export function PaymentDrawer({
             <div className="py-24 flex flex-col items-center justify-center space-y-6 animate-in fade-in zoom-in duration-500">
               <CheckCircle2 className="w-16 h-16 text-white" />
               <div className="text-center space-y-2">
-                <h3 className="text-2xl font-bold tracking-tight">UNLOCKED!</h3>
-                <p className="text-gray-500">Welcome to the world of {characterName}.</p>
+                <h3 className="text-2xl font-bold tracking-tight">{t('payment.unlocked')}</h3>
+                <p className="text-gray-500">{t('payment.welcomeMessage', { name: characterName })}</p>
               </div>
             </div>
           )}

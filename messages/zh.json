@@ -145,10 +145,19 @@
   },
   "payment": {
     "title": "解锁完整图片",
+    "unlockTitle": "解锁 {name}",
+    "chooseMethod": "选择您喜欢的支付方式来解锁 {name}。",
+    "discountApplied": "您的朋友已帮助！享受优惠价格。",
+    "friendDiscount": "好友折扣已应用！节省 67%",
     "price": "价格",
     "stars": "星星",
+    "ton": "TON",
     "payNow": "立即支付",
-    "processing": "正在处理支付..."
+    "processing": "处理中",
+    "validating": "正在验证交易...",
+    "unlocked": "已解锁！",
+    "welcomeMessage": "欢迎来到 {name} 的世界。",
+    "termsAgreement": "完成支付即表示您同意我们的服务条款和隐私政策。"
   },
   "errors": {
     "networkFailed": "网络连接失败",
