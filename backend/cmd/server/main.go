@@ -72,7 +72,7 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// 临时：修复空share_code的记录
+	// 调试端点：修复空share_code的记录
 	r.POST("/debug/fix-share-codes", func(c *gin.Context) {
 		if c.GetHeader("X-Debug-Key") != "lauraai-clear-2026" {
 			c.JSON(403, gin.H{"error": "Forbidden"})
@@ -85,6 +85,44 @@ func main() {
 			return
 		}
 		c.JSON(200, gin.H{"message": "Fixed", "rows_affected": result.RowsAffected})
+	})
+
+	// 调试端点：清空所有数据（用于测试）
+	r.POST("/debug/clear-all-data", func(c *gin.Context) {
+		if c.GetHeader("X-Debug-Key") != "lauraai-clear-2026" {
+			c.JSON(403, gin.H{"error": "Forbidden"})
+			return
+		}
+		
+		// 按顺序删除数据（考虑外键约束）
+		var errors []string
+		
+		// 1. 删除消息
+		if result := repository.DB.Exec("DELETE FROM messages"); result.Error != nil {
+			errors = append(errors, "messages: "+result.Error.Error())
+		}
+		
+		// 2. 删除角色
+		if result := repository.DB.Exec("DELETE FROM characters"); result.Error != nil {
+			errors = append(errors, "characters: "+result.Error.Error())
+		}
+		
+		// 3. 删除用户
+		if result := repository.DB.Exec("DELETE FROM users"); result.Error != nil {
+			errors = append(errors, "users: "+result.Error.Error())
+		}
+		
+		// 4. 重置序列（可选）
+		repository.DB.Exec("ALTER SEQUENCE messages_id_seq RESTART WITH 1")
+		repository.DB.Exec("ALTER SEQUENCE characters_id_seq RESTART WITH 1")
+		repository.DB.Exec("ALTER SEQUENCE users_id_seq RESTART WITH 1")
+		
+		if len(errors) > 0 {
+			c.JSON(500, gin.H{"error": "部分删除失败", "details": errors})
+			return
+		}
+		
+		c.JSON(200, gin.H{"message": "所有数据已清空", "tables_cleared": []string{"messages", "characters", "users"}})
 	})
 
 	// 公开路由
