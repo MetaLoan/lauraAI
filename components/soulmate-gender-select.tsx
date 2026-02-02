@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { SelectionButton } from '@/components/ui/selection-button'
-import { useTranslations, useI18n } from '@/components/i18n-provider'
+import { useTranslations } from '@/components/i18n-provider'
 
 // 角色类型映射到翻译键
 const characterTypeToKey: Record<string, string> = {
@@ -34,7 +34,7 @@ export default function SoulmateGenderSelect({
 }) {
   const { t: tGender } = useTranslations('gender')
   const { t: tCharacters } = useTranslations('characters')
-  const { t: tLoading } = useTranslations('loading')
+  const { t: tCommon } = useTranslations('common')
 
   const options = [
     { value: 'Male', labelKey: 'male' },
@@ -82,7 +82,7 @@ export default function SoulmateGenderSelect({
           disabled={!value}
           className="btn-primary disabled:btn-disabled"
         >
-          {tLoading('drawing', { character: localizedTitle })}
+          {tCommon('continue')}
         </Button>
       </div>
     </div>
