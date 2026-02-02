@@ -28,6 +28,16 @@ next-env.d.ts
 
 # backend
 backend/server
+backend/lauraai-backend
 backend/server.log
-backend/*.log.cursor/debug.log
+backend/*.log
 backend/uploads/*.jpg
+
+# debug logs
+.cursor/debug.log
+*.log
+
+# IDE
+.cursor/
+.vscode/
+.idea/
