@@ -122,10 +122,18 @@
     "locked": "Locked",
     "halfUnlocked": "50% Unlocked",
     "fullUnlocked": "100% Unlocked",
-    "strength": "Strength",
+    "career": "Career Outlook",
+    "careerDesc": "Your soulmate is likely drawn to creative or helping professions, where their natural empathy shines. They may work in fields related to art, healthcare, education, or technology.",
+    "personality": "Personality Traits",
+    "personalityDesc": "They possess a warm and intuitive nature, balancing thoughtfulness with spontaneity. Their presence brings both calm and excitement, and they value deep, meaningful connections.",
+    "meetingTime": "When You'll Meet",
+    "meetingTimeDesc": "The celestial alignment suggests you may cross paths within the next 3-6 months. Keep your heart open during social gatherings and unexpected encounters.",
+    "distance": "Current Distance",
+    "distanceDesc": "They are closer than you might expect - perhaps within 50-100 kilometers of your current location. Your energy fields are already beginning to resonate.",
+    "strength": "Relationship Strengths",
     "strengthDesc": "Together you radiate loyalty, passion, and determination. Your bond thrives on honesty, shared goals, and the ability to support each other's dreams.",
-    "weakness": "Challenge",
-    "weaknessDesc": "At times, stubbornness and emotional intensity may create friction. Misunderstandings can arise if space and patience are not given, but awareness helps transform these into growth."
+    "challenge": "Growth Opportunities",
+    "challengeDesc": "At times, stubbornness and emotional intensity may create friction. Misunderstandings can arise if space and patience are not given, but awareness helps transform these into growth."
   },
   "chat": {
     "send": "Send",

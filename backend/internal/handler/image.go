@@ -85,10 +85,22 @@ func (h *ImageHandler) GenerateImage(c *gin.Context) {
 		log.Printf("[Image] 生成报告失败: %v (将在解锁时重试)", err)
 		// 报告生成失败不影响图片生成，继续执行
 	} else {
-		// 存储三种语言的报告
+		// 存储三种语言的 7 项报告内容
 		character.DescriptionEn = report.DescriptionEn
 		character.DescriptionZh = report.DescriptionZh
 		character.DescriptionRu = report.DescriptionRu
+		character.CareerEn = report.CareerEn
+		character.CareerZh = report.CareerZh
+		character.CareerRu = report.CareerRu
+		character.PersonalityEn = report.PersonalityEn
+		character.PersonalityZh = report.PersonalityZh
+		character.PersonalityRu = report.PersonalityRu
+		character.MeetingTimeEn = report.MeetingTimeEn
+		character.MeetingTimeZh = report.MeetingTimeZh
+		character.MeetingTimeRu = report.MeetingTimeRu
+		character.DistanceEn = report.DistanceEn
+		character.DistanceZh = report.DistanceZh
+		character.DistanceRu = report.DistanceRu
 		character.StrengthEn = report.StrengthEn
 		character.StrengthZh = report.StrengthZh
 		character.StrengthRu = report.StrengthRu

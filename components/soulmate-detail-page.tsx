@@ -46,8 +46,12 @@ interface SoulmateDetailPageProps {
     gender?: string
     ethnicity?: string
     description?: string
-    strength?: string      // AI 生成的优势分析
-    weakness?: string      // AI 生成的挑战分析
+    career?: string        // AI 生成的事业运势
+    personality?: string   // AI 生成的性格特点
+    meeting_time?: string  // AI 生成的相遇时机
+    distance?: string      // AI 生成的距离预测
+    strength?: string      // AI 生成的缘分优势
+    weakness?: string      // AI 生成的成长机遇
     compatibility?: number
     astro_sign?: string
   }
@@ -156,6 +160,10 @@ export default function SoulmateDetailPage({
               onCharacterUpdate({
                 ...currentCharacter,
                 description: updatedChar.description,
+                career: updatedChar.career,
+                personality: updatedChar.personality,
+                meeting_time: updatedChar.meeting_time,
+                distance: updatedChar.distance,
                 strength: updatedChar.strength,
                 weakness: updatedChar.weakness,
               })
@@ -428,7 +436,87 @@ export default function SoulmateDetailPage({
         {/* Expandable Sections - Only visible when unlocked and not Mini Me */}
         {isDescriptionVisible && !isMiniMe && !isReportLoading && (
           <div className="space-y-3">
-            {/* Strength */}
+            {/* Career - 事业运势 */}
+            <button
+              onClick={() => toggleSection('career')}
+              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="text-title-md font-bold">{t('career')}</h4>
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform ${
+                    expandedSection === 'career' ? 'rotate-180' : ''
+                  }`}
+                />
+              </div>
+              {expandedSection === 'career' && (
+                <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
+                  {character?.career || t('careerDesc')}
+                </p>
+              )}
+            </button>
+
+            {/* Personality - 性格特点 */}
+            <button
+              onClick={() => toggleSection('personality')}
+              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="text-title-md font-bold">{t('personality')}</h4>
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform ${
+                    expandedSection === 'personality' ? 'rotate-180' : ''
+                  }`}
+                />
+              </div>
+              {expandedSection === 'personality' && (
+                <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
+                  {character?.personality || t('personalityDesc')}
+                </p>
+              )}
+            </button>
+
+            {/* Meeting Time - 相遇时机 */}
+            <button
+              onClick={() => toggleSection('meetingTime')}
+              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="text-title-md font-bold">{t('meetingTime')}</h4>
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform ${
+                    expandedSection === 'meetingTime' ? 'rotate-180' : ''
+                  }`}
+                />
+              </div>
+              {expandedSection === 'meetingTime' && (
+                <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
+                  {character?.meeting_time || t('meetingTimeDesc')}
+                </p>
+              )}
+            </button>
+
+            {/* Distance - 距离预测 */}
+            <button
+              onClick={() => toggleSection('distance')}
+              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="text-title-md font-bold">{t('distance')}</h4>
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform ${
+                    expandedSection === 'distance' ? 'rotate-180' : ''
+                  }`}
+                />
+              </div>
+              {expandedSection === 'distance' && (
+                <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
+                  {character?.distance || t('distanceDesc')}
+                </p>
+              )}
+            </button>
+
+            {/* Strength - 缘分优势 */}
             <button
               onClick={() => toggleSection('strength')}
               className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
@@ -448,22 +536,22 @@ export default function SoulmateDetailPage({
               )}
             </button>
 
-            {/* Weakness */}
+            {/* Challenge - 成长机遇 */}
             <button
-              onClick={() => toggleSection('weakness')}
+              onClick={() => toggleSection('challenge')}
               className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
             >
               <div className="flex items-center justify-between">
-                <h4 className="text-title-md font-bold">{t('weakness')}</h4>
+                <h4 className="text-title-md font-bold">{t('challenge')}</h4>
                 <ChevronDown
                   className={`w-5 h-5 transition-transform ${
-                    expandedSection === 'weakness' ? 'rotate-180' : ''
+                    expandedSection === 'challenge' ? 'rotate-180' : ''
                   }`}
                 />
               </div>
-              {expandedSection === 'weakness' && (
+              {expandedSection === 'challenge' && (
                 <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
-                  {character?.weakness || t('weaknessDesc')}
+                  {character?.weakness || t('challengeDesc')}
                 </p>
               )}
             </button>

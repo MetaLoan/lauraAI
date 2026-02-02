@@ -260,9 +260,22 @@ func (h *UnlockHandler) Unlock(c *gin.Context) {
 				return
 			}
 
+			// 保存 7 项报告内容
 			char.DescriptionEn = report.DescriptionEn
 			char.DescriptionZh = report.DescriptionZh
 			char.DescriptionRu = report.DescriptionRu
+			char.CareerEn = report.CareerEn
+			char.CareerZh = report.CareerZh
+			char.CareerRu = report.CareerRu
+			char.PersonalityEn = report.PersonalityEn
+			char.PersonalityZh = report.PersonalityZh
+			char.PersonalityRu = report.PersonalityRu
+			char.MeetingTimeEn = report.MeetingTimeEn
+			char.MeetingTimeZh = report.MeetingTimeZh
+			char.MeetingTimeRu = report.MeetingTimeRu
+			char.DistanceEn = report.DistanceEn
+			char.DistanceZh = report.DistanceZh
+			char.DistanceRu = report.DistanceRu
 			char.StrengthEn = report.StrengthEn
 			char.StrengthZh = report.StrengthZh
 			char.StrengthRu = report.StrengthRu
@@ -284,6 +297,10 @@ func (h *UnlockHandler) Unlock(c *gin.Context) {
 		"unlock_status": model.UnlockStatusFullUnlocked,
 		"image_url":     character.ClearImageURL,
 		"description":   character.GetDescription(string(locale)),
+		"career":        character.GetCareer(string(locale)),
+		"personality":   character.GetPersonality(string(locale)),
+		"meeting_time":  character.GetMeetingTime(string(locale)),
+		"distance":      character.GetDistance(string(locale)),
 		"strength":      character.GetStrength(string(locale)),
 		"weakness":      character.GetWeakness(string(locale)),
 		"price_paid":    expectedPrice,
@@ -389,9 +406,22 @@ func (h *UnlockHandler) RetryReport(c *gin.Context) {
 			return
 		}
 
+		// 保存 7 项报告内容
 		char.DescriptionEn = report.DescriptionEn
 		char.DescriptionZh = report.DescriptionZh
 		char.DescriptionRu = report.DescriptionRu
+		char.CareerEn = report.CareerEn
+		char.CareerZh = report.CareerZh
+		char.CareerRu = report.CareerRu
+		char.PersonalityEn = report.PersonalityEn
+		char.PersonalityZh = report.PersonalityZh
+		char.PersonalityRu = report.PersonalityRu
+		char.MeetingTimeEn = report.MeetingTimeEn
+		char.MeetingTimeZh = report.MeetingTimeZh
+		char.MeetingTimeRu = report.MeetingTimeRu
+		char.DistanceEn = report.DistanceEn
+		char.DistanceZh = report.DistanceZh
+		char.DistanceRu = report.DistanceRu
 		char.StrengthEn = report.StrengthEn
 		char.StrengthZh = report.StrengthZh
 		char.StrengthRu = report.StrengthRu

@@ -43,12 +43,31 @@ type Character struct {
 	ImageURL        string        `gorm:"type:text" json:"image_url"` // 保持兼容，存储当前应显示的图片
 	
 	// AI 生成的多语言报告（一次生成三种语言，确保内容一致）
+	// 1. 缘分概述 (Description)
 	DescriptionEn   string        `gorm:"type:text" json:"-"` // 英文描述
 	DescriptionZh   string        `gorm:"type:text" json:"-"` // 中文描述
 	DescriptionRu   string        `gorm:"type:text" json:"-"` // 俄文描述
+	// 2. 事业运势 (Career)
+	CareerEn        string        `gorm:"type:text" json:"-"` // 英文事业
+	CareerZh        string        `gorm:"type:text" json:"-"` // 中文事业
+	CareerRu        string        `gorm:"type:text" json:"-"` // 俄文事业
+	// 3. 性格特点 (Personality)
+	PersonalityEn   string        `gorm:"type:text" json:"-"` // 英文性格
+	PersonalityZh   string        `gorm:"type:text" json:"-"` // 中文性格
+	PersonalityRu   string        `gorm:"type:text" json:"-"` // 俄文性格
+	// 4. 相遇时机 (MeetingTime)
+	MeetingTimeEn   string        `gorm:"type:text" json:"-"` // 英文相遇时间
+	MeetingTimeZh   string        `gorm:"type:text" json:"-"` // 中文相遇时间
+	MeetingTimeRu   string        `gorm:"type:text" json:"-"` // 俄文相遇时间
+	// 5. 距离预测 (Distance)
+	DistanceEn      string        `gorm:"type:text" json:"-"` // 英文距离
+	DistanceZh      string        `gorm:"type:text" json:"-"` // 中文距离
+	DistanceRu      string        `gorm:"type:text" json:"-"` // 俄文距离
+	// 6. 缘分优势 (Strength)
 	StrengthEn      string        `gorm:"type:text" json:"-"` // 英文优势
 	StrengthZh      string        `gorm:"type:text" json:"-"` // 中文优势
 	StrengthRu      string        `gorm:"type:text" json:"-"` // 俄文优势
+	// 7. 成长机遇 (Challenge)
 	WeaknessEn      string        `gorm:"type:text" json:"-"` // 英文挑战
 	WeaknessZh      string        `gorm:"type:text" json:"-"` // 中文挑战
 	WeaknessRu      string        `gorm:"type:text" json:"-"` // 俄文挑战
@@ -149,6 +168,66 @@ func (c *Character) GetWeakness(locale string) string {
 	return c.WeaknessEn
 }
 
+// GetCareer 根据语言获取事业运势
+func (c *Character) GetCareer(locale string) string {
+	switch locale {
+	case "zh":
+		if c.CareerZh != "" {
+			return c.CareerZh
+		}
+	case "ru":
+		if c.CareerRu != "" {
+			return c.CareerRu
+		}
+	}
+	return c.CareerEn
+}
+
+// GetPersonality 根据语言获取性格特点
+func (c *Character) GetPersonality(locale string) string {
+	switch locale {
+	case "zh":
+		if c.PersonalityZh != "" {
+			return c.PersonalityZh
+		}
+	case "ru":
+		if c.PersonalityRu != "" {
+			return c.PersonalityRu
+		}
+	}
+	return c.PersonalityEn
+}
+
+// GetMeetingTime 根据语言获取相遇时机
+func (c *Character) GetMeetingTime(locale string) string {
+	switch locale {
+	case "zh":
+		if c.MeetingTimeZh != "" {
+			return c.MeetingTimeZh
+		}
+	case "ru":
+		if c.MeetingTimeRu != "" {
+			return c.MeetingTimeRu
+		}
+	}
+	return c.MeetingTimeEn
+}
+
+// GetDistance 根据语言获取距离预测
+func (c *Character) GetDistance(locale string) string {
+	switch locale {
+	case "zh":
+		if c.DistanceZh != "" {
+			return c.DistanceZh
+		}
+	case "ru":
+		if c.DistanceRu != "" {
+			return c.DistanceRu
+		}
+	}
+	return c.DistanceEn
+}
+
 // normalizeImageURL 将图片URL规范化：
 // - 如果是完整URL（http/https开头），提取相对路径部分
 // - 如果是base64（data:开头），直接返回
@@ -209,7 +288,7 @@ func (c *Character) ToSafeResponse(locale string) map[string]interface{} {
 	// 规范化URL：将完整URL转换为相对路径，兼容旧数据
 	switch c.UnlockStatus {
 	case UnlockStatusFullUnlocked:
-		// 完全解锁：返回所有图片和描述（根据语言）
+		// 完全解锁：返回所有图片和报告（根据语言）
 		normalizedClear := normalizeImageURL(c.ClearImageURL)
 		normalizedFullBlur := normalizeImageURL(c.FullBlurImageURL)
 		normalizedHalfBlur := normalizeImageURL(c.HalfBlurImageURL)
@@ -217,23 +296,28 @@ func (c *Character) ToSafeResponse(locale string) map[string]interface{} {
 		result["full_blur_image_url"] = normalizedFullBlur
 		result["half_blur_image_url"] = normalizedHalfBlur
 		result["clear_image_url"] = normalizedClear
+		// 6项报告内容
 		result["description"] = c.GetDescription(locale)
+		result["career"] = c.GetCareer(locale)
+		result["personality"] = c.GetPersonality(locale)
+		result["meeting_time"] = c.GetMeetingTime(locale)
+		result["distance"] = c.GetDistance(locale)
 		result["strength"] = c.GetStrength(locale)
 		result["weakness"] = c.GetWeakness(locale)
 	case UnlockStatusHalfUnlocked:
-		// 半解锁：只返回模糊图，不返回清晰图和描述
+		// 半解锁：只返回模糊图，不返回清晰图和报告
 		normalizedHalfBlur := normalizeImageURL(c.HalfBlurImageURL)
 		normalizedFullBlur := normalizeImageURL(c.FullBlurImageURL)
 		result["image_url"] = normalizedHalfBlur
 		result["full_blur_image_url"] = normalizedFullBlur
 		result["half_blur_image_url"] = normalizedHalfBlur
-		// 不返回 clear_image_url 和 description
+		// 不返回 clear_image_url 和报告内容
 	default:
 		// 未解锁：只返回完全模糊图
 		normalizedFullBlur := normalizeImageURL(c.FullBlurImageURL)
 		result["image_url"] = normalizedFullBlur
 		result["full_blur_image_url"] = normalizedFullBlur
-		// 不返回 half_blur_image_url, clear_image_url 和 description
+		// 不返回 half_blur_image_url, clear_image_url 和报告内容
 	}
 
 	return result
