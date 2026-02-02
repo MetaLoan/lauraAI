@@ -143,6 +143,80 @@ X-Telegram-Init-Data: <initData>
 #### POST /api/characters/:id/generate-image
 生成角色图片（需要认证）
 
+### Mini Me
+
+#### POST /api/minime/generate
+上传自拍并生成 Mini Me 角色（需要认证）
+
+**请求体:** `multipart/form-data`
+- `file`: 图片文件（支持 JPG、PNG、WEBP、HEIC）
+
+**响应:**
+```json
+{
+  "character": { ... },
+  "image_url": "/uploads/xxx.jpg"
+}
+```
+
+### 解锁相关
+
+#### GET /api/share/:code
+获取分享链接信息（公开接口）
+
+#### POST /api/characters/:id/help-unlock
+好友帮助解锁（需要认证）
+
+#### POST /api/characters/:id/unlock
+付费解锁角色（需要认证）
+
+#### GET /api/characters/:id/unlock-price
+获取解锁价格（需要认证）
+
+## 调试端点
+
+> ⚠️ 这些端点仅用于开发和测试，需要提供正确的 `X-Debug-Key` 请求头。
+
+### POST /debug/fix-share-codes
+修复空 share_code 的记录
+
+**请求头:**
+```
+X-Debug-Key: lauraai-clear-2026
+```
+
+**响应:**
+```json
+{
+  "message": "Fixed",
+  "rows_affected": 5
+}
+```
+
+### POST /debug/clear-all-data
+清空所有数据（用户、角色、消息）
+
+**请求头:**
+```
+X-Debug-Key: lauraai-clear-2026
+```
+
+**示例:**
+```bash
+curl -X POST https://lauraai-backend.fly.dev/debug/clear-all-data \
+  -H "X-Debug-Key: lauraai-clear-2026"
+```
+
+**响应:**
+```json
+{
+  "message": "所有数据已清空",
+  "tables_cleared": ["messages", "characters", "users"]
+}
+```
+
+> 注意：此端点会删除所有用户数据，ID 序列会重置为 1。上传的图片文件需要单独清理。
+
 ## 开发
 
 ### 项目结构
