@@ -56,20 +56,16 @@ func (h *UnlockHandler) GetShareInfo(c *gin.Context) {
 		return
 	}
 
-	// 返回公开信息，根据解锁状态过滤图片URL
-	// 公开接口只返回完全模糊图，不返回半模糊和清晰图
+	// 返回公开信息
+	// 半模糊图也是模糊的，可以公开返回（用于助力成功后显示）
 	charInfo := gin.H{
 		"id":                  character.ID,
 		"title":               character.Title,
 		"type":                character.Type,
 		"full_blur_image_url": character.FullBlurImageURL,
+		"half_blur_image_url": character.HalfBlurImageURL,
 		"unlock_status":       character.UnlockStatus,
 		"share_code":          character.ShareCode,
-	}
-	
-	// 只有半解锁状态才返回半模糊图
-	if character.UnlockStatus >= model.UnlockStatusHalfUnlocked {
-		charInfo["half_blur_image_url"] = character.HalfBlurImageURL
 	}
 
 	response.Success(c, gin.H{
