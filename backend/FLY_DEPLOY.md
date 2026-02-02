@@ -29,7 +29,16 @@ fly launch --no-deploy
 - 不需要 PostgreSQL（使用外部数据库）
 - 不需要 Redis
 
-## 4. 设置环境变量（Secrets）
+## 4. 创建持久化存储卷（Volume）
+
+```bash
+# 创建 uploads 数据卷（用于存储生成的图片）
+fly volumes create uploads_data --size 10 --region sin
+```
+
+注意：`fly.toml` 中已配置将 volume 挂载到 `/root/uploads`。
+
+## 5. 设置环境变量（Secrets）
 
 ```bash
 # 设置 Telegram Bot Token
@@ -40,28 +49,31 @@ fly secrets set GEMINI_API_KEY="你的_gemini_api_key"
 
 # 设置 PostgreSQL 连接字符串（使用外部数据库如 Supabase、Neon 等）
 fly secrets set POSTGRES_DSN="host=xxx user=xxx password=xxx dbname=lauraai port=5432 sslmode=require"
+
+# 设置上传目录路径（必须与 fly.toml 中的 volume 挂载路径一致）
+fly secrets set UPLOADS_DIR="/root/uploads"
 ```
 
-## 5. 部署
+## 6. 部署
 
 ```bash
 fly deploy
 ```
 
-## 6. 查看日志
+## 7. 查看日志
 
 ```bash
 fly logs
 ```
 
-## 7. 获取应用 URL
+## 8. 获取应用 URL
 
 部署成功后，你的 API 地址是：
 ```
 https://lauraai-backend.fly.dev/api
 ```
 
-## 8. 更新前端配置
+## 9. 更新前端配置
 
 创建 `.env.production` 文件：
 ```bash
@@ -95,3 +107,5 @@ fly scale count 2
 1. **数据库**: Fly.io 的免费 PostgreSQL 有限制，建议使用 Supabase 或 Neon 的免费 PostgreSQL
 2. **区域**: 选择离用户最近的区域（亚洲用户建议 hkg 或 sin）
 3. **HTTPS**: Fly.io 自动提供 HTTPS 证书
+4. **持久化存储**: 必须创建 volume 并设置 `UPLOADS_DIR` 环境变量，否则生成的图片会在容器重启后丢失
+5. **Volume 区域**: Volume 必须与应用部署在同一区域（region）

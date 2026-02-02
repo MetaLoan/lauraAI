@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// 确保上传目录存在
-	if err := os.MkdirAll("./uploads", 0755); err != nil {
+	if err := os.MkdirAll(config.AppConfig.UploadsDir, 0755); err != nil {
 		log.Fatalf("Failed to create upload directory: %v", err)
 	}
 
@@ -50,7 +50,7 @@ func main() {
 	r := gin.Default()
 
 	// 静态文件服务
-	r.Static("/uploads", "./uploads")
+	r.Static("/uploads", config.AppConfig.UploadsDir)
 
 	// CORS 中间件
 	r.Use(func(c *gin.Context) {
@@ -72,27 +72,19 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// 临时清理接口（仅用于调试，之后删除）
-	r.DELETE("/debug/clear-all-data", func(c *gin.Context) {
-		// 安全检查：需要特定的header
+	// 临时：修复空share_code的记录
+	r.POST("/debug/fix-share-codes", func(c *gin.Context) {
 		if c.GetHeader("X-Debug-Key") != "lauraai-clear-2026" {
 			c.JSON(403, gin.H{"error": "Forbidden"})
 			return
 		}
-		// 清理所有数据
-		if err := repository.DB.Exec("DELETE FROM messages").Error; err != nil {
-			c.JSON(500, gin.H{"error": "Failed to delete messages: " + err.Error()})
+		// 为所有空share_code的记录生成新的share_code
+		result := repository.DB.Exec("UPDATE characters SET share_code = CONCAT('SC', FLOOR(RANDOM() * 900000 + 100000)::TEXT, FLOOR(RANDOM() * 1000)::TEXT) WHERE share_code = '' OR share_code IS NULL")
+		if result.Error != nil {
+			c.JSON(500, gin.H{"error": result.Error.Error()})
 			return
 		}
-		if err := repository.DB.Exec("DELETE FROM characters").Error; err != nil {
-			c.JSON(500, gin.H{"error": "Failed to delete characters: " + err.Error()})
-			return
-		}
-		if err := repository.DB.Exec("DELETE FROM users").Error; err != nil {
-			c.JSON(500, gin.H{"error": "Failed to delete users: " + err.Error()})
-			return
-		}
-		c.JSON(200, gin.H{"message": "All data cleared"})
+		c.JSON(200, gin.H{"message": "Fixed", "rows_affected": result.RowsAffected})
 	})
 
 	// 公开路由

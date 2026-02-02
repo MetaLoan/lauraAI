@@ -66,29 +66,31 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 		return
 	}
 
-	// 3. 调用 Imagen API 生成 Mini Me
-	imageURL, err := h.imagenService.GenerateMiniMeImage(ctx, description)
+	// 3. 删除之前的 mini_me 角色（每个用户只能有一个）
+	if err := h.characterRepo.DeleteByUserIDAndType(user.ID, model.CharacterTypeMiniMe); err != nil {
+		// 忽略删除错误，继续创建
+	}
+
+	// 4. 创建 Character 记录（先创建，让 GenerateMiniMeImage 填充图片字段）
+	// Mini Me 和其他角色一样，需要通过好友助力或付费解锁
+	character := &model.Character{
+		UserID:      user.ID,
+		Type:        model.CharacterTypeMiniMe,
+		Title:       "Mini Me",
+		Description: fmt.Sprintf("Generated from selfie analysis: %s", description),
+		Gender:      "Unknown", // 可以尝试从描述中提取，或者让用户确认
+		Ethnicity:   "Unknown",
+	}
+
+	// 5. 调用 Imagen API 生成 Mini Me（会设置 ClearImageURL, FullBlurImageURL, HalfBlurImageURL, ShareCode, UnlockStatus）
+	_, err = h.imagenService.GenerateMiniMeImage(ctx, description, character)
 	if err != nil {
 		response.Error(c, 500, "Failed to generate Mini Me: "+err.Error())
 		return
 	}
 
-	// 4. 删除之前的 mini_me 角色（每个用户只能有一个）
-	if err := h.characterRepo.DeleteByUserIDAndType(user.ID, model.CharacterTypeMiniMe); err != nil {
-		// 忽略删除错误，继续创建
-	}
-
-	// 5. 创建 Character 记录
-	character := &model.Character{
-		UserID:      user.ID,
-		Type:        model.CharacterTypeMiniMe,
-		Title:       "Mini Me",
-		ImageURL:    imageURL,
-		Description: fmt.Sprintf("Generated from selfie analysis: %s", description),
-		Gender:      "Unknown", // 可以尝试从描述中提取，或者让用户确认
-		Ethnicity:   "Unknown",
-		ShareCode:   repository.GenerateShareCode(), // 生成分享码，避免唯一约束冲突
-	}
+	// 设置 ImageURL 为当前应显示的图片（根据解锁状态，初始为模糊图）
+	character.ImageURL = character.GetDisplayImageURL()
 
 	if err := h.characterRepo.Create(character); err != nil {
 		response.Error(c, 500, "Failed to save character: "+err.Error())
@@ -97,6 +99,6 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 
 	response.Success(c, gin.H{
 		"character": character.ToSafeResponse(),
-		"image_url": imageURL,
+		"image_url": character.GetDisplayImageURL(),
 	})
 }

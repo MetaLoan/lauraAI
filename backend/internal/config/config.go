@@ -14,6 +14,7 @@ type Config struct {
 	PostgresDSN      string
 	DevMode          bool
 	BaseURL          string
+	UploadsDir       string
 }
 
 var AppConfig *Config
@@ -35,6 +36,7 @@ func LoadConfig() {
 		PostgresDSN:      dbDSN,
 		DevMode:          getEnv("DEV_MODE", "false") == "true",
 		BaseURL:          getEnv("BASE_URL", "https://lauraai-backend.fly.dev"),
+		UploadsDir:       getEnv("UPLOADS_DIR", "./uploads"),
 	}
 
 	if AppConfig.TelegramBotToken == "" {

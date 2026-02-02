@@ -4,7 +4,6 @@ import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Camera, ImageIcon, Loader2 } from 'lucide-react'
 import { apiClient } from '@/lib/api'
-import { PaymentDrawer } from '@/components/payment-drawer'
 import imageCompression from 'browser-image-compression'
 
 interface MiniMeUploadProps {
@@ -16,9 +15,6 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
-  const [pendingFile, setPendingFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,39 +63,9 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
       console.log('Original size:', file.size / 1024 / 1024, 'MB')
       console.log('Processed size:', compressedFile.size / 1024 / 1024, 'MB')
       
-      // 3. 生成预览图并保存压缩后的文件，然后弹出支付弹窗
-      const preview = URL.createObjectURL(compressedFile)
-      setPreviewUrl(preview)
-      setPendingFile(compressedFile)
-      setIsUploading(false)
-      setUploadStatus(null)
-      
-      // 弹出支付弹窗
-      setIsPaymentOpen(true)
-    } catch (err) {
-      console.error('Image processing failed:', err)
-      setError('Please try again')
-      setIsUploading(false)
-      setUploadStatus(null)
-    }
-  }
-
-  // 支付成功后，提交给 AI 生成
-  const handlePaymentSuccess = async () => {
-    if (!pendingFile) return
-    
-    setIsPaymentOpen(false)
-    setIsUploading(true)
-    setUploadStatus('Analyzing your features...')
-    
-    try {
-      const result = await apiClient.generateMiniMe(pendingFile)
-      // 清理预览 URL
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl)
-      }
-      setPendingFile(null)
-      setPreviewUrl(null)
+      // 3. 直接上传并生成 Mini Me（无需预付费，和其他角色一样后置付费解锁）
+      setUploadStatus('Analyzing your features...')
+      const result = await apiClient.generateMiniMe(compressedFile)
       onNext(result.character)
     } catch (err) {
       console.error('Mini Me generation failed:', err)
@@ -108,17 +74,6 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
       setIsUploading(false)
       setUploadStatus(null)
     }
-  }
-
-  // 关闭支付弹窗时清理状态
-  const handlePaymentClose = () => {
-    setIsPaymentOpen(false)
-    // 清理预览 URL
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl)
-    }
-    setPendingFile(null)
-    setPreviewUrl(null)
   }
 
   const handleGalleryClick = () => {
@@ -208,16 +163,6 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
 
       {/* Bottom spacer for fixed buttons */}
       <div className="h-40 flex-shrink-0" />
-
-      {/* Payment Drawer */}
-      <PaymentDrawer
-        isOpen={isPaymentOpen}
-        onClose={handlePaymentClose}
-        characterName="Mini Me"
-        characterType="Your AI Reflection"
-        characterImage={previewUrl || '/avatars/placeholders/mini_me.png'}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
     </div>
   )
 }

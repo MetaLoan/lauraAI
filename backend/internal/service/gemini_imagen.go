@@ -46,15 +46,23 @@ func NewGeminiImagenService() (*GeminiImagenService, error) {
 	return &GeminiImagenService{client: client}, nil
 }
 
-func (s *GeminiImagenService) GenerateMiniMeImage(ctx context.Context, description string) (string, error) {
+// GenerateMiniMeImage 生成 Mini Me 图片（带模糊版本，用于解锁流程）
+func (s *GeminiImagenService) GenerateMiniMeImage(ctx context.Context, description string, character *model.Character) (string, error) {
 	if s.client == nil {
 		log.Println("开发模式: 返回模拟 Mini Me 图片")
-		return "/avatars/placeholders/mini_me.png", nil
+		mockURL := "/avatars/placeholders/mini_me.png"
+		character.ClearImageURL = mockURL
+		character.FullBlurImageURL = mockURL
+		character.HalfBlurImageURL = mockURL
+		character.ShareCode = repository.GenerateShareCode()
+		character.UnlockStatus = model.UnlockStatusLocked
+		return mockURL, nil
 	}
 
 	prompt := fmt.Sprintf("A cute 'Mini-Me' 3D chibi-style character avatar based on these features: %s. The style should be adorable low-age mini style (Chibi), with a large head and small body, big expressive soulful eyes, and simplified but high-quality 3D textures. Modern 3D animation aesthetic (like a high-end toy or a stylized game character). Soft cinematic studio lighting, vibrant colors, solid neutral background. 8k resolution, masterpiece, extremely cute, clean lines, sharp focus.", description)
 
-	return s.doGenerateImageWithPrompt(ctx, prompt)
+	// 使用与其他角色相同的流程：生成清晰图+模糊版本
+	return s.doGenerateImageWithBlurVersions(ctx, prompt, character)
 }
 
 func (s *GeminiImagenService) GenerateImage(ctx context.Context, character *model.Character) (string, error) {
@@ -178,7 +186,7 @@ func generateSecureFilename(ext string) string {
 // saveImage 保存图片到本地 uploads 目录并返回完整 URL
 func (s *GeminiImagenService) saveImage(img image.Image) (string, error) {
 	filename := generateSecureFilename("jpg")
-	filepath := filepath.Join("uploads", filename)
+	filepath := filepath.Join(config.AppConfig.UploadsDir, filename)
 
 	file, err := os.Create(filepath)
 	if err != nil {
@@ -200,7 +208,7 @@ func (s *GeminiImagenService) saveImage(img image.Image) (string, error) {
 // saveImageBytes 保存图片字节到本地 uploads 目录并返回完整 URL
 func (s *GeminiImagenService) saveImageBytes(data []byte, ext string) (string, error) {
 	filename := generateSecureFilename(ext)
-	filepath := filepath.Join("uploads", filename)
+	filepath := filepath.Join(config.AppConfig.UploadsDir, filename)
 
 	if err := os.WriteFile(filepath, data, 0644); err != nil {
 		return "", err
