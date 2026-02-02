@@ -18,6 +18,7 @@ interface SoulmateDetailPageProps {
   character?: {
     id?: string | number
     title?: string
+    type?: string
     image?: string
     image_url?: string
     full_blur_image_url?: string
@@ -55,6 +56,7 @@ export default function SoulmateDetailPage({
 
   const title = character?.title || "Soulmate"
   const targetScore = character?.compatibility || 92
+  const isMiniMe = character?.type === 'mini_me'
 
   // 根据解锁状态选择显示的图片
   const getDisplayImage = () => {
@@ -255,47 +257,51 @@ export default function SoulmateDetailPage({
           )}
         </div>
 
-        {/* Divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        {/* Divider - 只在非 Mini Me 时显示 */}
+        {!isMiniMe && (
+          <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        )}
 
-        {/* Compatibility Score */}
-        <div className="mb-8">
-          <h3 className="text-center text-title-md font-bold mb-6">Compatibility Score</h3>
+        {/* Compatibility Score - 只在非 Mini Me 时显示 */}
+        {!isMiniMe && (
+          <div className="mb-8">
+            <h3 className="text-center text-title-md font-bold mb-6">Compatibility Score</h3>
 
-          {/* Progress Bar */}
-          <div className="mb-4 h-2 rounded-full bg-white/10 overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-amber-400 to-amber-600"
-              style={{ width: `${progressWidth}%` }}
-            />
-          </div>
+            {/* Progress Bar */}
+            <div className="mb-4 h-2 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-amber-400 to-amber-600"
+                style={{ width: `${progressWidth}%` }}
+              />
+            </div>
 
-          <p className="text-center text-5xl font-bold mb-6">{score}%</p>
+            <p className="text-center text-5xl font-bold mb-6">{score}%</p>
 
-          {/* Personality Report */}
-          <div className="relative">
-            {isDescriptionVisible ? (
-              <p className="text-center text-body-sm text-gray-300 leading-relaxed mb-8">
-                {description}
-              </p>
-            ) : (
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <Lock className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-400 font-medium">Personality Report Locked</span>
-                </div>
-                <p className="text-center text-body-sm text-gray-500">
-                  {unlockStatus === UnlockStatus.HALF_UNLOCKED 
-                    ? `Pay ${priceStars} Stars or ${priceTON} TON to unlock the full report`
-                    : 'Share with friends or pay to unlock the personality report'}
+            {/* Personality Report */}
+            <div className="relative">
+              {isDescriptionVisible ? (
+                <p className="text-center text-body-sm text-gray-300 leading-relaxed mb-8">
+                  {description}
                 </p>
-              </div>
-            )}
+              ) : (
+                <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <Lock className="w-5 h-5 text-gray-400" />
+                    <span className="text-gray-400 font-medium">Personality Report Locked</span>
+                  </div>
+                  <p className="text-center text-body-sm text-gray-500">
+                    {unlockStatus === UnlockStatus.HALF_UNLOCKED 
+                      ? `Pay ${priceStars} Stars or ${priceTON} TON to unlock the full report`
+                      : 'Share with friends or pay to unlock the personality report'}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Expandable Sections - Only visible when unlocked */}
-        {isDescriptionVisible && (
+        {/* Expandable Sections - Only visible when unlocked and not Mini Me */}
+        {isDescriptionVisible && !isMiniMe && (
           <div className="space-y-3">
             {/* Strength */}
             <button
@@ -371,7 +377,7 @@ export default function SoulmateDetailPage({
               ) : (
                 <>
                   <Unlock className="w-5 h-5" />
-                  Unlock Photo and Report
+                  {isMiniMe ? 'Unlock' : 'Unlock Photo and Report'}
                 </>
               )}
             </Button>
