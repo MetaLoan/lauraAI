@@ -141,7 +141,7 @@ func main() {
 		api.POST("/auth/telegram", authHandler.TelegramAuth)
 
 		// 分享链接公开接口（无需认证）
-		unlockHandler := handler.NewUnlockHandler()
+		unlockHandler := handler.NewUnlockHandler(reportService)
 		api.GET("/share/:code", unlockHandler.GetShareInfo)
 	}
 
