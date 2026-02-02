@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Calendar, MapPin, Clock, ChevronLeft, Trash2, Users, Copy, Share2, CheckCircle2 } from 'lucide-react'
 import { apiClient } from '@/lib/api'
+import { useI18n } from '@/components/i18n-provider'
 
 interface ProfileProps {
   name?: string
@@ -46,6 +47,7 @@ export default function Profile({
   onBack,
   onDeleteAccount,
 }: ProfileProps) {
+  const { t } = useI18n()
   const [name, setName] = useState(propName || '')
   const [birthDate, setBirthDate] = useState(propBirthDate || { month: '', day: '', year: '' })
   const [birthPlace, setBirthPlace] = useState(propBirthPlace || '')
@@ -59,7 +61,7 @@ export default function Profile({
 
   // 处理删除账户
   const handleDeleteAccount = async () => {
-    if (!window.confirm('Are you sure you want to delete your account? This will clear all your data and characters.')) {
+    if (!window.confirm(t('profile.deleteConfirm'))) {
       return
     }
 
@@ -71,7 +73,7 @@ export default function Profile({
       }
     } catch (error) {
       console.error('Failed to delete account:', error)
-      alert('Failed to delete account. Please try again.')
+      alert(t('profile.deleteFailed'))
     } finally {
       setIsDeleting(false)
     }
@@ -151,7 +153,7 @@ export default function Profile({
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      alert('Failed to copy link')
+      alert(t('profile.copyFailed'))
     }
   }
 
@@ -169,7 +171,7 @@ export default function Profile({
   // 格式化日期显示
   const formatDate = () => {
     if (!birthDate.month || !birthDate.day || !birthDate.year) {
-      return 'Not set'
+      return t('profile.notSet')
     }
     // 月份已经是名称格式（January, February 等）
     return `${birthDate.month} ${birthDate.day}, ${birthDate.year}`
@@ -178,7 +180,7 @@ export default function Profile({
   // 格式化时间显示
   const formatTime = () => {
     if (!birthTime.hour || !birthTime.minute) {
-      return 'Not set'
+      return t('profile.notSet')
     }
     return `${birthTime.hour}:${birthTime.minute}`
   }
@@ -187,7 +189,7 @@ export default function Profile({
     <div className="h-full bg-black text-white pb-8 pt-tg-top overflow-y-auto">
       {/* Header */}
       <div className="px-6 py-6 border-b border-white/10">
-        <h1 className="text-title-md font-bold mb-2">Profile</h1>
+        <h1 className="text-title-md font-bold mb-2">{t('profile.title')}</h1>
         <h2 className="text-title-xl font-bold">{name || 'User'}</h2>
       </div>
 
@@ -195,7 +197,7 @@ export default function Profile({
       <div className="px-6 pt-6 space-y-6">
         {/* Birth Info Card */}
         <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-          <h3 className="text-title-md font-bold mb-6">Birth Info</h3>
+          <h3 className="text-title-md font-bold mb-6">{t('profile.birthInfo')}</h3>
           
           <div className="space-y-6">
             {/* Birth Date */}
@@ -204,7 +206,7 @@ export default function Profile({
                 <div className="p-2 rounded-lg bg-white/10">
                   <Calendar className="w-5 h-5" />
                 </div>
-                <span className="text-white">Birth Date</span>
+                <span className="text-white">{t('profile.birthDate')}</span>
               </div>
               <span className="text-white font-medium">{formatDate()}</span>
             </div>
@@ -218,9 +220,9 @@ export default function Profile({
                 <div className="p-2 rounded-lg bg-white/10">
                   <MapPin className="w-5 h-5" />
                 </div>
-                <span className="text-white">Birth Place</span>
+                <span className="text-white">{t('profile.birthPlace')}</span>
               </div>
-              <span className="text-white font-medium">{birthPlace || 'Not set'}</span>
+              <span className="text-white font-medium">{birthPlace || t('profile.notSet')}</span>
             </div>
 
             {/* Divider */}
@@ -232,7 +234,7 @@ export default function Profile({
                 <div className="p-2 rounded-lg bg-white/10">
                   <Clock className="w-5 h-5" />
                 </div>
-                <span className="text-white">Birth Time</span>
+                <span className="text-white">{t('profile.birthTime')}</span>
               </div>
               <span className="text-white font-medium">{formatTime()}</span>
             </div>
@@ -244,29 +246,29 @@ export default function Profile({
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-title-md font-bold flex items-center gap-2">
               <Users className="w-5 h-5" />
-              My Friends
+              {t('profile.myFriends')}
             </h3>
-            <span className="text-sm text-gray-400">{referrals.length} invited</span>
+            <span className="text-sm text-gray-400">{referrals.length} {t('profile.invited')}</span>
           </div>
 
           {/* Invite Code Section */}
           {inviteCode && (
             <div className="bg-white/5 rounded-xl p-4 mb-4">
-              <p className="text-xs text-gray-400 mb-2">Your Invite Code</p>
+              <p className="text-xs text-gray-400 mb-2">{t('profile.yourInviteCode')}</p>
               <div className="flex items-center justify-between">
                 <span className="text-lg font-mono font-bold tracking-wider">{inviteCode}</span>
                 <div className="flex gap-2">
                   <button
                     onClick={handleCopyInviteLink}
                     className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                    title="Copy link"
+                    title={t('profile.copyLink')}
                   >
                     {copied ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
                   </button>
                   <button
                     onClick={handleShareInviteLink}
                     className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                    title="Share"
+                    title={t('profile.share')}
                   >
                     <Share2 className="w-5 h-5" />
                   </button>
@@ -277,7 +279,7 @@ export default function Profile({
 
           {/* Referrals List */}
           {referralsLoading ? (
-            <div className="py-6 text-center text-gray-400">Loading...</div>
+            <div className="py-6 text-center text-gray-400">{t('profile.loading')}</div>
           ) : referrals.length > 0 ? (
             <div className="space-y-3">
               {referrals.map((referral) => (
@@ -292,7 +294,7 @@ export default function Profile({
                   <div className="flex-1">
                     <p className="font-medium">{referral.name || 'Anonymous'}</p>
                     <p className="text-xs text-gray-400">
-                      Joined {new Date(referral.created_at).toLocaleDateString()}
+                      {t('profile.joined')} {new Date(referral.created_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -300,13 +302,13 @@ export default function Profile({
             </div>
           ) : (
             <div className="py-6 text-center">
-              <p className="text-gray-400 mb-3">No friends invited yet</p>
+              <p className="text-gray-400 mb-3">{t('profile.noFriendsYet')}</p>
               <button
                 onClick={handleShareInviteLink}
                 className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-sm font-medium flex items-center gap-2 mx-auto"
               >
                 <Share2 className="w-4 h-4" />
-                Invite Friends
+                {t('profile.inviteFriends')}
               </button>
             </div>
           )}
@@ -320,10 +322,10 @@ export default function Profile({
             className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all font-bold disabled:opacity-50"
           >
             <Trash2 className="w-5 h-5" />
-            {isDeleting ? 'Deleting...' : 'Delete Account'}
+            {isDeleting ? t('profile.deleting') : t('profile.deleteAccount')}
           </button>
           <p className="text-center text-caption text-white/40 mt-3 px-4">
-            Warning: This action is permanent and will delete all your information, characters, and chat history.
+            {t('profile.deleteWarning')}
           </p>
         </div>
       </div>
