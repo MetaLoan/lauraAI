@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { apiClient } from '@/lib/api'
+import { useTranslations } from '@/components/i18n-provider'
+import { LanguageSwitcherCompact } from '@/components/language-switcher'
 
 export default function Welcome({ 
   onNext,
@@ -14,6 +16,8 @@ export default function Welcome({
 }) {
   const [isChecking, setIsChecking] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useTranslations('welcome')
+  const { t: tCommon } = useTranslations('common')
 
   const handleContinue = async () => {
     setIsChecking(true)
@@ -50,7 +54,7 @@ export default function Welcome({
       // #endregion
 
       // If it's a network error, stop and show error as requested
-      setError('Network connection failed. Please try again.')
+      setError(t('networkError'))
     } finally {
       setIsChecking(false)
     }
@@ -58,6 +62,11 @@ export default function Welcome({
 
   return (
     <div className="h-full bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageSwitcherCompact />
+      </div>
+      
       {/* Decorative striped background */}
       <div className="absolute inset-0 opacity-10">
         <svg className="w-full h-full" viewBox="0 0 400 800" preserveAspectRatio="none">
@@ -72,11 +81,11 @@ export default function Welcome({
 
       <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-6 flex-1 max-w-sm">
         <div className="space-y-3">
-          <h1 className="text-title-xl text-balance">Welcome to</h1>
-          <h2 className="text-title-xl text-balance">Laura AI</h2>
+          <h1 className="text-title-xl text-balance">{t('title')}</h1>
+          <h2 className="text-title-xl text-balance">{t('subtitle')}</h2>
         </div>
         <p className="text-body-lg text-gray-300 text-balance px-4">
-          Draw, Meet & Chat with Your AI Matches
+          {t('description')}
         </p>
       </div>
 
@@ -95,14 +104,14 @@ export default function Welcome({
           {isChecking ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Checking...
+              {tCommon('checking')}
             </>
           ) : (
-            'Continue'
+            tCommon('continue')
           )}
         </Button>
         <p className="text-center text-gray-500 text-caption mt-4">
-          By clicking 'Continue,' you agree to our <span className="text-white font-semibold">Terms & Conditions</span> and <span className="text-white font-semibold">Privacy Policy.</span>
+          {t('terms')}
         </p>
       </div>
     </div>

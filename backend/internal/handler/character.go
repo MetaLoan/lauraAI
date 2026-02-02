@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"strconv"
 
+	"lauraai-backend/internal/i18n"
 	"lauraai-backend/internal/middleware"
 	"lauraai-backend/internal/model"
 	"lauraai-backend/internal/repository"
@@ -51,18 +52,11 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 	signs := []string{"Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"}
 	astroSign := signs[rand.Intn(len(signs))]
 
-	// 根据性别和民族生成描述
-	genderPronoun := "They"
-	if req.Gender == "Male" {
-		genderPronoun = "He"
-	} else if req.Gender == "Female" {
-		genderPronoun = "She"
-	}
+	// 获取语言
+	locale := middleware.GetLocaleFromContext(c)
 
-	description := fmt.Sprintf(
-		"A harmonious partner with %s energy and %s heritage. %s values balance and partnership (%s Sun), brings emotional depth and nurturing, and offers empathy with intuitive sensitivity. %s helps soften boundaries, encourages diplomatic communication, and creates a safe emotional haven where your intellectual curiosity and humanitarian ideals can flourish.",
-		astroSign, req.Ethnicity, genderPronoun, astroSign, genderPronoun,
-	)
+	// 根据性别和民族生成描述
+	description := generateCharacterDescription(astroSign, req.Gender, req.Ethnicity, locale)
 
 	character := &model.Character{
 		UserID:        user.ID,
@@ -179,4 +173,43 @@ func (h *CharacterHandler) CleanupEmpty(c *gin.Context) {
 	}
 
 	response.Success(c, gin.H{"deleted": count, "message": fmt.Sprintf("Cleaned up %d unused characters", count)})
+}
+
+// generateCharacterDescription 根据语言生成角色描述
+func generateCharacterDescription(astroSign, gender, ethnicity string, locale i18n.Locale) string {
+	switch locale {
+	case i18n.LocaleZh:
+		genderPronoun := "Ta"
+		if gender == "Male" {
+			genderPronoun = "他"
+		} else if gender == "Female" {
+			genderPronoun = "她"
+		}
+		return fmt.Sprintf(
+			"一位拥有%s能量和%s血统的和谐伴侣。%s重视平衡与合作（%s日），带来情感的深度和关怀，并以敏锐的直觉提供共情。%s帮助软化界限，鼓励外交式沟通，并创造一个安全的情感港湾，让你的智慧好奇心和人文理想得以蓬勃发展。",
+			astroSign, ethnicity, genderPronoun, astroSign, genderPronoun,
+		)
+	case i18n.LocaleRu:
+		genderPronoun := "Он/Она"
+		if gender == "Male" {
+			genderPronoun = "Он"
+		} else if gender == "Female" {
+			genderPronoun = "Она"
+		}
+		return fmt.Sprintf(
+			"Гармоничный партнёр с энергией %s и наследием %s. %s ценит баланс и партнёрство (%s Солнце), приносит эмоциональную глубину и заботу, и предлагает эмпатию с интуитивной чувствительностью. %s помогает смягчать границы, поощряет дипломатическое общение и создаёт безопасную эмоциональную гавань, где ваша интеллектуальная любознательность и гуманитарные идеалы могут процветать.",
+			astroSign, ethnicity, genderPronoun, astroSign, genderPronoun,
+		)
+	default:
+		genderPronoun := "They"
+		if gender == "Male" {
+			genderPronoun = "He"
+		} else if gender == "Female" {
+			genderPronoun = "She"
+		}
+		return fmt.Sprintf(
+			"A harmonious partner with %s energy and %s heritage. %s values balance and partnership (%s Sun), brings emotional depth and nurturing, and offers empathy with intuitive sensitivity. %s helps soften boundaries, encourages diplomatic communication, and creates a safe emotional haven where your intellectual curiosity and humanitarian ideals can flourish.",
+			astroSign, ethnicity, genderPronoun, astroSign, genderPronoun,
+		)
+	}
 }

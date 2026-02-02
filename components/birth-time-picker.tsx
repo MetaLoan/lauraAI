@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import Picker from 'react-mobile-picker'
 import { Button } from '@/components/ui/button'
+import { useTranslations } from '@/components/i18n-provider'
 
 const hours = Array.from({ length: 24 }, (_, i) => (i < 10 ? '0' + i : i.toString()))
 const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? '0' + i : i.toString()))
@@ -23,6 +24,9 @@ export default function BirthTimePicker({
   onNext: () => void
   onBack: () => void
 }) {
+  const { t } = useTranslations('birthTime')
+  const { t: tCommon } = useTranslations('common')
+
   const [pickerValue, setPickerValue] = useState({
     hour: value.hour || '12',
     minute: value.minute || '00',
@@ -34,7 +38,7 @@ export default function BirthTimePicker({
     <div className="h-full bg-black flex flex-col items-center p-6">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-6">
         <h1 className="text-title-lg text-balance text-center px-2 flex-shrink-0">
-          Could you share the exact time you were born?
+          {t('title')}
         </h1>
 
         <div className="text-5xl sm:text-6xl font-bold">{displayTime}</div>
@@ -81,15 +85,14 @@ export default function BirthTimePicker({
           }}
           className="btn-primary"
         >
-          Continue
+          {tCommon('continue')}
         </Button>
         <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-sm">
-          Skip
+          {t('unknown')}
         </button>
 
         <p className="text-gray-500 text-xs text-center px-2">
-          Your birth time is essential for accurate calculations and personalized guidance. Your privacy is our priority, and this
-          information will never be shared with third parties.
+          {t('hint')}
         </p>
       </div>
     </div>

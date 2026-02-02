@@ -3,16 +3,20 @@
 import React, { useState } from "react"
 import Picker from 'react-mobile-picker'
 import { Button } from '@/components/ui/button'
+import { useTranslations, useI18n } from '@/components/i18n-provider'
 
-const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+// 英文月份（用于内部存储）
+const monthsEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+// 多语言月份映射
+const monthsLocalized: Record<string, string[]> = {
+  en: monthsEn,
+  zh: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+  ru: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+}
+
 const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString())
 const years = Array.from({ length: 100 }, (_, i) => (new Date().getFullYear() - i).toString())
-
-const selections: Record<string, string[]> = {
-  month: months,
-  day: days,
-  year: years,
-}
 
 export default function BirthDatePicker({
   value,
@@ -25,20 +29,52 @@ export default function BirthDatePicker({
   onNext: () => void
   onBack: () => void
 }) {
+  const { t } = useTranslations('birthDate')
+  const { t: tCommon } = useTranslations('common')
+  const { locale } = useI18n()
+
+  const months = monthsLocalized[locale] || monthsEn
+  
+  // 获取初始月份索引
+  const getInitialMonthIndex = () => {
+    if (!value.month) return 0
+    const enIndex = monthsEn.indexOf(value.month)
+    return enIndex >= 0 ? enIndex : 0
+  }
+
   const [pickerValue, setPickerValue] = useState({
-    month: value.month || 'January',
+    month: months[getInitialMonthIndex()],
     day: value.day || '1',
     year: value.year || '2000',
   })
 
+  const selections: Record<string, string[]> = {
+    month: months,
+    day: days,
+    year: years,
+  }
+
   const displayDate = `${pickerValue.month}, ${pickerValue.year}`
   const displayDay = pickerValue.day
+
+  const handleContinue = () => {
+    // 将本地化月份转换回英文存储
+    const localizedIndex = months.indexOf(pickerValue.month)
+    const englishMonth = monthsEn[localizedIndex] || pickerValue.month
+    
+    onChange({
+      month: englishMonth,
+      day: pickerValue.day,
+      year: pickerValue.year,
+    })
+    onNext()
+  }
 
   return (
     <div className="h-full bg-black flex flex-col items-center p-6">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-6">
         <h1 className="text-title-lg text-balance text-center px-2 flex-shrink-0">
-          To align with the universe, could you share your birth date?
+          {t('title')}
         </h1>
 
         <div className="text-center">
@@ -82,16 +118,13 @@ export default function BirthDatePicker({
 
       <div className="w-full max-w-md space-y-3 flex-shrink-0">
         <Button
-          onClick={() => {
-            onChange(pickerValue)
-            onNext()
-          }}
+          onClick={handleContinue}
           className="btn-primary"
         >
-          Continue
+          {tCommon('continue')}
         </Button>
         <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-body-sm">
-          Skip
+          {tCommon('skip') || 'Skip'}
         </button>
       </div>
     </div>

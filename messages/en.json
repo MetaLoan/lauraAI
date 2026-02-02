@@ -1,0 +1,167 @@
+{
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close",
+    "checking": "Checking..."
+  },
+  "welcome": {
+    "title": "Welcome to",
+    "subtitle": "Laura AI",
+    "description": "Draw, Meet & Chat with Your AI Matches",
+    "terms": "By clicking 'Continue,' you agree to our Terms & Conditions and Privacy Policy.",
+    "termsLink": "Terms & Conditions",
+    "privacyLink": "Privacy Policy",
+    "networkError": "Network connection failed. Please try again."
+  },
+  "dashboard": {
+    "trending": "Trending",
+    "family": "Family",
+    "friends": "Friends",
+    "companions": "Companions",
+    "createNew": "Create New"
+  },
+  "characters": {
+    "soulmate": "Soulmate",
+    "miniMe": "Mini Me",
+    "futureHusband": "Future Husband",
+    "futureBaby": "Future Baby",
+    "futureWife": "Future Wife",
+    "boyfriend": "Boyfriend",
+    "bestFriend": "Best Friend",
+    "girlfriend": "Girlfriend",
+    "mysteriousStranger": "Mysterious Stranger",
+    "wiseMentor": "Wise Mentor",
+    "dreamGuide": "Dream Guide"
+  },
+  "gender": {
+    "title": "What is your gender?",
+    "soulmateTitle": "What gender would you like your {character} to be?",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other"
+  },
+  "name": {
+    "title": "What's your name?",
+    "placeholder": "Enter your name",
+    "hint": "This is how your AI matches will address you"
+  },
+  "birthDate": {
+    "title": "When were you born?",
+    "month": "Month",
+    "day": "Day",
+    "year": "Year"
+  },
+  "birthTime": {
+    "title": "What time were you born?",
+    "hour": "Hour",
+    "minute": "Minute",
+    "unknown": "I don't know",
+    "hint": "This helps us calculate your rising sign"
+  },
+  "birthPlace": {
+    "title": "Where were you born?",
+    "placeholder": "Enter city or country",
+    "hint": "This helps us calculate your birth chart"
+  },
+  "ethnicity": {
+    "title": "What is your ethnicity?",
+    "soulmateTitle": "What ethnicity would you like your {character} to be?",
+    "blackAfrican": "Black / African",
+    "middleEastern": "Middle Eastern",
+    "eastAsian": "East Asian",
+    "southAsian": "South Asian",
+    "southeastAsian": "Southeast Asian",
+    "white": "White",
+    "hispanicLatino": "Hispanic / Latino",
+    "indigenous": "Indigenous",
+    "mixed": "Mixed",
+    "preferNotToSay": "Prefer not to say"
+  },
+  "loading": {
+    "analyzing": "Analyzing your cosmic profile...",
+    "drawing": "Drawing your {character}...",
+    "generating": "Generating your match...",
+    "pleaseWait": "Please wait a moment"
+  },
+  "results": {
+    "title": "Your Cosmic Profile",
+    "compatibility": "Compatibility",
+    "astroSign": "Zodiac Sign",
+    "meetSoulmate": "Meet Your Soulmate",
+    "viewDetails": "View Details"
+  },
+  "detail": {
+    "startChat": "Start Chat",
+    "askFriendHelp": "Ask Friend to Help",
+    "friendHelped": "Friend helped! 50% unlocked",
+    "unlockFull": "Unlock Full Image",
+    "share": "Share",
+    "blurMessage": "Invite a friend to help unlock a clearer view!",
+    "description": "Description"
+  },
+  "chat": {
+    "send": "Send",
+    "typeMessage": "Type a message...",
+    "loading": "Loading messages...",
+    "sending": "Sending..."
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "language": "Language",
+    "deleteAccount": "Delete Account",
+    "deleteConfirm": "Are you sure you want to delete your account? This action cannot be undone.",
+    "version": "Version"
+  },
+  "history": {
+    "title": "History",
+    "noHistory": "No history yet",
+    "viewAll": "View All"
+  },
+  "miniMe": {
+    "title": "Create Your Mini Me",
+    "uploadPhoto": "Upload a photo of yourself",
+    "uploadHint": "We'll create an AI avatar based on your photo",
+    "processing": "Processing your photo..."
+  },
+  "helpUnlock": {
+    "title": "Help Unlock",
+    "helpFriend": "Help Your Friend",
+    "helpMessage": "Your friend wants you to help unlock their {character}!",
+    "helpButton": "Help Unlock",
+    "thankYou": "Thank you for helping!",
+    "alreadyHelped": "You've already helped this user",
+    "notInvited": "You need to be invited by this user first"
+  },
+  "payment": {
+    "title": "Unlock Full Image",
+    "price": "Price",
+    "stars": "Stars",
+    "payNow": "Pay Now",
+    "processing": "Processing payment..."
+  },
+  "errors": {
+    "networkFailed": "Network connection failed",
+    "unauthorized": "Please login again",
+    "notFound": "Not found",
+    "serverError": "Server error, please try again",
+    "invalidRequest": "Invalid request",
+    "accessDenied": "Access denied",
+    "characterNotFound": "Character not found",
+    "alreadyHelped": "You have already helped this user",
+    "notInvited": "You are not invited by this user",
+    "paymentFailed": "Payment failed",
+    "uploadFailed": "Upload failed",
+    "generationFailed": "Generation failed, please try again"
+  }
+}

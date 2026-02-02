@@ -29,4 +29,5 @@ next-env.d.ts
 # backend
 backend/server
 backend/server.log
-backend/*.log
+backend/*.log.cursor/debug.log
+backend/uploads/*.jpg

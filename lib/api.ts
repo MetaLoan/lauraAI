@@ -4,6 +4,36 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend
 // 请求超时时间（毫秒）
 const REQUEST_TIMEOUT = 15000
 
+// localStorage key for storing user's language preference
+const LOCALE_STORAGE_KEY = 'laura-ai-locale'
+
+// 获取当前语言（用于 API 请求）
+function getCurrentLocaleForApi(): string {
+  if (typeof window === 'undefined') return 'en'
+
+  // 1. 优先使用 localStorage 中保存的语言偏好
+  try {
+    const savedLocale = localStorage.getItem(LOCALE_STORAGE_KEY)
+    if (savedLocale && ['en', 'zh', 'ru'].includes(savedLocale)) {
+      return savedLocale
+    }
+  } catch {
+    // localStorage 不可用
+  }
+
+  // 2. 尝试从 Telegram WebApp 获取语言
+  const webApp = (window as any).Telegram?.WebApp
+  const telegramLang = webApp?.initDataUnsafe?.user?.language_code
+  if (telegramLang) {
+    const lang = telegramLang.toLowerCase()
+    if (lang.startsWith('zh')) return 'zh'
+    if (lang.startsWith('ru')) return 'ru'
+  }
+
+  // 3. 默认英语
+  return 'en'
+}
+
 interface ApiResponse<T> {
   code: number
   message: string
@@ -71,6 +101,12 @@ class ApiClient {
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+    }
+
+    // 添加语言头
+    const locale = getCurrentLocaleForApi()
+    if (locale) {
+      headers['Accept-Language'] = locale
     }
     
     if (initData) {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { Button } from '@/components/ui/button'
+import { useTranslations } from '@/components/i18n-provider'
 
 export default function BirthPlaceInput({
   value,
@@ -14,6 +15,9 @@ export default function BirthPlaceInput({
   onNext: () => void
   onBack: () => void
 }) {
+  const { t } = useTranslations('birthPlace')
+  const { t: tCommon } = useTranslations('common')
+
   const [input, setInput] = useState(value)
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -59,13 +63,13 @@ export default function BirthPlaceInput({
     <div className="h-full bg-black flex flex-col items-center p-6">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-6">
         <h1 className="text-title-lg text-balance text-center px-2 flex-shrink-0">
-          Could you tell me where you were born?
+          {t('title')}
         </h1>
 
         <div className="w-full mb-8 relative">
           <input
             type="text"
-            placeholder="Search city..."
+            placeholder={t('placeholder')}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className="w-full bg-transparent border-b border-gray-600 text-body-lg placeholder-gray-600 focus:outline-none focus:border-gray-400 pb-2 transition-colors"
@@ -104,14 +108,13 @@ export default function BirthPlaceInput({
           disabled={!input.trim()}
           className="btn-primary disabled:btn-disabled"
         >
-          Continue
+          {tCommon('continue')}
         </Button>
         <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-body-sm">
-          Skip
+          {tCommon('skip')}
         </button>
         <p className="text-gray-500 text-caption text-center px-2">
-          Your birth place is essential for accurate calculations and personalized guidance. Your privacy is our priority, and this
-          information will never be shared with third parties.
+          {t('hint')}
         </p>
       </div>
     </div>

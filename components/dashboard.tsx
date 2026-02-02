@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { Clock, User, Plus } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 import { getAssetPath, getFullImageUrl } from '@/lib/utils'
+import { useTranslations, useI18n } from '@/components/i18n-provider'
+import { LanguageSwitcherCompact } from '@/components/language-switcher'
 
 interface CharacterCard {
   id: string
@@ -44,33 +46,34 @@ interface BackendCharacter {
 // 角色类型定义
 interface CharacterType {
   type: string
-  title: string
+  titleKey: string  // 翻译键
+  title: string     // 默认英文标题（用于后端）
   placeholder: string
   requiresUpload?: boolean
 }
 
 // 各分类的角色类型（包含占位图路径）
 const trendingTypes: CharacterType[] = [
-  { type: 'soulmate', title: 'Soulmate', placeholder: '/avatars/placeholders/soulmate.png' },
-  { type: 'mini_me', title: 'Mini Me', placeholder: '/avatars/placeholders/mini_me.png', requiresUpload: true },
+  { type: 'soulmate', titleKey: 'soulmate', title: 'Soulmate', placeholder: '/avatars/placeholders/soulmate.png' },
+  { type: 'mini_me', titleKey: 'miniMe', title: 'Mini Me', placeholder: '/avatars/placeholders/mini_me.png', requiresUpload: true },
 ]
 
 const familyTypes: CharacterType[] = [
-  { type: 'future_husband', title: 'Future Husband', placeholder: '/avatars/placeholders/future_husband.png' },
-  { type: 'future_baby', title: 'Future Baby', placeholder: '/avatars/placeholders/future_baby.png' },
-  { type: 'future_wife', title: 'Future Wife', placeholder: '/avatars/placeholders/future_wife.png' },
+  { type: 'future_husband', titleKey: 'futureHusband', title: 'Future Husband', placeholder: '/avatars/placeholders/future_husband.png' },
+  { type: 'future_baby', titleKey: 'futureBaby', title: 'Future Baby', placeholder: '/avatars/placeholders/future_baby.png' },
+  { type: 'future_wife', titleKey: 'futureWife', title: 'Future Wife', placeholder: '/avatars/placeholders/future_wife.png' },
 ]
 
 const friendTypes: CharacterType[] = [
-  { type: 'boyfriend', title: 'Boyfriend', placeholder: '/avatars/placeholders/boyfriend.png' },
-  { type: 'best_friend', title: 'Best Friend', placeholder: '/avatars/placeholders/best_friend.png' },
-  { type: 'girlfriend', title: 'Girlfriend', placeholder: '/avatars/placeholders/girlfriend.png' },
+  { type: 'boyfriend', titleKey: 'boyfriend', title: 'Boyfriend', placeholder: '/avatars/placeholders/boyfriend.png' },
+  { type: 'best_friend', titleKey: 'bestFriend', title: 'Best Friend', placeholder: '/avatars/placeholders/best_friend.png' },
+  { type: 'girlfriend', titleKey: 'girlfriend', title: 'Girlfriend', placeholder: '/avatars/placeholders/girlfriend.png' },
 ]
 
 const companionTypes: CharacterType[] = [
-  { type: 'mysterious_stranger', title: 'Mysterious Stranger', placeholder: '/avatars/placeholders/mysterious_stranger.png' },
-  { type: 'wise_mentor', title: 'Wise Mentor', placeholder: '/avatars/placeholders/wise_mentor.png' },
-  { type: 'dream_guide', title: 'Dream Guide', placeholder: '/avatars/placeholders/dream_guide.png' },
+  { type: 'mysterious_stranger', titleKey: 'mysteriousStranger', title: 'Mysterious Stranger', placeholder: '/avatars/placeholders/mysterious_stranger.png' },
+  { type: 'wise_mentor', titleKey: 'wiseMentor', title: 'Wise Mentor', placeholder: '/avatars/placeholders/wise_mentor.png' },
+  { type: 'dream_guide', titleKey: 'dreamGuide', title: 'Dream Guide', placeholder: '/avatars/placeholders/dream_guide.png' },
 ]
 
 export default function Dashboard({ 
@@ -88,7 +91,10 @@ export default function Dashboard({
 }) {
   const [userCharacters, setUserCharacters] = useState<CharacterCard[]>([])
   const [loading, setLoading] = useState(true)
-  const [language, setLanguage] = useState<'en' | 'ru' | 'zh'>('en') // 语言状态：en=英语, ru=俄语, zh=中文
+  
+  const { t: tDashboard } = useTranslations('dashboard')
+  const { t: tCharacters } = useTranslations('characters')
+  const { t: tCommon } = useTranslations('common')
 
   // 从后端加载用户已创建的角色列表
   useEffect(() => {
@@ -160,13 +166,20 @@ export default function Dashboard({
       }
     } else if (onCreateCharacter) {
       // 使用父组件的创建流程，包含占位图路径
+      // 注意：传递英文标题给后端
       onCreateCharacter({ type: charType.type, title: charType.title, placeholder: charType.placeholder })
     }
+  }
+
+  // 获取本地化的角色标题
+  const getLocalizedTitle = (charType: CharacterType) => {
+    return tCharacters(charType.titleKey)
   }
 
   // 渲染角色卡片或添加按钮
   const renderCharacterSlot = (charType: CharacterType, gradientClass: string) => {
     const existingChar = getCharacterByType(charType.type)
+    const localizedTitle = getLocalizedTitle(charType)
     
     if (existingChar && existingChar.image) {
       // 根据解锁状态选择显示的图片
@@ -200,7 +213,7 @@ export default function Dashboard({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={finalImageUrl}
-              alt={existingChar.title}
+              alt={localizedTitle}
               className="w-full h-full object-cover"
               onError={(e) => {
                 // 如果图片加载失败，使用占位图
@@ -213,7 +226,7 @@ export default function Dashboard({
               {blurLabel}
             </div>
           </div>
-          <p className="text-xs font-medium text-center">{existingChar.title}</p>
+          <p className="text-xs font-medium text-center">{localizedTitle}</p>
         </button>
       )
     } else {
@@ -228,7 +241,7 @@ export default function Dashboard({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={getFullImageUrl(charType.placeholder)}
-              alt={charType.title}
+              alt={localizedTitle}
               className="w-full h-full object-cover"
             />
             {/* 添加图标覆盖层 */}
@@ -236,7 +249,7 @@ export default function Dashboard({
               <Plus className="w-10 h-10 text-white" />
             </div>
           </div>
-          <p className="text-xs font-medium text-center text-white/60">{charType.title}</p>
+          <p className="text-xs font-medium text-center text-white/60">{localizedTitle}</p>
         </button>
       )
     }
@@ -259,19 +272,7 @@ export default function Dashboard({
             <User className="w-6 h-6" />
           </button>
         </div>
-        <button 
-          onClick={() => {
-            if (language === 'en') setLanguage('ru')
-            else if (language === 'ru') setLanguage('zh')
-            else setLanguage('en')
-          }}
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
-          title={language === 'en' ? 'Switch to Russian' : language === 'ru' ? 'Switch to Chinese' : 'Switch to English'}
-        >
-          <span className="text-2xl leading-none">
-            {language === 'en' ? '🇬🇧' : language === 'ru' ? '🇷🇺' : '🇨🇳'}
-          </span>
-        </button>
+        <LanguageSwitcherCompact />
       </div>
 
       {/* Content */}
@@ -284,7 +285,7 @@ export default function Dashboard({
           <>
             {/* Trending Section */}
             <div>
-              <h2 className="text-title-md font-bold mb-4">Trending</h2>
+              <h2 className="text-title-md font-bold mb-4">{tDashboard('trending')}</h2>
               <div className="flex gap-4 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
                 {trendingTypes.map((charType) => renderCharacterSlot(charType, 'bg-gradient-to-b from-amber-200 to-amber-400'))}
               </div>
@@ -292,7 +293,7 @@ export default function Dashboard({
 
             {/* Family Section */}
             <div>
-              <h2 className="text-title-md font-bold mb-4">Draw & Chat with Your AI Family</h2>
+              <h2 className="text-title-md font-bold mb-4">{tDashboard('family')}</h2>
               <div className="overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
                 <div className="flex gap-4 min-w-min">
                   {familyTypes.map((charType) => renderCharacterSlot(charType, 'bg-gradient-to-b from-amber-900 to-gray-800'))}
@@ -302,7 +303,7 @@ export default function Dashboard({
 
             {/* Friend Section */}
             <div>
-              <h2 className="text-title-md font-bold mb-4">Draw & Chat with Your AI Friend</h2>
+              <h2 className="text-title-md font-bold mb-4">{tDashboard('friends')}</h2>
               <div className="overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
                 <div className="flex gap-4 min-w-min">
                   {friendTypes.map((charType) => renderCharacterSlot(charType, 'bg-gradient-to-b from-gray-700 to-gray-900'))}
@@ -312,7 +313,7 @@ export default function Dashboard({
 
             {/* Companion Section */}
             <div>
-              <h2 className="text-title-md font-bold mb-4">Draw & Chat with Your AI Companion</h2>
+              <h2 className="text-title-md font-bold mb-4">{tDashboard('companions')}</h2>
               <div className="overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
                 <div className="flex gap-4 min-w-min">
                   {companionTypes.map((charType) => renderCharacterSlot(charType, 'bg-gradient-to-b from-gray-800 to-black'))}

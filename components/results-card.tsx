@@ -4,29 +4,32 @@ import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import Image from 'next/image'
 import { getAssetPath, getFullImageUrl } from '@/lib/utils'
+import { useTranslations } from '@/components/i18n-provider'
 
 export default function ResultsCard({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const { t } = useTranslations('results')
+  const { t: tCommon } = useTranslations('common')
 
   const slides = [
     {
-      title: 'Find Soulmate',
-      description: 'Your personalized insights are used to design your AI match, drawn just for you and ready to chat.',
+      titleKey: 'meetSoulmate',
+      descriptionKey: 'compatibility',
       image: '/avatars/soulmate-female.jpg',
     },
     {
-      title: 'Discover Connection',
-      description: 'Your unique astrological profile has been analyzed to create your perfect AI companion.',
+      titleKey: 'title',
+      descriptionKey: 'astroSign',
       image: '/avatars/soulmate-female.jpg',
     },
     {
-      title: 'Start Your Journey',
-      description: 'Meet your soulmate, crafted from the stars just for you. Chat, connect, and explore.',
+      titleKey: 'viewDetails',
+      descriptionKey: 'compatibility',
       image: '/avatars/soulmate-female.jpg',
     },
     {
-      title: 'Your Match Awaits',
-      description: 'An AI soulmate personalized to your cosmic energy. Ready to reveal your connection?',
+      titleKey: 'meetSoulmate',
+      descriptionKey: 'astroSign',
       image: '/avatars/soulmate-female.jpg',
     },
   ]
@@ -48,8 +51,8 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
   return (
     <div className="h-full bg-black flex flex-col items-center justify-center p-4">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-4 md:space-y-6">
-        <h1 className="text-title-lg text-balance text-center px-2">{slides[currentSlide].title}</h1>
-        <p className="text-body-md text-gray-400 text-balance text-center px-2">{slides[currentSlide].description}</p>
+        <h1 className="text-title-lg text-balance text-center px-2">{t(slides[currentSlide].titleKey)}</h1>
+        <p className="text-body-md text-gray-400 text-balance text-center px-2">{t(slides[currentSlide].descriptionKey)}</p>
 
         {/* Polaroid card */}
         <div className="transform transition-all w-full max-w-[220px] sm:max-w-[260px] md:max-w-[300px]">
@@ -57,7 +60,7 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
             <div className="w-full h-full bg-amber-200 rounded-sm flex items-center justify-center border-2 border-amber-300 overflow-hidden relative">
               <Image
                 src={getFullImageUrl(slides[currentSlide].image || "/placeholder.svg")}
-                alt={slides[currentSlide].title}
+                alt={t(slides[currentSlide].titleKey)}
                 fill
                 className="object-cover"
               />
@@ -84,7 +87,7 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
           onClick={handleNext}
           className="btn-primary"
         >
-          Next
+          {tCommon('next')}
         </Button>
       </div>
     </div>

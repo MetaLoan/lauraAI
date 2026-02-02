@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"lauraai-backend/internal/config"
+	"lauraai-backend/internal/i18n"
 	"lauraai-backend/internal/model"
 
 	"google.golang.org/genai"
@@ -36,7 +37,7 @@ func NewGeminiChatService() (*GeminiChatService, error) {
 	return &GeminiChatService{client: client}, nil
 }
 
-func (s *GeminiChatService) Chat(ctx context.Context, character *model.Character, messages []model.Message, userMessage string) (string, error) {
+func (s *GeminiChatService) Chat(ctx context.Context, character *model.Character, messages []model.Message, userMessage string, locale i18n.Locale) (string, error) {
 	if s.client == nil {
 		return fmt.Sprintf("[模拟回复] 我收到了你的消息: %s。我是 %s，很高兴认识你！", userMessage, character.Title), nil
 	}
@@ -64,7 +65,7 @@ func (s *GeminiChatService) Chat(ctx context.Context, character *model.Character
 	config := &genai.GenerateContentConfig{
 		SystemInstruction: &genai.Content{
 			Parts: []*genai.Part{
-				{Text: s.buildSystemPrompt(character)},
+				{Text: s.buildSystemPrompt(character, locale)},
 			},
 		},
 		Temperature: genai.Ptr(float32(0.7)),
@@ -82,7 +83,7 @@ func (s *GeminiChatService) Chat(ctx context.Context, character *model.Character
 	return resp.Candidates[0].Content.Parts[0].Text, nil
 }
 
-func (s *GeminiChatService) ChatStream(ctx context.Context, character *model.Character, messages []model.Message, userMessage string) (<-chan string, error) {
+func (s *GeminiChatService) ChatStream(ctx context.Context, character *model.Character, messages []model.Message, userMessage string, locale i18n.Locale) (<-chan string, error) {
 	if s.client == nil {
 		ch := make(chan string, 5)
 		go func() {
@@ -124,7 +125,7 @@ func (s *GeminiChatService) ChatStream(ctx context.Context, character *model.Cha
 	config := &genai.GenerateContentConfig{
 		SystemInstruction: &genai.Content{
 			Parts: []*genai.Part{
-				{Text: s.buildSystemPrompt(character)},
+				{Text: s.buildSystemPrompt(character, locale)},
 			},
 		},
 		Temperature: genai.Ptr(float32(0.7)),
@@ -152,9 +153,22 @@ func (s *GeminiChatService) ChatStream(ctx context.Context, character *model.Cha
 	return ch, nil
 }
 
-func (s *GeminiChatService) buildSystemPrompt(character *model.Character) string {
+// getLanguageInstruction 获取语言指令
+func getLanguageInstruction(locale i18n.Locale) string {
+	switch locale {
+	case i18n.LocaleZh:
+		return "IMPORTANT: You MUST respond in Simplified Chinese (简体中文). All your responses should be in Chinese."
+	case i18n.LocaleRu:
+		return "IMPORTANT: You MUST respond in Russian (Русский). All your responses should be in Russian."
+	default:
+		return "IMPORTANT: You MUST respond in English. All your responses should be in English."
+	}
+}
+
+func (s *GeminiChatService) buildSystemPrompt(character *model.Character, locale i18n.Locale) string {
 	if character.PersonalityPrompt != "" {
-		return character.PersonalityPrompt
+		// 即使有自定义 prompt，也添加语言指令
+		return character.PersonalityPrompt + "\n\n" + getLanguageInstruction(locale)
 	}
 
 	var ageDescription string
@@ -171,10 +185,14 @@ func (s *GeminiChatService) buildSystemPrompt(character *model.Character) string
 		ageDescription = "an adult"
 	}
 
+	languageInstruction := getLanguageInstruction(locale)
+
 	prompt := fmt.Sprintf(`You are %s, a vivid and engaging AI character. 
 	Your identity: %s.
 	Your astrological sign: %s.
 	Your age: You should act as %s.
+	
+	%s
 	
 	Guidelines for your personality and communication style:
 	1. Stay strictly in character at all times. Never mention you are an AI or a language model.
@@ -185,7 +203,7 @@ func (s *GeminiChatService) buildSystemPrompt(character *model.Character) string
 	6. Use emojis occasionally to express emotion, but don't overdo it.
 	7. Remember details the user shares and reference them to build a stronger bond.
 	8. Your goal is to make the user feel seen, understood, and special.`,
-		character.Title, character.Description, character.AstroSign, ageDescription)
+		character.Title, character.Description, character.AstroSign, ageDescription, languageInstruction)
 
 	return prompt
 }

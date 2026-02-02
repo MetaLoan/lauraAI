@@ -2,22 +2,45 @@
 
 import { useState, useEffect } from 'react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
+import { useTranslations, useI18n } from '@/components/i18n-provider'
 
 interface DrawingLoadingProps {
   onBack?: () => void
   error?: string | null
   onRetry?: () => void
+  characterTitle?: string
 }
 
-// Calculation steps with durations
-const calculationSteps = [
-  { text: "Initializing quantum astrology engine...", duration: 2000 },
-  { text: "Analyzing birth chart coordinates...", duration: 2500 },
-  { text: "Retrieving planetary data from NASA JPL...", duration: 3000 },
-  { text: "Calculating compatibility vectors...", duration: 2500 },
-  { text: "Synthesizing facial features...", duration: 3000 },
-  { text: "Rendering high-resolution portrait...", duration: 4000 },
-]
+// 多语言步骤映射
+const getCalculationSteps = (locale: string) => {
+  const steps: Record<string, Array<{ text: string; duration: number }>> = {
+    en: [
+      { text: "Initializing quantum astrology engine...", duration: 2000 },
+      { text: "Analyzing birth chart coordinates...", duration: 2500 },
+      { text: "Retrieving planetary data from NASA JPL...", duration: 3000 },
+      { text: "Calculating compatibility vectors...", duration: 2500 },
+      { text: "Synthesizing facial features...", duration: 3000 },
+      { text: "Rendering high-resolution portrait...", duration: 4000 },
+    ],
+    zh: [
+      { text: "正在初始化量子占星引擎...", duration: 2000 },
+      { text: "正在分析星盘坐标...", duration: 2500 },
+      { text: "正在从 NASA JPL 获取行星数据...", duration: 3000 },
+      { text: "正在计算兼容性向量...", duration: 2500 },
+      { text: "正在合成面部特征...", duration: 3000 },
+      { text: "正在渲染高清肖像...", duration: 4000 },
+    ],
+    ru: [
+      { text: "Инициализация квантового астрологического движка...", duration: 2000 },
+      { text: "Анализ координат натальной карты...", duration: 2500 },
+      { text: "Получение планетарных данных от NASA JPL...", duration: 3000 },
+      { text: "Расчёт векторов совместимости...", duration: 2500 },
+      { text: "Синтез черт лица...", duration: 3000 },
+      { text: "Рендеринг портрета высокого разрешения...", duration: 4000 },
+    ],
+  }
+  return steps[locale] || steps.en
+}
 
 // Random coordinates for the data overlay effect
 const generateCoordinates = () => {
@@ -30,10 +53,39 @@ const generateBinaryString = () => {
   return Array.from({ length: 8 }, () => Math.round(Math.random())).join('')
 }
 
-export default function DrawingLoading({ onBack, error, onRetry }: DrawingLoadingProps) {
+export default function DrawingLoading({ onBack, error, onRetry, characterTitle = 'Soulmate' }: DrawingLoadingProps) {
   const [stepIndex, setStepIndex] = useState(0)
   const [progress, setProgress] = useState(0)
   const [dataOverlay, setDataOverlay] = useState({ coords: '', binary: '' })
+  
+  const { t } = useTranslations('loading')
+  const { t: tCommon } = useTranslations('common')
+  const { t: tErrors } = useTranslations('errors')
+  const { t: tCharacters } = useTranslations('characters')
+  const { locale } = useI18n()
+
+  const calculationSteps = getCalculationSteps(locale)
+
+  // 获取本地化的角色名称
+  const getLocalizedCharacterTitle = () => {
+    const characterTypeToKey: Record<string, string> = {
+      'Soulmate': 'soulmate',
+      'Mini Me': 'miniMe',
+      'Future Husband': 'futureHusband',
+      'Future Baby': 'futureBaby',
+      'Future Wife': 'futureWife',
+      'Boyfriend': 'boyfriend',
+      'Best Friend': 'bestFriend',
+      'Girlfriend': 'girlfriend',
+      'Mysterious Stranger': 'mysteriousStranger',
+      'Wise Mentor': 'wiseMentor',
+      'Dream Guide': 'dreamGuide',
+    }
+    const key = characterTypeToKey[characterTitle]
+    return key ? tCharacters(key) : characterTitle
+  }
+
+  const localizedTitle = getLocalizedCharacterTitle()
 
   // Step progression logic
   useEffect(() => {
@@ -63,7 +115,7 @@ export default function DrawingLoading({ onBack, error, onRetry }: DrawingLoadin
       clearTimeout(timer)
       clearInterval(progressInterval)
     }
-  }, [stepIndex, error])
+  }, [stepIndex, error, calculationSteps])
 
   // Data overlay animation
   useEffect(() => {
@@ -83,7 +135,7 @@ export default function DrawingLoading({ onBack, error, onRetry }: DrawingLoadin
   return (
     <div className="h-full bg-black flex flex-col items-center justify-center p-6">
           <div className="w-full max-w-md text-center px-4">
-            <h1 className="text-title-lg mb-4 text-red-500 text-balance flex-shrink-0">Generation Failed</h1>
+            <h1 className="text-title-lg mb-4 text-red-500 text-balance flex-shrink-0">{tErrors('generationFailed')}</h1>
             <p className="text-body-lg text-gray-400 max-w-md mx-auto">
               {error}
             </p>
@@ -100,10 +152,9 @@ export default function DrawingLoading({ onBack, error, onRetry }: DrawingLoadin
                 className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 rounded-full font-semibold transition-colors"
               >
                 <RefreshCw className="w-5 h-5" />
-                Retry
+                {tCommon('retry')}
               </button>
             )}
-            <p className="text-body-sm text-gray-400">Please try again or go back to adjust your preferences.</p>
           </div>
       </div>
     )
@@ -113,9 +164,9 @@ export default function DrawingLoading({ onBack, error, onRetry }: DrawingLoadin
     <div className="h-full bg-black flex flex-col items-center justify-center p-6 overflow-hidden">
       {/* Header */}
       <div className="w-full max-w-md text-center px-4 mb-8">
-            <h1 className="text-title-lg mb-4 text-balance flex-shrink-0">Drawing your Soulmate...</h1>
+            <h1 className="text-title-lg mb-4 text-balance flex-shrink-0">{t('drawing', { character: localizedTitle })}</h1>
             <p className="text-body-lg text-gray-400 max-w-md mx-auto">
-              Uncovering the perfect match written in the universe.
+              {t('generating')}
             </p>
           </div>
 
@@ -240,7 +291,7 @@ export default function DrawingLoading({ onBack, error, onRetry }: DrawingLoadin
             {calculationSteps[stepIndex].text}
           </p>
           <p className="text-xs text-gray-500">
-            Step {stepIndex + 1} of {calculationSteps.length}
+            {stepIndex + 1} / {calculationSteps.length}
           </p>
         </div>
       </div>
@@ -250,7 +301,7 @@ export default function DrawingLoading({ onBack, error, onRetry }: DrawingLoadin
             <div className="w-5 h-5 rounded-full border border-yellow-600 flex-shrink-0 flex items-center justify-center">
               <span className="text-xs">⚠</span>
             </div>
-        <p>Please do not leave this screen until it's complete.</p>
+        <p>{t('pleaseWait')}</p>
           </div>
     </div>
   )

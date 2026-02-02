@@ -103,7 +103,8 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 
 	// 使用流式响应
 	ctx := c.Request.Context()
-	stream, err := h.chatService.ChatStream(ctx, character, historyMessages, req.Message)
+	locale := middleware.GetLocaleFromContext(c)
+	stream, err := h.chatService.ChatStream(ctx, character, historyMessages, req.Message, locale)
 	if err != nil {
 		response.Error(c, 500, "Failed to generate response: "+err.Error())
 		return

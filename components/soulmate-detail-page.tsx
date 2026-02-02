@@ -6,6 +6,7 @@ import { ChevronDown, Share2, Lock, Unlock, Loader2, CloudFog } from 'lucide-rea
 import { getFullImageUrl } from '@/lib/utils'
 import { PaymentDrawer } from '@/components/payment-drawer'
 import { apiClient } from '@/lib/api'
+import { useTranslations, useI18n } from '@/components/i18n-provider'
 
 // 解锁状态枚举
 const UnlockStatus = {
@@ -13,6 +14,21 @@ const UnlockStatus = {
   HALF_UNLOCKED: 1,
   FULL_UNLOCKED: 2,
 } as const
+
+// 角色类型映射到翻译键
+const characterTypeToKey: Record<string, string> = {
+  'Soulmate': 'soulmate',
+  'Mini Me': 'miniMe',
+  'Future Husband': 'futureHusband',
+  'Future Baby': 'futureBaby',
+  'Future Wife': 'futureWife',
+  'Boyfriend': 'boyfriend',
+  'Best Friend': 'bestFriend',
+  'Girlfriend': 'girlfriend',
+  'Mysterious Stranger': 'mysteriousStranger',
+  'Wise Mentor': 'wiseMentor',
+  'Dream Guide': 'dreamGuide',
+}
 
 interface SoulmateDetailPageProps {
   character?: {
@@ -54,9 +70,22 @@ export default function SoulmateDetailPage({
   const [priceTON, setPriceTON] = useState(3)
   const [isLoadingPrice, setIsLoadingPrice] = useState(false)
 
-  const title = character?.title || "Soulmate"
+  const { t } = useTranslations('detail')
+  const { t: tResults } = useTranslations('results')
+  const { t: tCharacters } = useTranslations('characters')
+  const { t: tCommon } = useTranslations('common')
+
+  const rawTitle = character?.title || "Soulmate"
   const targetScore = character?.compatibility || 92
   const isMiniMe = character?.type === 'mini_me'
+
+  // 获取本地化的角色名称
+  const getLocalizedTitle = () => {
+    const key = characterTypeToKey[rawTitle]
+    return key ? tCharacters(key) : rawTitle
+  }
+
+  const title = getLocalizedTitle()
 
   // 根据解锁状态选择显示的图片
   const getDisplayImage = () => {
@@ -74,7 +103,7 @@ export default function SoulmateDetailPage({
 
   // 性格报告只有完全解锁才可见
   const isDescriptionVisible = unlockStatus === UnlockStatus.FULL_UNLOCKED
-  const description = character?.description || `A harmonious partner who values balance and partnership (Libra Sun), brings emotional depth and nurturing (Cancer Moon), and offers dreamy empathy with intuitive sensitivity (Pisces Rising). They help soften boundaries, encourage diplomatic communication, and create a safe emotional haven where your intellectual curiosity and humanitarian ideals can flourish.`
+  const description = character?.description || t('description')
 
   useEffect(() => {
     // 更新解锁状态
@@ -130,7 +159,7 @@ export default function SoulmateDetailPage({
 
     if (unlockStatus === UnlockStatus.FULL_UNLOCKED) {
       // 1. 完全解锁状态：使用故事分享 (Stories) 展示高清图片
-      const text = `OMG, my ${title} looks like this! You should try it too! 🔥`
+      const text = `OMG, my ${rawTitle} looks like this! You should try it too! 🔥`
       const imageUrl = getFullImageUrl(character?.clear_image_url || '')
 
       if (webApp?.shareToStory) {
@@ -148,7 +177,7 @@ export default function SoulmateDetailPage({
       }
     } else {
       // 2. 未解锁状态：使用普通分享链接
-      const text = `Help me see what my ${title} looks like! I need your help 🥺`
+      const text = `Help me see what my ${rawTitle} looks like! I need your help 🥺`
       
       const url = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`
       if (webApp?.openTelegramLink) {
@@ -225,8 +254,7 @@ export default function SoulmateDetailPage({
                   {/* 100% 模糊状态下的提示文字 */}
                   {unlockStatus === UnlockStatus.LOCKED && (
                     <p className="text-white/90 text-sm text-center mt-4 px-6 leading-relaxed">
-                      This photo is shrouded in mist.<br/>
-                      Maybe a friend can help clear it.
+                      {t('blurMessage')}
                     </p>
                   )}
                 </div>
@@ -243,7 +271,7 @@ export default function SoulmateDetailPage({
                 className="p-3 rounded-full border border-white/30 hover:border-white/50 transition-colors flex items-center gap-2 px-4"
               >
                 <Share2 className="w-5 h-5" />
-                <span className="text-sm">Ask Friend to Help</span>
+                <span className="text-sm">{t('askFriendHelp')}</span>
               </button>
             )}
           </div>
@@ -252,7 +280,7 @@ export default function SoulmateDetailPage({
           {unlockStatus === UnlockStatus.HALF_UNLOCKED && (
             <div className="bg-amber-500/20 border border-amber-500/30 rounded-full px-4 py-2 flex items-center gap-2">
               <Unlock className="w-4 h-4 text-amber-500" />
-              <span className="text-sm text-amber-500">Friend helped! 50% unlocked</span>
+              <span className="text-sm text-amber-500">{t('friendHelped')}</span>
             </div>
           )}
         </div>
@@ -265,7 +293,7 @@ export default function SoulmateDetailPage({
         {/* Compatibility Score - 只在非 Mini Me 时显示 */}
         {!isMiniMe && (
           <div className="mb-8">
-            <h3 className="text-center text-title-md font-bold mb-6">Compatibility Score</h3>
+            <h3 className="text-center text-title-md font-bold mb-6">{tResults('compatibility')}</h3>
 
             {/* Progress Bar */}
             <div className="mb-4 h-2 rounded-full bg-white/10 overflow-hidden">
@@ -287,12 +315,12 @@ export default function SoulmateDetailPage({
                 <div className="bg-white/5 rounded-xl p-6 border border-white/10">
                   <div className="flex items-center justify-center gap-2 mb-3">
                     <Lock className="w-5 h-5 text-gray-400" />
-                    <span className="text-gray-400 font-medium">Personality Report Locked</span>
+                    <span className="text-gray-400 font-medium">{t('description')} 🔒</span>
                   </div>
                   <p className="text-center text-body-sm text-gray-500">
                     {unlockStatus === UnlockStatus.HALF_UNLOCKED 
-                      ? `Pay ${priceStars} Stars or ${priceTON} TON to unlock the full report`
-                      : 'Share with friends or pay to unlock the personality report'}
+                      ? `${priceStars} Stars / ${priceTON} TON`
+                      : t('blurMessage')}
                   </p>
                 </div>
               )}
@@ -361,7 +389,7 @@ export default function SoulmateDetailPage({
               className="btn-primary flex items-center justify-center gap-2"
             >
               <Share2 className="w-5 h-5" />
-              Share with Friends
+              {t('share')}
             </Button>
           ) : (
             <Button
@@ -372,12 +400,12 @@ export default function SoulmateDetailPage({
               {isLoadingPrice ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Loading...
+                  {tCommon('loading')}
                 </>
               ) : (
                 <>
                   <Unlock className="w-5 h-5" />
-                  {isMiniMe ? 'Unlock' : 'Unlock Photo and Report'}
+                  {t('unlockFull')}
                 </>
               )}
             </Button>

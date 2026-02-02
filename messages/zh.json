@@ -1,0 +1,167 @@
+{
+  "common": {
+    "continue": "继续",
+    "back": "返回",
+    "next": "下一步",
+    "skip": "跳过",
+    "loading": "加载中...",
+    "error": "错误",
+    "retry": "重试",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirm": "确认",
+    "close": "关闭",
+    "checking": "检查中..."
+  },
+  "welcome": {
+    "title": "欢迎来到",
+    "subtitle": "Laura AI",
+    "description": "绘制、遇见并与您的 AI 匹配对象聊天",
+    "terms": "点击「继续」即表示您同意我们的服务条款和隐私政策。",
+    "termsLink": "服务条款",
+    "privacyLink": "隐私政策",
+    "networkError": "网络连接失败，请重试。"
+  },
+  "dashboard": {
+    "trending": "热门",
+    "family": "家庭",
+    "friends": "朋友",
+    "companions": "伙伴",
+    "createNew": "创建新角色"
+  },
+  "characters": {
+    "soulmate": "灵魂伴侣",
+    "miniMe": "迷你我",
+    "futureHusband": "未来丈夫",
+    "futureBaby": "未来宝宝",
+    "futureWife": "未来妻子",
+    "boyfriend": "男朋友",
+    "bestFriend": "最好的朋友",
+    "girlfriend": "女朋友",
+    "mysteriousStranger": "神秘陌生人",
+    "wiseMentor": "智慧导师",
+    "dreamGuide": "梦境向导"
+  },
+  "gender": {
+    "title": "您的性别是？",
+    "soulmateTitle": "您希望{character}是什么性别？",
+    "male": "男性",
+    "female": "女性",
+    "other": "其他"
+  },
+  "name": {
+    "title": "您叫什么名字？",
+    "placeholder": "请输入您的名字",
+    "hint": "这是您的 AI 匹配对象称呼您的方式"
+  },
+  "birthDate": {
+    "title": "您的生日是？",
+    "month": "月",
+    "day": "日",
+    "year": "年"
+  },
+  "birthTime": {
+    "title": "您出生的时间是？",
+    "hour": "时",
+    "minute": "分",
+    "unknown": "我不知道",
+    "hint": "这有助于我们计算您的上升星座"
+  },
+  "birthPlace": {
+    "title": "您出生在哪里？",
+    "placeholder": "请输入城市或国家",
+    "hint": "这有助于我们计算您的星盘"
+  },
+  "ethnicity": {
+    "title": "您的族裔是？",
+    "soulmateTitle": "您希望{character}是什么族裔？",
+    "blackAfrican": "非洲裔",
+    "middleEastern": "中东裔",
+    "eastAsian": "东亚裔",
+    "southAsian": "南亚裔",
+    "southeastAsian": "东南亚裔",
+    "white": "欧洲裔",
+    "hispanicLatino": "拉丁裔",
+    "indigenous": "原住民",
+    "mixed": "混血",
+    "preferNotToSay": "不想透露"
+  },
+  "loading": {
+    "analyzing": "正在分析您的星象档案...",
+    "drawing": "正在绘制您的{character}...",
+    "generating": "正在生成您的匹配对象...",
+    "pleaseWait": "请稍候"
+  },
+  "results": {
+    "title": "您的星象档案",
+    "compatibility": "匹配度",
+    "astroSign": "星座",
+    "meetSoulmate": "遇见您的灵魂伴侣",
+    "viewDetails": "查看详情"
+  },
+  "detail": {
+    "startChat": "开始聊天",
+    "askFriendHelp": "邀请好友帮助解锁",
+    "friendHelped": "好友已帮助！已解锁 50%",
+    "unlockFull": "解锁完整图片",
+    "share": "分享",
+    "blurMessage": "邀请好友帮助解锁更清晰的视图！",
+    "description": "描述"
+  },
+  "chat": {
+    "send": "发送",
+    "typeMessage": "输入消息...",
+    "loading": "加载消息中...",
+    "sending": "发送中..."
+  },
+  "profile": {
+    "title": "个人资料",
+    "editProfile": "编辑资料",
+    "language": "语言",
+    "deleteAccount": "删除账户",
+    "deleteConfirm": "确定要删除您的账户吗？此操作无法撤销。",
+    "version": "版本"
+  },
+  "history": {
+    "title": "历史记录",
+    "noHistory": "暂无历史记录",
+    "viewAll": "查看全部"
+  },
+  "miniMe": {
+    "title": "创建您的迷你我",
+    "uploadPhoto": "上传您的照片",
+    "uploadHint": "我们将根据您的照片创建 AI 头像",
+    "processing": "正在处理您的照片..."
+  },
+  "helpUnlock": {
+    "title": "帮助解锁",
+    "helpFriend": "帮助您的朋友",
+    "helpMessage": "您的朋友希望您帮助解锁他们的{character}！",
+    "helpButton": "帮助解锁",
+    "thankYou": "感谢您的帮助！",
+    "alreadyHelped": "您已经帮助过此用户了",
+    "notInvited": "您需要先被此用户邀请"
+  },
+  "payment": {
+    "title": "解锁完整图片",
+    "price": "价格",
+    "stars": "星星",
+    "payNow": "立即支付",
+    "processing": "正在处理支付..."
+  },
+  "errors": {
+    "networkFailed": "网络连接失败",
+    "unauthorized": "请重新登录",
+    "notFound": "未找到",
+    "serverError": "服务器错误，请重试",
+    "invalidRequest": "无效请求",
+    "accessDenied": "访问被拒绝",
+    "characterNotFound": "角色未找到",
+    "alreadyHelped": "您已经帮助过此用户了",
+    "notInvited": "您未被此用户邀请",
+    "paymentFailed": "支付失败",
+    "uploadFailed": "上传失败",
+    "generationFailed": "生成失败，请重试"
+  }
+}

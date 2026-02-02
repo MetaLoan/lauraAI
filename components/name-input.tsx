@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
+import { useTranslations } from '@/components/i18n-provider'
 
 export default function NameInput({
   value,
@@ -15,6 +16,8 @@ export default function NameInput({
   onBack: () => void
 }) {
   const [input, setInput] = useState(value)
+  const { t } = useTranslations('name')
+  const { t: tCommon } = useTranslations('common')
 
   const handleNext = () => {
     onChange(input)
@@ -25,12 +28,12 @@ export default function NameInput({
     <div className="h-full bg-black flex flex-col items-center p-6">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-8">
         <h1 className="text-title-lg text-balance text-center px-2 flex-shrink-0">
-          Let's begin your journey. What's your name?
+          {t('title')}
         </h1>
 
         <input
           type="text"
-          placeholder="Name"
+          placeholder={t('placeholder')}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           className="w-full bg-transparent border-b border-gray-600 text-body-lg placeholder-gray-600 focus:outline-none focus:border-gray-400 pb-2 mb-12 transition-colors"
@@ -43,7 +46,7 @@ export default function NameInput({
           disabled={!input.trim()}
           className="btn-primary disabled:btn-disabled"
         >
-          Continue
+          {tCommon('continue')}
         </Button>
       </div>
     </div>

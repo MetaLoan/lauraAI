@@ -5,12 +5,28 @@ import { X, Send } from 'lucide-react'
 import Image from 'next/image'
 import { apiClient } from '@/lib/api'
 import { getAssetPath, getFullImageUrl } from '@/lib/utils'
+import { useTranslations, useI18n } from '@/components/i18n-provider'
 
 interface ChatWindowProps {
   characterId?: string
   characterTitle?: string
   characterImage?: string
   onClose: () => void
+}
+
+// 角色类型映射到翻译键
+const characterTypeToKey: Record<string, string> = {
+  'Soulmate': 'soulmate',
+  'Mini Me': 'miniMe',
+  'Future Husband': 'futureHusband',
+  'Future Baby': 'futureBaby',
+  'Future Wife': 'futureWife',
+  'Boyfriend': 'boyfriend',
+  'Best Friend': 'bestFriend',
+  'Girlfriend': 'girlfriend',
+  'Mysterious Stranger': 'mysteriousStranger',
+  'Wise Mentor': 'wiseMentor',
+  'Dream Guide': 'dreamGuide',
 }
 
 export default function ChatWindow({ characterId, characterTitle = 'Soulmate', characterImage, onClose }: ChatWindowProps) {
@@ -22,6 +38,18 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
   }>>([])
   const [inputValue, setInputValue] = useState('')
   const [loading, setLoading] = useState(false)
+  
+  const { t } = useTranslations('chat')
+  const { t: tCharacters } = useTranslations('characters')
+  const { locale } = useI18n()
+
+  // 获取本地化的角色名称
+  const getLocalizedCharacterTitle = () => {
+    const key = characterTypeToKey[characterTitle]
+    return key ? tCharacters(key) : characterTitle
+  }
+
+  const localizedTitle = getLocalizedCharacterTitle()
 
   // 加载历史消息
   useEffect(() => {
@@ -93,6 +121,7 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
       
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
+        'Accept-Language': locale,
       }
       
       if (initData) {
@@ -178,18 +207,18 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
               {characterImage ? (
                 <Image
                   src={getFullImageUrl(characterImage)}
-                  alt={characterTitle}
+                  alt={localizedTitle}
                   fill
                   className="object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900">
-                  <span className="text-white/20 text-xs font-bold">{characterTitle.charAt(0)}</span>
+                  <span className="text-white/20 text-xs font-bold">{localizedTitle.charAt(0)}</span>
                 </div>
               )}
             </div>
             <div>
-              <p className="text-body-sm font-semibold">{characterTitle}</p>
+              <p className="text-body-sm font-semibold">{localizedTitle}</p>
               <p className="text-caption text-gray-400">Online</p>
             </div>
           </div>
@@ -197,6 +226,11 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+          {messages.length === 0 && (
+            <div className="text-center text-gray-500 py-8">
+              {t('loading')}
+            </div>
+          )}
           {messages.map(message => (
             <div
               key={message.id}
@@ -230,7 +264,7 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
               onKeyPress={e => {
                 if (e.key === 'Enter') handleSendMessage()
               }}
-              placeholder="Say something..."
+              placeholder={t('typeMessage')}
               className="flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-body-sm placeholder-gray-500 focus:outline-none focus:border-white/40"
             />
             <button
