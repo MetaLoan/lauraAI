@@ -51,7 +51,7 @@ export default function Welcome({
   return (
     <div className="h-full bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Language Switcher */}
-      <div className="absolute top-4 right-4 z-20">
+      <div className="absolute top-[var(--tg-safe-area-inset-top,16px)] right-4 z-20">
         <LanguageSwitcherCompact />
       </div>
       
