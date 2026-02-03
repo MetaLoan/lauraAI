@@ -96,7 +96,7 @@ func (s *GeminiReportService) GenerateMultiLangReport(ctx context.Context, user 
 
 	// 第二步：翻译成中文
 	log.Println("[Report] 步骤2: 翻译成中文...")
-	zhReport, err := s.translateReport(ctx, englishReport, "Chinese (Simplified)")
+	zhReport, err := s.translateReport(ctx, englishReport, "Chinese (Simplified). Use very casual, down-to-earth, and plain language (大白话). Avoid formal or poetic words.")
 	if err != nil {
 		log.Printf("[Report] 中文翻译失败: %v, 使用模拟翻译", err)
 		zhReport = s.getMockTranslation(englishReport, "zh")
@@ -159,33 +159,34 @@ User: %s, born on %s at %s in %s
 Partner: %s %s, %s ethnicity, %s zodiac sign
 Compatibility Score: %d%%
 
-Please generate SEVEN separate sections, each 2-3 sentences. Be creative, mystical, and specific. Include concrete details like timeframes, distances, and career types.
+Please generate SEVEN separate sections. Each section MUST be at least 4-5 sentences long to provide a detailed and comprehensive report. Use a very casual, down-to-earth, and conversational tone (like a friend talking to another friend). Avoid overly poetic, flowery, or formal language. Be specific with concrete details like timeframes, distances, and career types.
 
 1. DESCRIPTION:
-[Write a poetic overview of their soul connection and cosmic compatibility. Make it romantic and mystical.]
+[Write a detailed overview of their soul connection. Use plain, everyday language to explain why they are a good match. Keep it friendly and relatable.]
 
 2. CAREER:
-[Describe the partner's likely career path or professional strengths. What field might they work in? Are they ambitious, creative, or service-oriented? How does this complement the user?]
+[Describe the partner's job or what they are good at in detail. Mention specific industries or roles. Explain in simple terms how their work life fits with the user's.]
 
 3. PERSONALITY:
-[Describe the partner's key personality traits in detail. Are they introverted or extroverted? Passionate or calm? What makes them unique?]
+[Give a thorough breakdown of the partner's personality. Use common slang or casual terms to describe their vibes. Are they the life of the party or a cozy homebody? What are their quirks?]
 
 4. MEETING_TIME:
-[Predict when they might meet. Be specific with timeframes like "within the next 3-6 months", "during the autumn of next year", "around your birthday celebration", etc. Make it feel like a real prediction.]
+[Predict exactly when they might meet. Give a clear timeframe and a specific scenario (e.g., "at a friend's BBQ next summer", "while waiting for a rainy bus in October").]
 
 5. DISTANCE:
-[Predict where this person might be right now relative to the user. Use creative descriptions like "within your city", "approximately 50-200 km away", "across the ocean but your paths will cross", "closer than you think - perhaps in your neighborhood", etc.]
+[Describe where they are right now using relatable comparisons. E.g., "just a short drive away", "in the next town over", "currently living in a different city but planning to move soon".]
 
 6. STRENGTH:
-[Write about the relationship's key strengths - loyalty, passion, communication, shared values, etc.]
+[Talk about what will make this relationship last. Use simple examples of how they support each other in daily life.]
 
 7. WEAKNESS:
-[Write about potential challenges, framed constructively as growth opportunities they can overcome together.]
+[Mention a common real-world problem they might face (like being messy or stubborn) and how they can fix it simply.]
 
 IMPORTANT: 
 - Write ONLY the content for each section, no headers or labels
 - Separate each section with a blank line
-- Be specific and mystical, not generic
+- Be VERY casual and use plain language (大白话)
+- Each section MUST be 4-5 sentences long
 - Make predictions feel personal and exciting`,
 		user.Name, user.BirthDate, getBirthTimeString(user.BirthTime), user.BirthPlace,
 		character.Gender, character.Type, character.Ethnicity, character.AstroSign,
