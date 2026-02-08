@@ -202,7 +202,7 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
       <div 
         className="flex items-center justify-between p-4 border-b border-white/10"
         style={{
-          paddingTop: 'max(16px, calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px)))'
+          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
         }}
       >
           <div className="flex items-center gap-3">

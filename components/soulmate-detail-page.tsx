@@ -316,7 +316,12 @@ export default function SoulmateDetailPage({
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div 
+      className="h-full flex flex-col"
+      style={{
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
+      }}
+    >
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto px-6 pt-4 space-y-8 scrollbar-hide">
         {/* Portrait Card */}
