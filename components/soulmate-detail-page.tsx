@@ -318,9 +318,9 @@ export default function SoulmateDetailPage({
   return (
     <div className="h-full flex flex-col">
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto px-6 space-y-8 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-6 pb-8 space-y-8 scrollbar-hide">
         {/* Portrait Card */}
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center space-y-4 pt-0">
           {/* Title above image */}
           <h2 className="text-title-lg text-balance text-center px-2 flex-shrink-0">{title}</h2>
           

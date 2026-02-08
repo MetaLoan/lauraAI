@@ -76,7 +76,7 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
+      <div className="flex items-center justify-between px-4 pb-4 border-b border-white/10">
         <div className="flex items-center gap-3">
           <MessageSquare className="w-6 h-6 text-white" />
           <h1 className="text-title-md font-bold">{t('title')}</h1>
