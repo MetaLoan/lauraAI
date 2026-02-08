@@ -49,7 +49,12 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
   }
 
   return (
-    <div className="h-full bg-black flex flex-col items-center justify-center p-4">
+    <div 
+      className="h-full bg-black flex flex-col items-center justify-center p-4"
+      style={{
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 16px)'
+      }}
+    >
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-4 md:space-y-6">
         <h1 className="text-title-lg text-balance text-center px-2">{t(slides[currentSlide].titleKey)}</h1>
         <p className="text-body-md text-gray-400 text-balance text-center px-2">{t(slides[currentSlide].descriptionKey)}</p>

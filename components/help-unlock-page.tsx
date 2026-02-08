@@ -104,7 +104,12 @@ export default function HelpUnlockPage({
 
   if (status === 'loading') {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-black text-white p-6">
+      <div 
+        className="h-full flex flex-col items-center justify-center bg-black text-white p-6"
+        style={{
+          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
+        }}
+      >
         <Loader2 className="w-12 h-12 animate-spin mb-4" />
         <p className="text-gray-400">Loading...</p>
       </div>
@@ -116,7 +121,12 @@ export default function HelpUnlockPage({
     // 自动跳转到欢迎页面
     setTimeout(() => onSkip(), 100)
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-black text-white p-6">
+      <div 
+        className="h-full flex flex-col items-center justify-center bg-black text-white p-6"
+        style={{
+          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
+        }}
+      >
         <Loader2 className="w-12 h-12 animate-spin mb-4" />
         <p className="text-gray-400">Redirecting...</p>
       </div>
@@ -126,7 +136,12 @@ export default function HelpUnlockPage({
   // 已经帮助过
   if (status === 'already_helped') {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-black text-white p-6">
+      <div 
+        className="h-full flex flex-col items-center justify-center bg-black text-white p-6"
+        style={{
+          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
+        }}
+      >
         <div className="text-center space-y-6 max-w-sm">
           <div className="text-5xl">🤝</div>
           <h1 className="text-2xl font-bold">Already Helped!</h1>
@@ -143,7 +158,12 @@ export default function HelpUnlockPage({
 
   if (status === 'error') {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-black text-white p-6">
+      <div 
+        className="h-full flex flex-col items-center justify-center bg-black text-white p-6"
+        style={{
+          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
+        }}
+      >
         <div className="text-center space-y-6 max-w-sm">
           <h1 className="text-2xl font-bold">Oops!</h1>
           <p className="text-gray-400">{error}</p>
@@ -157,7 +177,12 @@ export default function HelpUnlockPage({
 
   if (status === 'success') {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-black text-white p-6">
+      <div 
+        className="h-full flex flex-col items-center justify-center bg-black text-white p-6"
+        style={{
+          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
+        }}
+      >
         <div className="text-center space-y-6 max-w-sm">
           <div className="relative w-48 h-64 mx-auto rounded-2xl overflow-hidden shadow-2xl">
             <img
@@ -196,7 +221,12 @@ export default function HelpUnlockPage({
   return (
     <div className="h-full flex flex-col bg-black text-white">
       {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-8">
+      <div 
+        className="flex-1 flex flex-col items-center justify-center p-6 space-y-8"
+        style={{
+          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
+        }}
+      >
         {/* Title */}
         <div className="text-center space-y-2">
           <p className="text-gray-400 text-sm uppercase tracking-wider">Help your friend</p>

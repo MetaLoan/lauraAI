@@ -99,7 +99,12 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
       
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto px-6 scrollbar-hide">
-        <div className="flex flex-col items-center justify-center min-h-full py-8">
+        <div 
+          className="flex flex-col items-center justify-center min-h-full pb-8"
+          style={{
+            paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
+          }}
+        >
           {/* Title */}
           <h1 className="text-title-lg text-balance text-center mb-2">
             {t('title')}

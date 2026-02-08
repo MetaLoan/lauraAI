@@ -55,7 +55,12 @@ export default function SoulmateGenderSelect({
   const localizedTitle = getLocalizedCharacterTitle()
 
   return (
-    <div className="h-full bg-black flex flex-col items-center p-6">
+    <div 
+      className="h-full bg-black flex flex-col items-center p-6"
+      style={{
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
+      }}
+    >
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-6">
         <h1 className="text-title-lg text-balance text-center px-2 flex-shrink-0">
           {tGender('soulmateTitle', { character: localizedTitle })}

@@ -477,7 +477,6 @@ export default function Home() {
     <div 
       className="h-full flex flex-col bg-black text-white overflow-hidden"
       style={{
-        paddingTop: step === 0 ? '0px' : 'max(100px, calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px)))',
         paddingBottom: '0px', // 彻底移除底部 padding，解决黑条问题
         paddingLeft: 'var(--tg-safe-area-left, 0px)',
         paddingRight: 'var(--tg-safe-area-right, 0px)',

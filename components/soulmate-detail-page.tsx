@@ -320,7 +320,12 @@ export default function SoulmateDetailPage({
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto px-6 pb-8 space-y-8 scrollbar-hide">
         {/* Portrait Card */}
-        <div className="flex flex-col items-center space-y-4 pt-0">
+        <div 
+          className="flex flex-col items-center space-y-4"
+          style={{
+            marginTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
+          }}
+        >
           {/* Title above image */}
           <h2 className="text-title-lg text-balance text-center px-2 flex-shrink-0">{title}</h2>
           

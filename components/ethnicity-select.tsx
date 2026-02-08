@@ -35,7 +35,12 @@ export default function EthnicitySelect({
   }
 
   return (
-    <div className="h-full bg-black flex flex-col px-6 pt-6">
+    <div 
+      className="h-full bg-black flex flex-col px-6"
+      style={{
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
+      }}
+    >
       {/* Fixed Header */}
       <div className="flex-shrink-0 w-full max-w-md mx-auto mb-6">
         <h1 className="text-title-lg text-balance text-center">
