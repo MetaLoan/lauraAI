@@ -186,12 +186,12 @@ export default function Profile({
   }
 
   return (
-    <div className="h-full bg-black text-white pb-8 overflow-y-auto">
+    <div className="h-full bg-black text-white pb-8">
       {/* Header */}
       <div 
         className="px-6 pb-4 border-b border-white/10"
         style={{
-          marginTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
+          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
         }}
       >
         <h1 className="text-title-md font-bold mb-2">{t('profile.title')}</h1>
