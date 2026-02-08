@@ -71,7 +71,7 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
     <div 
       className="fixed inset-0 bg-black z-[9999] flex flex-col overflow-hidden h-full"
       style={{
-        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))',
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 12px)',
         paddingBottom: 'var(--tg-safe-area-bottom, 0px)',
       }}
     >

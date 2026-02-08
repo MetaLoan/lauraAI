@@ -189,7 +189,7 @@ export default function Profile({
     <div 
       className="h-full bg-black text-white pb-8 overflow-y-auto"
       style={{
-        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 12px)'
       }}
     >
       {/* Header */}

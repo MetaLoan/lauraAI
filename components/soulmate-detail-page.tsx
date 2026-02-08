@@ -319,7 +319,7 @@ export default function SoulmateDetailPage({
     <div 
       className="h-full flex flex-col"
       style={{
-        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 12px)'
       }}
     >
       {/* Scrollable Content */}
