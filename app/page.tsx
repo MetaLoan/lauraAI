@@ -475,7 +475,7 @@ export default function Home() {
 
   return (
     <div 
-      className="h-full flex flex-col bg-black text-white overflow-hidden"
+      className="h-full flex flex-col bg-black text-white"
       style={{
         paddingBottom: '0px', // 彻底移除底部 padding，解决黑条问题
         paddingLeft: 'var(--tg-safe-area-left, 0px)',
@@ -509,7 +509,7 @@ export default function Home() {
         />
       ) : (
         <>
-          <div className={`flex-1 overflow-y-auto overscroll-contain -webkit-overflow-scrolling-touch ${showChat ? 'pointer-events-none opacity-50' : ''}`}>
+          <div className={`flex-1 overflow-hidden ${showChat ? 'pointer-events-none opacity-50' : ''}`}>
             {steps[Math.min(Math.floor(step), steps.length - 1)]}
           </div>
           {showChat && (
