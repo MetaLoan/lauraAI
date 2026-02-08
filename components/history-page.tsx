@@ -71,12 +71,12 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
     <div 
       className="fixed inset-0 bg-black z-[9999] flex flex-col overflow-hidden h-full"
       style={{
-        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 12px)',
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))',
         paddingBottom: 'var(--tg-safe-area-bottom, 0px)',
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
         <div className="flex items-center gap-3">
           <MessageSquare className="w-6 h-6 text-white" />
           <h1 className="text-title-md font-bold">{t('title')}</h1>

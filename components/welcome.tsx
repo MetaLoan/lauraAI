@@ -54,7 +54,7 @@ export default function Welcome({
       <div 
         className="absolute right-4 z-50"
         style={{ 
-          top: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 16px)' 
+          top: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))' 
         }}
       >
         <LanguageSwitcherCompact />

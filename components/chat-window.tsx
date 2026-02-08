@@ -200,9 +200,9 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
     <div className="fixed inset-0 bg-black z-[9999] flex flex-col overflow-hidden">
       {/* Header */}
       <div 
-        className="flex items-center justify-between p-4 border-b border-white/10"
+        className="flex items-center justify-between px-4 pb-4 border-b border-white/10"
         style={{
-          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 12px)'
+          paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 16px)'
         }}
       >
           <div className="flex items-center gap-3">

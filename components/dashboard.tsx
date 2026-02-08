@@ -245,7 +245,7 @@ export default function Dashboard({
     <div 
       className="flex-1 pb-8 overflow-y-auto"
       style={{
-        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 12px)'
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
       }}
     >
       {/* Header */}

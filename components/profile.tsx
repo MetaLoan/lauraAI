@@ -189,17 +189,17 @@ export default function Profile({
     <div 
       className="h-full bg-black text-white pb-8 overflow-y-auto"
       style={{
-        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 12px)'
+        paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
       }}
     >
       {/* Header */}
-      <div className="px-6 py-6 border-b border-white/10">
+      <div className="px-6 py-4 border-b border-white/10">
         <h1 className="text-title-md font-bold mb-2">{t('profile.title')}</h1>
         <h2 className="text-title-xl font-bold">{name || 'User'}</h2>
       </div>
 
       {/* Content */}
-      <div className="px-6 pt-6 space-y-6">
+      <div className="px-6 pt-4 space-y-6">
         {/* Birth Info Card */}
         <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
           <h3 className="text-title-md font-bold mb-6">{t('profile.birthInfo')}</h3>
