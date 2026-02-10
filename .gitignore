@@ -2,6 +2,11 @@
 
 # dependencies
 /node_modules
+**/node_modules/
+
+# build artifacts
+contracts/artifacts/
+contracts/cache/
 
 # next.js
 /.next/
@@ -41,3 +46,4 @@ backend/uploads/*.jpg
 .cursor/
 .vscode/
 .idea/
+.DS_Store
