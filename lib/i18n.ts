@@ -12,19 +12,15 @@ export const localeNames: Record<Locale, string> = {
   ru: 'Русский',
 };
 
-// Telegram 语言代码到应用语言代码的映射
-export function mapTelegramLocale(telegramLang: string | undefined): Locale {
-  if (!telegramLang) return defaultLocale;
+// Map browser language code to app locale
+export function mapBrowserLocale(browserLang: string | undefined): Locale {
+  if (!browserLang) return defaultLocale;
   
-  const lang = telegramLang.toLowerCase();
+  const lang = browserLang.toLowerCase();
   
-  // 中文
   if (lang.startsWith('zh')) return 'zh';
-  
-  // 俄语
   if (lang.startsWith('ru')) return 'ru';
   
-  // 英语或其他语言默认使用英语
   return 'en';
 }
 

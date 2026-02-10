@@ -1,416 +1,318 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
-import NameInput from '@/components/name-input';
-import GenderSelect from '@/components/gender-select';
-import BirthDatePicker from '@/components/birth-date-picker';
-import BirthTimePicker from '@/components/birth-time-picker';
-import BirthPlaceInput from '@/components/birth-place-input';
-import EthnicitySelect from '@/components/ethnicity-select';
-import LoadingResults from '@/components/loading-results';
-import ResultsCard from '@/components/results-card';
-import SoulmateGenderSelect from '@/components/soulmate-gender-select';
-import SoulmateEthnicitySelect from '@/components/soulmate-ethnicity-select';
-import DrawingLoading from '@/components/drawing-loading';
-import SoulmateDetailPage from '@/components/soulmate-detail-page';
 import { apiClient } from '@/lib/api';
-import { useAccount, useChainId, useSignMessage, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Check, Sparkles, ChevronRight, User, Heart, Users, Baby, Crown, Compass, BookOpen, Ghost, Star, Moon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ConnectButton } from '@/components/wallet-button';
-import { LAURA_AI_SOULMATE_ABI, LAURA_AI_SOULMATE_ADDRESS } from '@/lib/contracts';
-import { parseEther, formatEther } from 'viem';
+import { useAccount } from 'wagmi';
+import Image from 'next/image';
+import { getFullImageUrl } from '@/lib/utils';
+import SoulmateDetailPage from '@/components/soulmate-detail-page';
 
-// 根据链 ID 显示原生币符号（本地用 ETH，BSC 用 BNB）
-function getNativeSymbol(chainId: number): string {
-  return chainId === 31337 ? 'ETH' : 'BNB';
+// ============ 预设角色类型定义 ============
+interface PresetType {
+    type: string;
+    label: string;
+    description: string;
+    icon: React.ReactNode;
+    gradient: string;
+    bgGlow: string;
+    presetImage?: string;
 }
 
-// Mint 状态文案
-function getMintButtonText(
-    isMinting: boolean,
-    mintTxHash: string | undefined,
-    isConfirming: boolean,
-    isCreatingCharacter: boolean,
-    hasError: boolean
-): string {
-    if (hasError) return '重试 Mint';
-    if (isCreatingCharacter) return '创建角色与生成图片中...';
-    if (isConfirming || (isMinting && mintTxHash)) return '等待链上确认...';
-    if (isMinting) return '请在钱包中确认...';
-    return 'Confirm & Mint';
-}
+const PRESET_TYPES: PresetType[] = [
+    {
+        type: 'girlfriend',
+        label: 'AI Girlfriend',
+        description: 'Sweet and caring companion who truly understands you',
+        icon: <Heart className="w-7 h-7" />,
+        gradient: 'from-pink-500 to-rose-600',
+        bgGlow: 'bg-pink-500/10',
+        presetImage: '/presets/girlfriend.jpg',
+    },
+    {
+        type: 'boyfriend',
+        label: 'AI Boyfriend',
+        description: 'Warm, charming partner always by your side',
+        icon: <Star className="w-7 h-7" />,
+        gradient: 'from-blue-500 to-indigo-600',
+        bgGlow: 'bg-blue-500/10',
+        presetImage: '/presets/boyfriend.jpg',
+    },
+    {
+        type: 'best_friend',
+        label: 'Best Friend',
+        description: 'Your ride-or-die, the one you tell everything to',
+        icon: <Users className="w-7 h-7" />,
+        gradient: 'from-amber-500 to-orange-600',
+        bgGlow: 'bg-amber-500/10',
+        presetImage: '/presets/best_friend.jpg',
+    },
+    {
+        type: 'soulmate',
+        label: 'Soulmate',
+        description: 'Your destined other half, a bond beyond time',
+        icon: <Sparkles className="w-7 h-7" />,
+        gradient: 'from-purple-500 to-violet-600',
+        bgGlow: 'bg-purple-500/10',
+        presetImage: '/presets/soulmate.jpg',
+    },
+    {
+        type: 'future_baby',
+        label: 'Future Baby',
+        description: 'A glimpse of your future child',
+        icon: <Baby className="w-7 h-7" />,
+        gradient: 'from-green-400 to-emerald-600',
+        bgGlow: 'bg-green-500/10',
+        presetImage: '/presets/future_baby.jpg',
+    },
+    {
+        type: 'future_wife',
+        label: 'Future Wife',
+        description: 'Elegant, wise partner for life',
+        icon: <Crown className="w-7 h-7" />,
+        gradient: 'from-rose-400 to-pink-600',
+        bgGlow: 'bg-rose-500/10',
+        presetImage: '/presets/future_wife.jpg',
+    },
+    {
+        type: 'future_husband',
+        label: 'Future Husband',
+        description: 'Mature, dependable soulmate',
+        icon: <Crown className="w-7 h-7" />,
+        gradient: 'from-slate-400 to-zinc-600',
+        bgGlow: 'bg-slate-500/10',
+        presetImage: '/presets/future_husband.jpg',
+    },
+    {
+        type: 'companion',
+        label: 'Companion',
+        description: 'Warm, reliable travel partner for life',
+        icon: <Compass className="w-7 h-7" />,
+        gradient: 'from-teal-500 to-cyan-600',
+        bgGlow: 'bg-teal-500/10',
+        presetImage: '/presets/companion.jpg',
+    },
+    {
+        type: 'wise_mentor',
+        label: 'Wise Mentor',
+        description: 'Knowledgeable guide for life',
+        icon: <BookOpen className="w-7 h-7" />,
+        gradient: 'from-yellow-500 to-amber-600',
+        bgGlow: 'bg-yellow-500/10',
+        presetImage: '/presets/wise_mentor.jpg',
+    },
+    {
+        type: 'dream_guide',
+        label: 'Dream Guide',
+        description: 'Mysterious guide across time and dreams',
+        icon: <Moon className="w-7 h-7" />,
+        gradient: 'from-indigo-500 to-purple-700',
+        bgGlow: 'bg-indigo-500/10',
+        presetImage: '/presets/dream_guide.jpg',
+    },
+    {
+        type: 'mysterious_stranger',
+        label: 'Mysterious Stranger',
+        description: 'A fateful unknown encounter',
+        icon: <Ghost className="w-7 h-7" />,
+        gradient: 'from-gray-500 to-zinc-700',
+        bgGlow: 'bg-gray-500/10',
+        presetImage: '/presets/mysterious_stranger.jpg',
+    },
+];
 
-// Mint Confirmation Step Component
-const MintConfirmation = ({
-    onMint,
-    isMinting,
-    nativeSymbol = 'BNB',
-    chainId,
-    mintTxHash,
-    isConfirming,
-    isCreatingCharacter,
-    mintError,
-    onClearError,
-    mintPriceWei,
-    mintPriceError,
-    onSkipWaiting,
-    onCheckTxAndContinue,
-    isCheckingTx,
-}: {
-    onMint: () => void,
-    isMinting: boolean,
-    nativeSymbol?: string,
-    chainId?: number,
-    mintTxHash?: string,
-    isConfirming?: boolean,
-    isCreatingCharacter?: boolean,
-    mintError?: string | null,
-    onClearError?: () => void,
-    mintPriceWei?: bigint,
-    mintPriceError?: boolean,
-    onSkipWaiting?: () => void,
-    onCheckTxAndContinue?: () => void,
-    isCheckingTx?: boolean,
-}) => (
-    <div className="flex flex-col items-center justify-center p-6 space-y-8 max-w-md mx-auto h-full text-center">
-        {chainId !== undefined && chainId !== 31337 && (
-            <div className="w-full rounded-xl bg-amber-500/20 border border-amber-500/40 p-4 text-left">
-                <p className="text-amber-200 font-medium text-sm">请切换到本地网络</p>
-                <p className="text-amber-200/80 text-xs mt-1">
-                    当前为 BNB Chain，该地址无 BNB 无法付 gas。请在钱包中将网络改为 <strong>Localhost</strong>（RPC: http://127.0.0.1:8545，Chain ID: 31337），使用已发放的测试原生币即可确认。
-                </p>
-            </div>
-        )}
+// ============ Gender options ============
+const GENDER_OPTIONS = [
+    { value: 'Female', label: 'Female', emoji: '👩' },
+    { value: 'Male', label: 'Male', emoji: '👨' },
+    { value: 'Other', label: 'Other', emoji: '🌈' },
+];
 
-        {chainId === 31337 && mintPriceError && (
-            <div className="w-full rounded-xl bg-amber-500/20 border border-amber-500/40 p-4 text-left">
-                <p className="text-amber-200 font-medium text-sm">无法读取合约</p>
-                <p className="text-amber-200/80 text-xs mt-1">
-                    {process.env.NEXT_PUBLIC_RPC_URL ? (
-                        <>请确认钱包已切换到测试网：RPC <code className="bg-black/30 px-1 rounded">{process.env.NEXT_PUBLIC_RPC_URL}</code>，Chain ID 31337。刷新页面或重连钱包后重试。</>
-                    ) : (
-                        <>请确认：(1) 在 <code className="bg-black/30 px-1 rounded">contracts</code> 目录运行 <code className="bg-black/30 px-1 rounded">npx hardhat node</code>；(2) 另开终端运行 <code className="bg-black/30 px-1 rounded">npx hardhat run scripts/deploy.js --network localhost</code>；(3) 钱包连接的是 Localhost (127.0.0.1:8545)。</>
-                    )}
-                </p>
-            </div>
-        )}
+// ============ Ethnicity options ============
+const ETHNICITY_OPTIONS = [
+    { value: 'East Asian', label: 'East Asian', emoji: '🌸' },
+    { value: 'South Asian', label: 'South Asian', emoji: '🪷' },
+    { value: 'Southeast Asian', label: 'Southeast Asian', emoji: '🌺' },
+    { value: 'White', label: 'White/European', emoji: '🏔️' },
+    { value: 'Black/African', label: 'Black/African', emoji: '🌍' },
+    { value: 'Hispanic/Latino', label: 'Hispanic/Latino', emoji: '🌮' },
+    { value: 'Middle Eastern', label: 'Middle Eastern', emoji: '🕌' },
+    { value: 'Indigenous', label: 'Indigenous', emoji: '🪶' },
+    { value: 'Mixed', label: 'Mixed', emoji: '🌎' },
+];
 
-        {mintError && (
-            <div className="w-full rounded-xl bg-red-500/20 border border-red-500/40 p-4 text-left">
-                <p className="text-red-200 font-medium text-sm">Mint 失败</p>
-                <p className="text-red-200/80 text-xs mt-1">{mintError}</p>
-                {onClearError && (
-                    <button type="button" onClick={onClearError} className="text-red-300 underline text-xs mt-2">
-                        清除并重试
-                    </button>
-                )}
-            </div>
-        )}
-
-        <div className="space-y-4">
-            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500 animate-pulse">
-                Ready to Mint?
-            </h2>
-            <p className="text-gray-400">
-                You are about to bring your AI Soulmate to life on the blockchain.
-                This will create a unique, sovereign identity based on your DNA profile.
-            </p>
-        </div>
-
-        <div className="w-full bg-white/5 rounded-xl p-6 border border-white/10">
-            <div className="flex justify-between items-center mb-4">
-                <span className="text-gray-400">Mint Fee</span>
-                <span className="font-bold text-white">
-                    {mintPriceWei !== undefined ? `${formatEther(mintPriceWei)} ${nativeSymbol}` : '—'} {chainId === 31337 ? '(Local)' : ''}
-                </span>
-            </div>
-            <div className="flex justify-between items-center">
-                <span className="text-gray-400">Gas</span>
-                <span className="font-bold text-white">~0.0001 {nativeSymbol}</span>
-            </div>
-            {nativeSymbol === 'ETH' && (
-                <p className="text-xs text-purple-300 mt-3 text-left">
-                    当前为本地网络，使用钱包中的原生币 (ETH/GO) 支付 gas 即可。
-                </p>
-            )}
-            {mintTxHash && (
-                <p className="text-xs text-white/60 mt-3 text-left break-all">
-                    交易: {mintTxHash.slice(0, 10)}...{mintTxHash.slice(-8)}
-                </p>
-            )}
-            {mintTxHash && isConfirming && (
-                <p className="text-xs text-amber-200/90 mt-3 text-left">
-                    若长时间卡住，多为 RPC 轮询超时。请先看钱包里该笔是否已成功；若已成功可点下方「跳过等待」去 Dashboard 查看。
-                </p>
-            )}
-        </div>
-
-        {mintTxHash && isConfirming && onCheckTxAndContinue && (
-            <Button
-                type="button"
-                variant="outline"
-                className="w-full border-green-500/50 text-green-300 hover:bg-green-500/10"
-                onClick={onCheckTxAndContinue}
-                disabled={!!isCheckingTx}
-            >
-                {isCheckingTx ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                检查交易状态，若已确认则继续
-            </Button>
-        )}
-        {mintTxHash && isConfirming && onSkipWaiting && (
-            <Button
-                type="button"
-                variant="outline"
-                className="w-full border-white/30 text-gray-300 hover:bg-white/10"
-                onClick={onSkipWaiting}
-            >
-                跳过等待，去 Dashboard
-            </Button>
-        )}
-
-        <Button
-            onClick={onMint}
-            disabled={isMinting && !mintError}
-            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-        >
-            {(isMinting || isCreatingCharacter) && !mintError ? (
-                <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    {getMintButtonText(isMinting, mintTxHash, !!isConfirming, !!isCreatingCharacter, !!mintError)}
-                </>
-            ) : (
-                getMintButtonText(isMinting, mintTxHash, !!isConfirming, !!isCreatingCharacter, !!mintError)
-            )}
-        </Button>
-    </div>
-);
+// ============ 步骤类型 ============
+type StepType = 'profile' | 'preset' | 'gender' | 'ethnicity' | 'generating' | 'result';
 
 export default function CreatePage() {
     const router = useRouter();
-    const { isConnected, address } = useAccount();
-    const chainId = useChainId();
-    const nativeSymbol = getNativeSymbol(chainId);
-    const { signMessageAsync } = useSignMessage();
-    const { writeContractAsync } = useWriteContract();
-    const [mintTxHash, setMintTxHash] = useState<`0x${string}` | undefined>(undefined);
+    const { isConnected } = useAccount();
 
-    // 从合约读取当前 Mint 价格；若读不到则说明合约未部署或未连本地链
-    const { data: mintPriceWei, isError: mintPriceError } = useReadContract({
-        address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
-        abi: LAURA_AI_SOULMATE_ABI,
-        functionName: 'mintPrice',
-    });
+    // 步骤状态
+    const [currentStep, setCurrentStep] = useState<StepType>('preset');
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+    const [profileComplete, setProfileComplete] = useState(false);
 
-    // Watch for transaction receipt（等待链上确认后再创建角色）
-    const { isLoading: isConfirming, isSuccess: isConfirmed, isError: isTxError } = useWaitForTransactionReceipt({
-        hash: mintTxHash,
-    });
-    const [step, setStep] = useState(1); // Start from NameInput
-    const [formData, setFormData] = useState({
+    // 用户资料（首次填写）
+    const [profileData, setProfileData] = useState({
         name: '',
         gender: '',
-        birthDate: { month: '', day: '', year: '' },
-        birthTime: { hour: '19', minute: '15' },
+        birthDate: '',
+        birthTime: '',
         birthPlace: '',
         ethnicity: '',
-        soulmateGender: '',
-        soulmateEthnicity: '',
     });
 
-    const [selectedCharacterData, setSelectedCharacterData] = useState<any>(null);
+    // 角色创建数据
+    const [selectedType, setSelectedType] = useState<string>('');
+    const [soulmateGender, setSoulmateGender] = useState('');
+    const [soulmateEthnicity, setSoulmateEthnicity] = useState('');
+
+    // 已创建的角色列表（用于标记"已创建"）
+    const [existingTypes, setExistingTypes] = useState<string[]>([]);
+
+    // 生成状态
+    const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState<string | null>(null);
-    const [isMinting, setIsMinting] = useState(false);
-    const [isCreatingCharacter, setIsCreatingCharacter] = useState(false);
-    const [isCheckingTx, setIsCheckingTx] = useState(false);
-    const processedMintHashRef = useRef<string | undefined>(undefined);
+    const [createdCharacter, setCreatedCharacter] = useState<any>(null);
 
-    // Month name helper
-    const monthNameToNumber = (monthName: string): string => {
-        const months: Record<string, string> = {
-            'January': '01', 'February': '02', 'March': '03', 'April': '04',
-            'May': '05', 'June': '06', 'July': '07', 'August': '08',
-            'September': '09', 'October': '10', 'November': '11', 'December': '12',
-        };
-        return months[monthName] || '01';
-    };
-
-    const updateFormData = (field: string, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleNext = () => {
-        if (step === 7) {
-            // LoadingResults -> ResultsCard
-            setTimeout(() => setStep(8), 3000);
-        } else if (step === 10) {
-            // After Ethnicity -> Mint Confirmation (New Step 10.5 -> 11)
-            setStep(11);
-        } else {
-            setStep(prev => prev + 1);
-        }
-    };
-
-    const handleBack = () => {
-        if (step > 1) setStep(prev => prev - 1);
-    };
-
-    // 从合约 revert 或钱包错误中提取可读提示
-    const getMintErrorMessage = (error: unknown, chainId?: number): string => {
-        const msg = error instanceof Error ? error.message : String(error);
-        const symbol = chainId === 31337 ? 'ETH' : 'BNB';
-        if (/Insufficient payment|insufficient.*payment/i.test(msg)) {
-            return `余额不足：请确保钱包有至少 0.01 ${symbol}（Mint 费用）。本地网络请用 contracts/scripts/fund-address.js 领取测试币。`;
-        }
-        if (/user rejected|rejected.*transaction|User denied/i.test(msg)) {
-            return '您已在钱包中拒绝了交易。';
-        }
-        if (/revert|reverted|Contract Call|Transaction failed/i.test(msg)) {
-            const hint = chainId === 31337
-                ? '若余额充足仍失败，多半是本地链未启动或合约未部署。请确认：(1) 在 contracts 目录运行 npx hardhat node；(2) 另开终端运行 npx hardhat run scripts/deploy.js --network localhost；(3) 钱包连接的是 Localhost 网络 (RPC: http://127.0.0.1:8545)。'
-                : '请切换到本地网络 (Localhost 31337) 并使用测试币 Mint；当前链上合约可能未部署或配置不同。';
-            return `合约执行失败。${hint}`;
-        }
-        return msg.length > 200 ? '交易失败，请重试。' : msg;
-    };
-
-    const handleMint = async () => {
-        if (!isConnected) {
-            alert("Please connect your wallet first!");
-            return;
-        }
-        setGenerationError(null);
-        setIsMinting(true);
-        try {
-            const priceWei = mintPriceWei ?? parseEther('0.01');
-            const metadataURI = `ipfs://bafkreih.../metadata/soulmate_${Date.now()}.json`;
-            const hash = await writeContractAsync({
-                address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
-                abi: LAURA_AI_SOULMATE_ABI,
-                functionName: 'safeMint',
-                args: [address as `0x${string}`, metadataURI],
-                value: priceWei,
-            });
-            setMintTxHash(hash);
-            // 不在这里创建角色：等链上确认后再执行（见下方 useEffect）
-        } catch (error) {
-            console.error('Mint tx failed:', error);
-            setGenerationError(getMintErrorMessage(error, chainId));
-            setIsMinting(false);
-        }
-    };
-
-    // 链上交易失败（revert 或网络错误）
+    // 加载用户资料
     useEffect(() => {
-        if (!mintTxHash || !isTxError) return;
-        const hint = chainId === 31337
-            ? '若余额充足仍失败，请确认本地链已启动且合约已部署：npx hardhat node 与 deploy.js --network localhost。'
-            : '请切换到本地网络 (31337) 并确认合约已部署。';
-        setGenerationError('链上执行失败。' + hint);
-        setIsMinting(false);
-    }, [mintTxHash, isTxError, chainId]);
+        const loadProfile = async () => {
+            try {
+                const profile = await apiClient.getMe() as any;
+                const hasProfile = !!(profile?.name && profile?.gender && profile?.birth_date && profile?.ethnicity);
+                setProfileComplete(hasProfile);
 
-    // 链上确认后：创建后端角色并生成图片（供 useEffect 和「检查交易状态」共用）
-    const runPostMintFlow = async () => {
-        if (!mintTxHash || processedMintHashRef.current === mintTxHash) return;
-        processedMintHashRef.current = mintTxHash;
-        setIsCreatingCharacter(true);
+                if (profile) {
+                    setProfileData({
+                        name: profile.name || '',
+                        gender: profile.gender || '',
+                        birthDate: profile.birth_date ? profile.birth_date.split('T')[0] : '',
+                        birthTime: profile.birth_time || '',
+                        birthPlace: profile.birth_place || '',
+                        ethnicity: profile.ethnicity || '',
+                    });
+                }
+
+                // 加载已创建的角色
+                const characters = await apiClient.getCharacters() as any[];
+                if (characters && Array.isArray(characters)) {
+                    setExistingTypes(characters.map((c: any) => c.type));
+                }
+
+                // 如果资料不完整，先填资料
+                setCurrentStep(hasProfile ? 'preset' : 'profile');
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+                setCurrentStep('profile');
+            } finally {
+                setIsLoadingProfile(false);
+            }
+        };
+
+        loadProfile();
+    }, []);
+
+    // ============ 保存用户资料 ============
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+    const handleSaveProfile = async () => {
+        if (!profileData.name || !profileData.gender || !profileData.birthDate || !profileData.ethnicity) return;
+        setIsSavingProfile(true);
+        try {
+            await apiClient.updateMe({
+                name: profileData.name,
+                gender: profileData.gender,
+                birth_date: profileData.birthDate,
+                birth_time: profileData.birthTime || undefined,
+                birth_place: profileData.birthPlace || undefined,
+                ethnicity: profileData.ethnicity,
+            });
+            setProfileComplete(true);
+            setCurrentStep('preset');
+        } catch (error) {
+            console.error('Failed to save profile:', error);
+        } finally {
+            setIsSavingProfile(false);
+        }
+    };
+
+    // ============ 创建角色 ============
+    const handleCreateCharacter = async () => {
+        if (!soulmateGender || !soulmateEthnicity || !selectedType) return;
+        setIsGenerating(true);
+        setGenerationError(null);
+        setCurrentStep('generating');
+
         try {
             const character = await apiClient.createCharacter({
-                type: 'soulmate',
-                title: 'Soulmate',
-                gender: formData.soulmateGender,
-                ethnicity: formData.soulmateEthnicity,
-            });
-            if (!character || !(character as any).id) {
-                throw new Error('Failed to create character record');
-            }
-            const imageResult = await apiClient.generateImage((character as any).id.toString()) as any;
+                type: selectedType,
+                gender: soulmateGender,
+                ethnicity: soulmateEthnicity,
+            }) as any;
+
+            if (!character?.id) throw new Error('Failed to create character');
+
+            // 生成图片
+            const imageResult = await apiClient.generateImage(character.id.toString()) as any;
             if (imageResult?.image_url) {
-                (character as any).image_url = imageResult.image_url;
-                (character as any).full_blur_image_url = imageResult.full_blur_image_url;
-                (character as any).unlock_status = imageResult.unlock_status;
-                (character as any).share_code = imageResult.share_code;
+                character.image_url = imageResult.image_url;
+                character.full_blur_image_url = imageResult.full_blur_image_url;
+                character.unlock_status = imageResult.unlock_status;
+                character.share_code = imageResult.share_code;
             }
-            setSelectedCharacterData({
-                ...(character as any),
-                id: (character as any).id.toString(),
+
+            setCreatedCharacter({
+                ...character,
+                id: character.id.toString(),
             });
-            setStep(12);
-        } catch (err) {
-            console.error('Create character / image failed:', err);
-            setGenerationError(err instanceof Error ? err.message : 'Create character or generate image failed');
+            setCurrentStep('result');
+        } catch (error: any) {
+            console.error('Failed to create character:', error);
+            setGenerationError(error.message || 'Creation failed. Please try again.');
+            setCurrentStep('ethnicity'); // Go back
         } finally {
-            setIsCreatingCharacter(false);
-            setIsMinting(false);
+            setIsGenerating(false);
         }
     };
 
-    useEffect(() => {
-        if (!mintTxHash || !isConfirmed) return;
-        runPostMintFlow();
-    }, [mintTxHash, isConfirmed, formData.soulmateGender, formData.soulmateEthnicity]);
-
-    // 手动检查链上交易是否已确认（解决代理轮询超时导致一直「等待链上确认」）
-    const handleCheckTxAndContinue = async () => {
-        if (!mintTxHash) return;
-        setIsCheckingTx(true);
-        setGenerationError(null);
-        try {
-            const rpcUrl = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_RPC_URL
-                ? `${window.location.origin}/cloud-rpc`
-                : `${window.location.origin}/hardhat-rpc`;
-            const res = await fetch(rpcUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    jsonrpc: '2.0',
-                    method: 'eth_getTransactionReceipt',
-                    params: [mintTxHash],
-                    id: 1,
-                }),
-            });
-            const data = await res.json();
-            const receipt = data.result;
-            if (!receipt) {
-                setGenerationError('链上暂无该交易回执，请确认钱包已提交并稍后再试。');
-                return;
-            }
-            if (receipt.status === '0x0') {
-                setGenerationError('该交易链上已失败，请重试 Mint。');
-                return;
-            }
-            await runPostMintFlow();
-        } catch (e) {
-            setGenerationError(e instanceof Error ? e.message : '查询交易失败');
-        } finally {
-            setIsCheckingTx(false);
+    // ============ 返回逻辑 ============
+    const handleBack = () => {
+        switch (currentStep) {
+            case 'profile':
+                if (profileComplete) setCurrentStep('preset');
+                break;
+            case 'gender':
+                setCurrentStep('preset');
+                break;
+            case 'ethnicity':
+                setCurrentStep('gender');
+                break;
+            case 'result':
+                setCurrentStep('preset');
+                break;
+            default:
+                break;
         }
     };
 
-    // Skip LoadingResults automatically
-    useEffect(() => {
-        if (step === 7) {
-            const timer = setTimeout(() => {
-                setStep(8);
-            }, 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [step]);
-
-    // If not connected, show prompt
+    // ============ 加载/连接钱包判断 ============
     if (!isConnected) {
         return (
             <AppLayout>
                 <div className="flex flex-col items-center justify-center h-full min-h-[60vh] space-y-6">
-                    <div className="p-4 bg-white/5 rounded-full">
-                        <Loader2 className="w-12 h-12 text-purple-400 animate-spin-slow" />
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border border-white/10">
+                        <Sparkles className="w-10 h-10 text-purple-400" />
                     </div>
-                    <h2 className="text-2xl font-bold">Connect Wallet to Mint</h2>
+                    <h2 className="text-2xl font-bold">Connect Wallet to Create</h2>
                     <p className="text-gray-400 max-w-md text-center">
-                        You need a Web3 wallet to mint your sovereign AI companion.
+                        Connect your Web3 wallet to create your AI character.
                     </p>
                     <ConnectButton />
                 </div>
@@ -418,15 +320,22 @@ export default function CreatePage() {
         );
     }
 
-    // Steps Mapping
-    // 1: Name, 2: Gender, 3: Date, 4: Time, 5: Place, 6: Ethnicity
-    // 7: Loading, 8: Results, 9: SM Gender, 10: SM Ethnicity
-    // 11: Mint Confirmation, 12: Success/Detail
+    if (isLoadingProfile) {
+        return (
+            <AppLayout>
+                <div className="flex flex-col items-center justify-center h-full min-h-[60vh]">
+                    <Loader2 className="w-10 h-10 animate-spin text-purple-500 mb-4" />
+                    <p className="text-gray-400">Loading...</p>
+                </div>
+            </AppLayout>
+        );
+    }
 
     return (
         <AppLayout>
-            <div className="max-w-2xl mx-auto w-full">
-                {step > 1 && step < 12 && (
+            <div className="max-w-4xl mx-auto w-full px-4 py-6">
+                {/* Back Button */}
+                {currentStep !== 'preset' && currentStep !== 'generating' && (
                     <Button
                         variant="ghost"
                         onClick={handleBack}
@@ -436,70 +345,384 @@ export default function CreatePage() {
                     </Button>
                 )}
 
-                <div className="bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden min-h-[600px] relative">
+                <AnimatePresence mode="wait">
+                    {/* ============ 资料收集步骤 ============ */}
+                    {currentStep === 'profile' && (
+                        <motion.div
+                            key="profile"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden"
+                        >
+                            <div className="p-6 md:p-8 space-y-8">
+                                {/* Header */}
+                                <div className="text-center space-y-3">
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mx-auto">
+                                        <User className="w-8 h-8 text-white" />
+                                    </div>
+                                    <h2 className="text-2xl md:text-3xl font-bold text-white">Complete Your Profile</h2>
+                                    <p className="text-gray-400 max-w-md mx-auto">Fill this in once. Future character creation only requires gender and ethnicity.</p>
+                                </div>
 
-                    {step === 1 && (
-                        <NameInput value={formData.name} onChange={(val) => updateFormData('name', val)} onNext={handleNext} onBack={handleBack} />
+                                {/* Form Fields */}
+                                <div className="space-y-6 max-w-lg mx-auto">
+                                    {/* Name */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">Your Name *</label>
+                                        <input
+                                            type="text"
+                                            value={profileData.name}
+                                            onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                                            placeholder="Enter your name"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 transition-colors"
+                                        />
+                                    </div>
+
+                                    {/* Gender */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">Your Gender *</label>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            {GENDER_OPTIONS.map((opt) => (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    onClick={() => setProfileData(prev => ({ ...prev, gender: opt.value }))}
+                                                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${profileData.gender === opt.value
+                                                        ? 'bg-purple-500/20 border-purple-500/50 text-white'
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+                                                        }`}
+                                                >
+                                                    <span className="text-2xl">{opt.emoji}</span>
+                                                    <span className="text-xs font-medium">{opt.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Birth Date */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">Birth Date *</label>
+                                        <input
+                                            type="date"
+                                            value={profileData.birthDate}
+                                            onChange={(e) => setProfileData(prev => ({ ...prev, birthDate: e.target.value }))}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-colors [color-scheme:dark]"
+                                        />
+                                    </div>
+
+                                    {/* Birth Time (optional) */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">Birth Time <span className="text-gray-500">(optional)</span></label>
+                                        <input
+                                            type="time"
+                                            value={profileData.birthTime}
+                                            onChange={(e) => setProfileData(prev => ({ ...prev, birthTime: e.target.value }))}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-colors [color-scheme:dark]"
+                                        />
+                                    </div>
+
+                                    {/* Birth Place (optional) */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">Birth Place <span className="text-gray-500">(optional)</span></label>
+                                        <input
+                                            type="text"
+                                            value={profileData.birthPlace}
+                                            onChange={(e) => setProfileData(prev => ({ ...prev, birthPlace: e.target.value }))}
+                                            placeholder="e.g. London, New York"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 transition-colors"
+                                        />
+                                    </div>
+
+                                    {/* Ethnicity */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">Your Ethnicity *</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {ETHNICITY_OPTIONS.map((opt) => (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    onClick={() => setProfileData(prev => ({ ...prev, ethnicity: opt.value }))}
+                                                    className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all text-center ${profileData.ethnicity === opt.value
+                                                        ? 'bg-purple-500/20 border-purple-500/50 text-white'
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+                                                        }`}
+                                                >
+                                                    <span className="text-lg">{opt.emoji}</span>
+                                                    <span className="text-[10px] font-medium leading-tight">{opt.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Submit */}
+                                <div className="max-w-lg mx-auto">
+                                    <Button
+                                        onClick={handleSaveProfile}
+                                        disabled={!profileData.name || !profileData.gender || !profileData.birthDate || !profileData.ethnicity || isSavingProfile}
+                                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        {isSavingProfile ? (
+                                            <><Loader2 className="w-5 h-5 animate-spin mr-2" /> Saving...</>
+                                        ) : (
+                                            <><Check className="w-5 h-5 mr-2" /> Save & Continue</>
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
                     )}
-                    {step === 2 && (
-                        <GenderSelect value={formData.gender} onChange={(val) => updateFormData('gender', val)} onNext={handleNext} onBack={handleBack} title="What is your gender?" />
+
+                    {/* ============ 预设角色选择 ============ */}
+                    {currentStep === 'preset' && (
+                        <motion.div
+                            key="preset"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-6"
+                        >
+                            {/* Header */}
+                            <div className="text-center space-y-3">
+                                <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">Choose Your AI Character</h2>
+                                <p className="text-gray-400 text-lg font-light">
+                                    Pick a character type. AI will generate a unique avatar for you.
+                                </p>
+                            </div>
+
+                            {/* Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                                {PRESET_TYPES.map((preset, index) => {
+                                    const isCreated = existingTypes.includes(preset.type);
+                                    return (
+                                        <motion.button
+                                            key={preset.type}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.05, duration: 0.3 }}
+                                            onClick={() => {
+                                                setSelectedType(preset.type);
+                                                setCurrentStep('gender');
+                                            }}
+                                            className="group relative bg-black/40 border border-white/10 rounded-2xl text-left hover:border-purple-500/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10 overflow-hidden aspect-[3/4]"
+                                        >
+                                            {/* Preset Image Background */}
+                                            {preset.presetImage && (
+                                                <Image
+                                                    src={preset.presetImage}
+                                                    alt={preset.label}
+                                                    fill
+                                                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                                />
+                                            )}
+
+                                            {/* Gradient Overlay */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-80 transition-opacity" />
+
+                                            {/* Created Badge */}
+                                            {isCreated && (
+                                                <div className="absolute top-3 right-3 z-20 px-2 py-0.5 rounded-full bg-green-500/20 backdrop-blur-md border border-green-500/30 text-[10px] font-bold text-green-400">
+                                                    Created
+                                                </div>
+                                            )}
+
+                                            {/* Content at Bottom */}
+                                            <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                                                {/* Icon Badge */}
+                                                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${preset.gradient} flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                                                    <div className="text-white scale-75">{preset.icon}</div>
+                                                </div>
+
+                                                {/* Text */}
+                                                <h3 className="text-base font-bold text-white mb-0.5 flex items-center gap-1">
+                                                    {preset.label}
+                                                    <ChevronRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                                                </h3>
+                                                <p className="text-[11px] text-gray-300 leading-relaxed line-clamp-2">{preset.description}</p>
+                                            </div>
+                                        </motion.button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Profile Edit Link */}
+                            <div className="text-center pt-2">
+                                <button
+                                    onClick={() => setCurrentStep('profile')}
+                                    className="text-sm text-gray-500 hover:text-purple-400 transition-colors"
+                                >
+                                    Edit Profile
+                                </button>
+                            </div>
+                        </motion.div>
                     )}
-                    {step === 3 && (
-                        <BirthDatePicker value={formData.birthDate} onChange={(val) => updateFormData('birthDate', val)} onNext={handleNext} onBack={handleBack} />
+
+                    {/* ============ 性别选择 ============ */}
+                    {currentStep === 'gender' && (
+                        <motion.div
+                            key="gender"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden"
+                        >
+                            <div className="p-6 md:p-8 space-y-8">
+                                {/* Header */}
+                                <div className="text-center space-y-3">
+                                    <div className="text-sm text-purple-400 font-medium">
+                                        Create {PRESET_TYPES.find(p => p.type === selectedType)?.label}
+                                    </div>
+                                    <h2 className="text-2xl md:text-3xl font-bold text-white">Choose Their Gender</h2>
+                                    <p className="text-gray-400">What gender should they be?</p>
+                                </div>
+
+                                {/* Options */}
+                                <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+                                    {GENDER_OPTIONS.map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => {
+                                                setSoulmateGender(opt.value);
+                                                setCurrentStep('ethnicity');
+                                            }}
+                                            className={`group flex flex-col items-center gap-3 p-6 rounded-2xl border transition-all duration-300 hover:-translate-y-1 ${soulmateGender === opt.value
+                                                ? 'bg-purple-500/20 border-purple-500/50 text-white shadow-lg shadow-purple-500/10'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/20'
+                                                }`}
+                                        >
+                                            <span className="text-4xl group-hover:scale-110 transition-transform">{opt.emoji}</span>
+                                            <span className="text-sm font-bold">{opt.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
                     )}
-                    {step === 4 && (
-                        <BirthTimePicker value={formData.birthTime} onChange={(val) => updateFormData('birthTime', val)} onNext={handleNext} onBack={handleBack} />
+
+                    {/* ============ 族裔选择 ============ */}
+                    {currentStep === 'ethnicity' && (
+                        <motion.div
+                            key="ethnicity"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden"
+                        >
+                            <div className="p-6 md:p-8 space-y-8">
+                                {/* Header */}
+                                <div className="text-center space-y-3">
+                                    <div className="text-sm text-purple-400 font-medium">
+                                        Create {PRESET_TYPES.find(p => p.type === selectedType)?.label} · {soulmateGender === 'Female' ? 'Female' : soulmateGender === 'Male' ? 'Male' : 'Other'}
+                                    </div>
+                                    <h2 className="text-2xl md:text-3xl font-bold text-white">Choose Ethnicity / Skin Tone</h2>
+                                    <p className="text-gray-400">AI will generate matching physical features</p>
+                                </div>
+
+                                {/* Error Message */}
+                                {generationError && (
+                                    <div className="max-w-md mx-auto bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-center">
+                                        <p className="text-red-300 text-sm">{generationError}</p>
+                                    </div>
+                                )}
+
+                                {/* Options */}
+                                <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto">
+                                    {ETHNICITY_OPTIONS.map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => {
+                                                setSoulmateEthnicity(opt.value);
+                                            }}
+                                            className={`group flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-300 hover:-translate-y-0.5 ${soulmateEthnicity === opt.value
+                                                ? 'bg-purple-500/20 border-purple-500/50 text-white shadow-lg shadow-purple-500/10'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/20'
+                                                }`}
+                                        >
+                                            <span className="text-2xl group-hover:scale-110 transition-transform">{opt.emoji}</span>
+                                            <span className="text-[11px] font-bold leading-tight text-center">{opt.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Generate Button */}
+                                <div className="max-w-md mx-auto">
+                                    <Button
+                                        onClick={handleCreateCharacter}
+                                        disabled={!soulmateEthnicity || isGenerating}
+                                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-40 disabled:cursor-not-allowed gap-2"
+                                    >
+                                        <Sparkles className="w-5 h-5" />
+                                        Generate AI Avatar
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
                     )}
-                    {step === 5 && (
-                        <BirthPlaceInput value={formData.birthPlace} onChange={(val) => updateFormData('birthPlace', val)} onNext={handleNext} onBack={handleBack} />
+
+                    {/* ============ 生成中 ============ */}
+                    {currentStep === 'generating' && (
+                        <motion.div
+                            key="generating"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="flex flex-col items-center justify-center min-h-[500px] space-y-8"
+                        >
+                            {/* Animated DNA-style loader */}
+                            <div className="relative">
+                                <div className="w-32 h-32 rounded-full border-2 border-purple-500/30 flex items-center justify-center">
+                                    <div className="w-24 h-24 rounded-full border-2 border-pink-500/30 flex items-center justify-center animate-spin" style={{ animationDuration: '3s' }}>
+                                        <div className="w-16 h-16 rounded-full border-2 border-purple-500/50 flex items-center justify-center animate-spin" style={{ animationDuration: '2s', animationDirection: 'reverse' }}>
+                                            <Sparkles className="w-8 h-8 text-purple-400 animate-pulse" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="absolute inset-0 bg-purple-500/5 rounded-full blur-[40px] animate-pulse" />
+                            </div>
+
+                            <div className="text-center space-y-3">
+                                <h3 className="text-2xl font-bold text-white">AI Is Generating Your Character</h3>
+                                <p className="text-gray-400 max-w-sm">
+                                    Analyzing DNA traits and creating your avatar. Please wait...
+                                </p>
+                                <div className="flex items-center justify-center gap-2 text-purple-400 text-sm">
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <span>Estimated 15-30 seconds</span>
+                                </div>
+                            </div>
+                        </motion.div>
                     )}
-                    {step === 6 && (
-                        <EthnicitySelect value={formData.ethnicity} onChange={(val) => updateFormData('ethnicity', val)} onNext={handleNext} onBack={handleBack} />
+
+                    {/* ============ 生成结果 ============ */}
+                    {currentStep === 'result' && createdCharacter && (
+                        <motion.div
+                            key="result"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                        >
+                            <SoulmateDetailPage
+                                character={createdCharacter}
+                                onNext={() => router.push(`/chat/${createdCharacter.id}`)}
+                                onBack={() => {
+                                    setCreatedCharacter(null);
+                                    setCurrentStep('preset');
+                                    // Refresh existing types
+                                    apiClient.getCharacters().then((chars: any) => {
+                                        if (Array.isArray(chars)) {
+                                            setExistingTypes(chars.map((c: any) => c.type));
+                                        }
+                                    });
+                                }}
+                                onCharacterUpdate={setCreatedCharacter}
+                                onUnlockSuccess={() => { }}
+                            />
+                        </motion.div>
                     )}
-                    {step === 7 && (
-                        <LoadingResults onBack={handleBack} />
-                    )}
-                    {step === 8 && (
-                        <ResultsCard onNext={handleNext} onBack={handleBack} />
-                    )}
-                    {step === 9 && (
-                        <SoulmateGenderSelect value={formData.soulmateGender} onChange={(val) => updateFormData('soulmateGender', val)} onNext={handleNext} onBack={handleBack} characterTitle="Soulmate" />
-                    )}
-                    {step === 10 && (
-                        <SoulmateEthnicitySelect value={formData.soulmateEthnicity} onChange={(val) => updateFormData('soulmateEthnicity', val)} onNext={handleNext} onBack={handleBack} characterTitle="Soulmate" />
-                    )}
-                    {step === 11 && (
-                        <MintConfirmation
-                            onMint={handleMint}
-                            isMinting={isMinting}
-                            nativeSymbol={nativeSymbol}
-                            chainId={chainId}
-                            mintTxHash={mintTxHash}
-                            isConfirming={isConfirming}
-                            isCreatingCharacter={isCreatingCharacter}
-                            mintError={generationError}
-                            onClearError={() => {
-                                setGenerationError(null);
-                                setMintTxHash(undefined);
-                                processedMintHashRef.current = undefined;
-                            }}
-                            mintPriceWei={mintPriceWei}
-                            mintPriceError={mintPriceError}
-                            onSkipWaiting={() => router.push('/dashboard')}
-                            onCheckTxAndContinue={handleCheckTxAndContinue}
-                            isCheckingTx={isCheckingTx}
-                        />
-                    )}
-                    {step === 12 && selectedCharacterData && (
-                        <SoulmateDetailPage
-                            character={selectedCharacterData}
-                            onNext={() => router.push(`/chat/${selectedCharacterData.id}`)}
-                            onBack={() => router.push('/dashboard')}
-                            onCharacterUpdate={setSelectedCharacterData}
-                            onUnlockSuccess={() => { }}
-                        />
-                    )}
-                </div>
+                </AnimatePresence>
             </div>
         </AppLayout>
     );

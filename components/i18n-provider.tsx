@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { Locale, defaultLocale, getMessages, Messages, locales, isValidLocale, mapTelegramLocale } from '@/lib/i18n';
+import { Locale, defaultLocale, getMessages, Messages, locales, isValidLocale, mapBrowserLocale } from '@/lib/i18n';
 
 // localStorage key for storing user's language preference
 const LOCALE_STORAGE_KEY = 'laura-ai-locale';
@@ -63,7 +63,7 @@ function detectInitialLocale(): Locale {
   if (typeof navigator !== 'undefined') {
     const browserLang = navigator.language || (navigator as any).userLanguage;
     if (browserLang) {
-      return mapTelegramLocale(browserLang);
+      return mapBrowserLocale(browserLang);
     }
   }
 

@@ -23,12 +23,12 @@ const getCalculationSteps = (locale: string) => {
       { text: "Rendering high-resolution portrait...", duration: 4000 },
     ],
     zh: [
-      { text: "正在初始化量子占星引擎...", duration: 2000 },
-      { text: "正在分析星盘坐标...", duration: 2500 },
-      { text: "正在从 NASA JPL 获取行星数据...", duration: 3000 },
-      { text: "正在计算兼容性向量...", duration: 2500 },
-      { text: "正在合成面部特征...", duration: 3000 },
-      { text: "正在渲染高清肖像...", duration: 4000 },
+      { text: "Initializing quantum astro engine...", duration: 2000 },
+      { text: "Analyzing chart coordinates...", duration: 2500 },
+      { text: "Fetching planetary data from NASA JPL...", duration: 3000 },
+      { text: "Computing compatibility vectors...", duration: 2500 },
+      { text: "Synthesizing facial features...", duration: 3000 },
+      { text: "Rendering HD portrait...", duration: 4000 },
     ],
     ru: [
       { text: "Инициализация квантового астрологического движка...", duration: 2000 },

@@ -105,14 +105,16 @@ export function ChatMessage({ message, isLast, onAction }: ChatMessageProps) {
                                     <div className="text-xl font-bold text-white leading-none">{message.insight.value}</div>
                                     <div className="text-[10px] text-gray-400 mt-1 uppercase tracking-tight">{message.insight.label}</div>
                                 </div>
-                                <Button
-                                    size="sm"
-                                    onClick={() => onAction?.(message.insight)}
-                                    className="bg-white text-black hover:bg-gray-200 h-8 rounded-lg text-xs gap-1.5 group/btn"
-                                >
-                                    {message.insight.actionText}
-                                    <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
-                                </Button>
+                                {onAction && (
+                                    <Button
+                                        size="sm"
+                                        onClick={() => onAction(message.insight)}
+                                        className="bg-white text-black hover:bg-gray-200 h-8 rounded-lg text-xs gap-1.5 group/btn"
+                                    >
+                                        {message.insight.actionText}
+                                        <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                                    </Button>
+                                )}
                             </div>
                         </motion.div>
                     )}

@@ -76,11 +76,11 @@ func main() {
 	// 静态文件服务
 	r.Static("/uploads", config.AppConfig.UploadsDir)
 
-	// CORS 中间件
+	// CORS middleware
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, X-Telegram-Init-Data, Accept-Language")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, X-Wallet-Address, X-Wallet-Signature, X-Inviter-Code, Accept-Language")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
 
 		if c.Request.Method == "OPTIONS" {
@@ -198,27 +198,20 @@ func main() {
 		})
 	})
 
-	// 公开路由
+	// Public routes
 	api := r.Group("/api")
 	{
-		authHandler := handler.NewAuthHandler()
-		api.POST("/auth/telegram", authHandler.TelegramAuth)
-
-		// 分享链接公开接口（无需认证）
+		// Share link public endpoint (no auth required)
 		unlockHandler := handler.NewUnlockHandler(reportService)
 		api.GET("/share/:code", unlockHandler.GetShareInfo)
 
-		// 管理端点：清空所有用户数据（需请求头 X-Admin-Key: <ADMIN_SECRET>）
+		// Admin endpoint: clear all user data (requires X-Admin-Key header)
 		api.POST("/admin/clear-all-data", handler.ClearAllData)
 	}
 
-	// Telegram Bot Webhook（公开，由 Telegram 服务器调用）
-	telegramWebhookHandler := handler.NewTelegramWebhookHandler()
-	r.POST("/webhook/telegram", telegramWebhookHandler.HandleWebhook)
-
-	// 需要认证的路由
+	// Authenticated routes (wallet auth)
 	apiAuth := r.Group("/api")
-	apiAuth.Use(middleware.TelegramAuthMiddleware())
+	apiAuth.Use(middleware.WalletAuthMiddleware())
 	{
 		// 用户相关
 		userHandler := handler.NewUserHandler()
@@ -267,20 +260,12 @@ func main() {
 			apiAuth.POST("/minime/generate", miniMeHandler.UploadAndGenerateMiniMe)
 		}
 
-		// DeFi 相关
+		// 市场（角色上架/购买），无池子/质押
 		defiHandler := handler.NewDeFiHandler()
-		apiAuth.GET("/market/intelligence", defiHandler.GetMarketIntelligence)
-		apiAuth.GET("/market/pools", defiHandler.GetPools)
 		apiAuth.GET("/market/characters", defiHandler.GetMarketCharacters)
 		apiAuth.POST("/market/list", defiHandler.ListCharacter)
 		apiAuth.POST("/market/purchase", defiHandler.PurchaseCharacter)
 		apiAuth.POST("/market/delist", defiHandler.DelistCharacter)
-
-		// Staking 相关
-		stakingHandler := handler.NewStakingHandler()
-		apiAuth.POST("/staking/stake", stakingHandler.Stake)
-		apiAuth.POST("/staking/unstake", stakingHandler.Unstake)
-		apiAuth.GET("/staking/info", stakingHandler.GetInfo)
 	}
 
 	// 启动服务器

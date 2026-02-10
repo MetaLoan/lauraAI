@@ -19,6 +19,16 @@ export const IconMarket = ({ className }: { className?: string }) => (
     </svg>
 );
 
+export const IconSoulmate = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.27 2 8.5C2 5.41 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.08C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.41 22 8.5C22 12.27 18.6 15.36 13.45 20.03L12 21.35Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        <circle cx="8.5" cy="9" r="1.5" className="fill-pink-500/40" />
+        <circle cx="15.5" cy="9" r="1.5" className="fill-purple-500/40" />
+        <path d="M12 13C12 13 10 11.5 8.5 12.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" className="opacity-50" />
+        <path d="M12 13C12 13 14 11.5 15.5 12.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" className="opacity-50" />
+    </svg>
+);
+
 export const IconMint = ({ className }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
         <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="1.5" />

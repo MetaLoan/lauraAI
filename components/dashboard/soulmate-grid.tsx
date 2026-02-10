@@ -102,7 +102,7 @@ export function SoulmateGrid() {
                             <h3 className="text-xl font-bold text-white mb-0.5">{char.title}</h3>
                             <div className="flex items-center gap-2 mb-3">
                                 <span className="text-xs font-mono text-purple-400 capitalize px-2 py-0.5 bg-purple-500/10 rounded border border-purple-500/20">{char.type.replace('_', ' ')}</span>
-                                <span className="text-[10px] text-green-400 font-mono">+$124.50 Earned</span>
+                                <span className="text-[10px] text-green-400">Chat +5 LRA/msg</span>
                             </div>
 
                             {/* Bond Progress Line */}

@@ -120,15 +120,11 @@ export function PaymentDrawer({
                 <div className="space-y-3 pt-2">
                   <Button
                     onClick={() => handlePayment('stars')}
-                    className="w-full h-14 rounded-xl bg-white text-black hover:bg-gray-200 font-bold text-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] border-none"
+                    className="w-full h-14 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500 font-bold text-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] border-none"
                   >
-                    <img 
-                      src={getAssetPath('/TelegramStars@3x.png')} 
-                      alt="Telegram Stars" 
-                      className="w-6 h-6 object-contain"
-                    />
-                    {isDiscounted && <span className="line-through text-gray-400 text-sm mr-1">300</span>}
-                    {priceStars} {t('payment.stars')}
+                    <Star className="w-5 h-5" />
+                    {isDiscounted && <span className="line-through text-black/40 text-sm mr-1">300</span>}
+                    {priceStars} LRA Points
                   </Button>
 
                   <Button
@@ -136,13 +132,9 @@ export function PaymentDrawer({
                     variant="outline"
                     className="w-full h-14 rounded-xl border-white/20 bg-transparent hover:bg-white/5 text-white font-bold text-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                   >
-                    <img 
-                      src={getAssetPath('/toncoin-ton-logo.png')} 
-                      alt="TON" 
-                      className="w-6 h-6 object-contain"
-                    />
-                    {isDiscounted && <span className="line-through text-gray-500 text-sm mr-1">3</span>}
-                    {priceTON} {t('payment.ton')}
+                    <Sparkles className="w-5 h-5 text-yellow-400" />
+                    {isDiscounted && <span className="line-through text-gray-500 text-sm mr-1">0.01</span>}
+                    {priceTON} BNB
                   </Button>
                 </div>
               </div>

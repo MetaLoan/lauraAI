@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"lauraai-backend/internal/config"
 	"lauraai-backend/internal/middleware"
 	"lauraai-backend/internal/model"
 	"lauraai-backend/internal/repository"
@@ -22,30 +23,34 @@ func NewDeFiHandler() *DeFiHandler {
 	return &DeFiHandler{}
 }
 
-// GetMarketIntelligence 获取市场情报
+// GetMarketIntelligence 获取市场情报（TGE 前不返回池子假数据）
 func (h *DeFiHandler) GetMarketIntelligence(c *gin.Context) {
-	// 获取真实数据
 	bnbPrice := h.fetchBNBPrice()
 	gasPrice := h.fetchGasPrice()
-	pools := h.fetchPancakeSwapPools()
-
+	var pools []gin.H
+	if config.AppConfig.TGELive {
+		pools = h.fetchPancakeSwapPools()
+	}
 	response.Success(c, gin.H{
-		"timestamp": time.Now().Unix(),
-		"bnb_price": bnbPrice,
-		"v3_pools":  pools,
-		"gas_price": gasPrice,
-		"sentiment": h.calculateMarketSentiment(bnbPrice),
+		"tge_live":   config.AppConfig.TGELive,
+		"timestamp":  time.Now().Unix(),
+		"bnb_price":  bnbPrice,
+		"v3_pools":   pools,
+		"gas_price":  gasPrice,
+		"sentiment":  h.calculateMarketSentiment(bnbPrice),
 	})
 }
 
-// GetPools 获取 DeFi 池子数据
+// GetPools 获取 DeFi 池子数据（TGE 前返回空，不展示假数据）
 func (h *DeFiHandler) GetPools(c *gin.Context) {
-	pools := h.fetchPancakeSwapPools()
-
-	// 添加历史数据用于图表
-	historicalData := h.generateHistoricalData()
-
+	var pools []gin.H
+	var historicalData []gin.H
+	if config.AppConfig.TGELive {
+		pools = h.fetchPancakeSwapPools()
+		historicalData = h.generateHistoricalData()
+	}
 	response.Success(c, gin.H{
+		"tge_live":   config.AppConfig.TGELive,
 		"pools":      pools,
 		"historical": historicalData,
 		"updated_at": time.Now().Unix(),

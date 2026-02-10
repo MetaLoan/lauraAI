@@ -107,28 +107,15 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
         throw new Error('角色 ID 为空')
       }
       
-      // 从 Telegram Mini App 获取 initData
-      let initData = (window as any).Telegram?.WebApp?.initData
-      
-      // 备用方案：尝试从 URL 获取 initData
-      if (!initData && typeof window !== 'undefined') {
-        const hash = window.location.hash.slice(1)
-        const params = new URLSearchParams(hash)
-        initData = params.get('tgWebAppData')
-      }
-      
-      // 开发模式：如果未获取到 initData，使用伪造数据
-      if (!initData && process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
-        initData = 'query_id=AAGLk...&user=%7B%22id%22%3A999999999%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22test_user%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1700000000&hash=fake_hash'
-      }
+      // Get wallet auth from sessionStorage
+      const walletAddress = sessionStorage.getItem('wallet_address') || ''
+      const walletSignature = sessionStorage.getItem('wallet_signature') || ''
       
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
         'Accept-Language': locale,
-      }
-      
-      if (initData) {
-        headers['X-Telegram-Init-Data'] = initData
+        ...(walletAddress ? { 'X-Wallet-Address': walletAddress } : {}),
+        ...(walletSignature ? { 'X-Wallet-Signature': walletSignature } : {}),
       }
 
       const response = await fetch(url, {

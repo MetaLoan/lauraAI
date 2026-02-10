@@ -66,12 +66,16 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
         }
     };
 
+    const getInviteLink = () => {
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://laura-ai.com';
+        return `${baseUrl}?invite=${inviteCode}`;
+    };
+
     const handleCopyLink = async () => {
         if (!inviteCode) return;
 
-        const inviteLink = `https://t.me/laura_tst_bot/app?startapp=invite_${inviteCode}`;
         try {
-            await navigator.clipboard.writeText(inviteLink);
+            await navigator.clipboard.writeText(getInviteLink());
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
@@ -79,21 +83,11 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
         }
     };
 
-    const handleShareTelegram = () => {
-        if (!inviteCode) return;
-
-        const inviteLink = `https://t.me/laura_tst_bot/app?startapp=invite_${inviteCode}`;
-        const text = `Join LauraAI and create your own AI Soulmate! 🤖💜\n\nUse my invite code: ${inviteCode}`;
-        const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(text)}`;
-
-        window.open(telegramUrl, '_blank');
-    };
-
     const handleShareTwitter = () => {
         if (!inviteCode) return;
 
-        const inviteLink = `https://t.me/laura_tst_bot/app?startapp=invite_${inviteCode}`;
-        const text = `Create your AI Soulmate on @LauraAI_BSC! 🤖💜 Join with my invite code: ${inviteCode}`;
+        const inviteLink = getInviteLink();
+        const text = `Create your AI Soulmate on @LauraAI_BSC! Join with my invite code: ${inviteCode}`;
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(inviteLink)}`;
 
         window.open(twitterUrl, '_blank');
@@ -179,19 +173,19 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                                 <div className="grid grid-cols-2 gap-2">
                                     <Button
                                         variant="outline"
-                                        onClick={handleShareTelegram}
-                                        className="border-white/10 hover:bg-white/10 text-white gap-2"
-                                    >
-                                        <Share2 className="w-4 h-4" />
-                                        Telegram
-                                    </Button>
-                                    <Button
-                                        variant="outline"
                                         onClick={handleCopyLink}
                                         className="border-white/10 hover:bg-white/10 text-white gap-2"
                                     >
                                         <Copy className="w-4 h-4" />
                                         Copy Link
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleShareTwitter}
+                                        className="border-white/10 hover:bg-white/10 text-white gap-2"
+                                    >
+                                        <Share2 className="w-4 h-4" />
+                                        Share on X
                                     </Button>
                                 </div>
 
@@ -300,17 +294,10 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                 {/* Share Options */}
                 <div className="flex flex-wrap gap-3 mt-6 justify-center md:justify-end">
                     <Button
-                        onClick={handleShareTelegram}
-                        className="bg-[#0088cc] hover:bg-[#0077b5] text-white gap-2"
+                        onClick={handleShareTwitter}
+                        className="bg-black hover:bg-gray-900 text-white gap-2 border border-white/20"
                     >
                         <Share2 className="w-4 h-4" />
-                        Share on Telegram
-                    </Button>
-                    <Button
-                        onClick={handleShareTwitter}
-                        variant="outline"
-                        className="border-white/20 hover:bg-white/10 text-white gap-2"
-                    >
                         Share on X
                     </Button>
                     <Button

@@ -5,9 +5,8 @@ import Link from 'next/link';
 import { AppLayout } from '@/components/layout/app-layout';
 import { PortfolioCard } from '@/components/dashboard/portfolio-card';
 import { SoulmateGrid } from '@/components/dashboard/soulmate-grid';
-import { DefiAnalytics } from '@/components/dashboard/defi-analytics';
 import { useAccount } from 'wagmi';
-import { Loader2, User, Camera, Plus, ArrowRight } from 'lucide-react';
+import { Loader2, User, Camera, Plus, ArrowRight, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import { ShareButton } from '@/components/share-button';
@@ -81,7 +80,6 @@ export default function DashboardPage() {
                         Your Portfolio
                     </h2>
                     <PortfolioCard />
-                    <DefiAnalytics />
                 </section>
 
                 {/* Quick Actions */}
@@ -136,25 +134,25 @@ export default function DashboardPage() {
                             </div>
                         </Link>
 
-                        {/* Browse Market Card */}
+                        {/* My Soulmate Card */}
                         <Link href="/market">
-                            <div className="group relative bg-gradient-to-br from-blue-900/40 to-cyan-900/40 border border-blue-500/30 rounded-2xl p-6 hover:border-blue-500/50 transition-all hover:-translate-y-1 cursor-pointer overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[60px] group-hover:bg-blue-500/20 transition-all" />
+                            <div className="group relative bg-gradient-to-br from-pink-900/40 to-rose-900/40 border border-pink-500/30 rounded-2xl p-6 hover:border-pink-500/50 transition-all hover:-translate-y-1 cursor-pointer overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-[60px] group-hover:bg-pink-500/20 transition-all" />
                                 <div className="relative z-10 flex items-start gap-4">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <Trophy className="w-7 h-7 text-white" />
+                                    <div className="w-14 h-14 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <Heart className="w-7 h-7 text-white" />
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                                            Browse Market
-                                            <ArrowRight className="w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                                            My Soulmate
+                                            <ArrowRight className="w-4 h-4 text-pink-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                         </h3>
-                                        <p className="text-gray-400 text-sm">Discover and trade unique AI companions on the marketplace</p>
+                                        <p className="text-gray-400 text-sm">View your AI soulmates and tap to start chatting</p>
                                     </div>
                                 </div>
-                                <div className="mt-4 flex items-center gap-2 text-blue-400 text-xs font-medium">
+                                <div className="mt-4 flex items-center gap-2 text-pink-400 text-xs font-medium">
                                     <Sparkles className="w-3 h-3" />
-                                    100+ Available
+                                    Earn LRA points by chatting
                                 </div>
                             </div>
                         </Link>
@@ -168,7 +166,7 @@ export default function DashboardPage() {
                             Your AI Soulmates
                         </h2>
                         <Link href="/market" className="text-sm text-purple-400 hover:text-purple-300 flex items-center gap-1">
-                            Visit Market <ArrowRight className="w-3 h-3" />
+                            View All <ArrowRight className="w-3 h-3" />
                         </Link>
                     </div>
                     <SoulmateGrid />

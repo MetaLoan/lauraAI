@@ -157,15 +157,13 @@ export default function Profile({
     }
   }
 
-  // 分享邀请链接
+  // Share invite link
   const handleShareInviteLink = () => {
-    const inviteLink = `https://t.me/laura_tst_bot/app?startapp=invite_${inviteCode}`
-    const webApp = (window as any).Telegram?.WebApp
-    if (webApp?.openTelegramLink) {
-      webApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent('Join Laura AI and discover your AI soulmate!')}`)
-    } else {
-      handleCopyInviteLink()
-    }
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://laura-ai.com'
+    const inviteLink = `${baseUrl}?invite=${inviteCode}`
+    const text = `Join Laura AI and discover your AI soulmate! ${inviteLink}`
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
+    window.open(twitterUrl, '_blank')
   }
 
   // 格式化日期显示

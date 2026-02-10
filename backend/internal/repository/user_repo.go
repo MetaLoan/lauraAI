@@ -35,9 +35,9 @@ func (r *UserRepository) GetByID(id uint64) (*model.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) GetByTelegramID(telegramID int64) (*model.User, error) {
+func (r *UserRepository) GetByWalletAddress(address string) (*model.User, error) {
 	var user model.User
-	err := DB.Where("telegram_id = ?", telegramID).First(&user).Error
+	err := DB.Where("wallet_address = ?", address).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -73,20 +73,19 @@ func (r *UserRepository) Delete(id uint64) error {
 
 func (r *UserRepository) CreateOrUpdate(user *model.User) error {
 	var existing model.User
-	// 使用 Unscoped 查询包括软删除的记录
-	err := DB.Unscoped().Where("telegram_id = ?", user.TelegramID).First(&existing).Error
+	// Use Unscoped to include soft-deleted records
+	err := DB.Unscoped().Where("wallet_address = ?", user.WalletAddress).First(&existing).Error
 
 	if err != nil {
-		// 不存在，创建时生成邀请码
+		// Does not exist, generate invite code on creation
 		if user.InviteCode == "" {
 			user.InviteCode = GenerateInviteCode()
 		}
 		return DB.Create(user).Error
 	}
 
-	// 存在（可能是被软删除的），恢复并更新
+	// Exists (possibly soft-deleted), restore and update
 	user.ID = existing.ID
-	// 清除 DeletedAt 以恢复记录
 	return DB.Unscoped().Model(user).Updates(map[string]interface{}{
 		"name":       user.Name,
 		"deleted_at": nil,

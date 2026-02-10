@@ -7,9 +7,9 @@ import (
 )
 
 type User struct {
-	ID         uint64     `gorm:"primaryKey" json:"id"`
-	TelegramID int64      `gorm:"uniqueIndex;not null" json:"telegram_id"`
-	Name       string     `gorm:"type:varchar(255)" json:"name"`
+	ID            uint64     `gorm:"primaryKey" json:"id"`
+	WalletAddress string     `gorm:"type:varchar(42);uniqueIndex;not null" json:"wallet_address"`
+	Name          string     `gorm:"type:varchar(255)" json:"name"`
 	Gender     string     `gorm:"type:varchar(50)" json:"gender"`
 	BirthDate  *time.Time `gorm:"type:date" json:"birth_date,omitempty"`
 	BirthTime  *string    `gorm:"type:time without time zone" json:"birth_time,omitempty"`

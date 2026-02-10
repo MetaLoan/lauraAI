@@ -8,16 +8,16 @@ import (
 )
 
 type Config struct {
-	Port             string
-	TelegramBotToken string
-	GeminiAPIKey     string
-	DeepSeekAPIKey   string // 文字对话使用 DeepSeek，优先于 Gemini
-	PostgresDSN      string
-	DevMode          bool
-	WebAppMode       bool   // 网页版 dApp：无 Telegram initData 时使用默认用户，不再要求 Telegram
-	BaseURL          string
-	UploadsDir       string
-	AdminSecret      string // 用于 /api/admin/clear-all-data 的密钥（X-Admin-Key 头）
+	Port           string
+	GeminiAPIKey   string
+	DeepSeekAPIKey string // Text chat uses DeepSeek, fallback to Gemini
+	PostgresDSN    string
+	DevMode        bool
+	WebAppMode     bool   // dApp mode: use default test wallet when no wallet headers provided
+	BaseURL        string
+	UploadsDir     string
+	AdminSecret    string // Secret for /api/admin/clear-all-data (X-Admin-Key header)
+	TGELive        bool   // true when LRA token is live with liquidity; before that pool/TVL/APY endpoints return empty
 }
 
 var AppConfig *Config
@@ -33,32 +33,29 @@ func LoadConfig() {
 	}
 
 	AppConfig = &Config{
-		Port:             getEnv("PORT", "8080"),
-		TelegramBotToken: getEnv("TELEGRAM_BOT_TOKEN", ""),
-		GeminiAPIKey:     getEnv("GEMINI_API_KEY", ""),
-		DeepSeekAPIKey:   getEnv("DEEPSEEK_API_KEY", ""),
-		PostgresDSN:      dbDSN,
-		DevMode:          getEnv("DEV_MODE", "false") == "true",
-		WebAppMode:       getEnv("WEB_APP_MODE", "true") == "true", // 默认 true：网页版可不带 Telegram initData
-		BaseURL:          getEnv("BASE_URL", "https://lauraai-backend.fly.dev"),
-		UploadsDir:       getEnv("UPLOADS_DIR", "./uploads"),
-		AdminSecret:      getEnv("ADMIN_SECRET", ""),
+		Port:           getEnv("PORT", "8080"),
+		GeminiAPIKey:   getEnv("GEMINI_API_KEY", ""),
+		DeepSeekAPIKey: getEnv("DEEPSEEK_API_KEY", ""),
+		PostgresDSN:    dbDSN,
+		DevMode:        getEnv("DEV_MODE", "false") == "true",
+		WebAppMode:     getEnv("WEB_APP_MODE", "true") == "true", // Default true: dApp mode uses test wallet when no wallet headers
+		BaseURL:        getEnv("BASE_URL", "https://lauraai-backend.fly.dev"),
+		UploadsDir:     getEnv("UPLOADS_DIR", "./uploads"),
+		AdminSecret:    getEnv("ADMIN_SECRET", ""),
+		TGELive:        getEnv("TGE_LIVE", "false") == "true",
 	}
 
-	if AppConfig.TelegramBotToken == "" {
-		log.Println("警告: TELEGRAM_BOT_TOKEN 未设置")
-	}
 	if AppConfig.GeminiAPIKey == "" {
-		log.Println("警告: GEMINI_API_KEY 未设置")
+		log.Println("Warning: GEMINI_API_KEY not set")
 	}
 	if AppConfig.DevMode {
-		log.Println("开发模式已启用: 将跳过 Telegram 验证，使用默认测试账号")
+		log.Println("Dev mode enabled: wallet auth bypassed, using default test wallet")
 	}
 	if AppConfig.WebAppMode {
-		log.Println("网页版模式已启用: 无 Telegram initData 时使用默认用户")
+		log.Println("WebApp mode enabled: requests without wallet headers will use default test wallet")
 	}
 	if AppConfig.DeepSeekAPIKey != "" {
-		log.Println("DEEPSEEK_API_KEY 已配置，文字对话将优先使用 DeepSeek")
+		log.Println("DEEPSEEK_API_KEY configured, text chat will prefer DeepSeek")
 	}
 }
 

@@ -11,7 +11,6 @@ import { getFullImageUrl } from '@/lib/utils';
 import { useAccount } from 'wagmi';
 import { ChatMessage, TypingIndicator } from '@/components/chat/chat-message-bubble';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StrategyModal } from '@/components/chat/strategy-modal';
 // Assuming the utility `cn` is globally available or you imported it
 // If not, we might need to inline logic or ensure it's imported correctly in msg component.
 
@@ -50,32 +49,19 @@ export default function ChatPage() {
     const [inputValue, setInputValue] = useState('');
     const [loading, setLoading] = useState(false);
     const [messagesLoaded, setMessagesLoaded] = useState(false);
-    const [points, setPoints] = useState(1250); // Mock initial balance
-    const [multiplier, setMultiplier] = useState(1.1);
+    const [points, setPoints] = useState(0);
     const [showEarned, setShowEarned] = useState(false);
 
-    // States to manage 'Thinking' vs 'Streaming'
-    const [isSending, setIsSending] = useState(false);        // Waiting for server response
-    const [isStreaming, setIsStreaming] = useState(false);    // Actively receiving chunks
-    const [selectedInsight, setSelectedInsight] = useState<any>(null);
-    const [isStrategyOpen, setIsStrategyOpen] = useState(false);
+    const [isSending, setIsSending] = useState(false);
+    const [isStreaming, setIsStreaming] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const handleInsightAction = (insight: any) => {
-        setSelectedInsight(insight);
-        setIsStrategyOpen(true);
-    };
-
-    // Initial load for points
     useEffect(() => {
         const loadProfile = async () => {
             try {
                 const profile = await apiClient.getUserProfile();
-                if (profile) {
-                    setPoints(profile.points);
-                    setMultiplier(profile.staking_multiplier || 1.1);
-                }
+                if (profile) setPoints(profile.points ?? 0);
             } catch (e) {
                 console.error('Failed to load points:', e);
             }
@@ -141,7 +127,7 @@ export default function ChatPage() {
         setMessages(prev => [...prev, userMsgObj]);
 
         // Sync Earning
-        const earnAmount = Math.floor(5 * multiplier);
+        const earnAmount = 5;
         const syncResult = await apiClient.syncPoints(earnAmount);
         if (syncResult) {
             setPoints(syncResult.points);
@@ -152,13 +138,14 @@ export default function ChatPage() {
         try {
             const url = `${apiClient.baseURL}/characters/${characterId}/chat`;
 
+            const walletAddress = sessionStorage.getItem('wallet_address') || '';
+            const walletSignature = sessionStorage.getItem('wallet_signature') || '';
+
             const headers: HeadersInit = {
                 'Content-Type': 'application/json',
+                ...(walletAddress ? { 'X-Wallet-Address': walletAddress } : {}),
+                ...(walletSignature ? { 'X-Wallet-Signature': walletSignature } : {}),
             };
-
-            if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
-                headers['X-Telegram-Init-Data'] = 'query_id=AAGLk...&user=%7B%22id%22%3A999999999%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22test_user%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1700000000&hash=fake_hash';
-            }
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -226,7 +213,7 @@ export default function ChatPage() {
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
                 type: 'character',
-                text: '⚠️ 发送失败，请检查网络或稍后再试。',
+                text: '⚠️ Send failed. Please check your network and try again.',
                 timestamp: new Date(),
                 isStreaming: false,
             }]);
@@ -313,7 +300,6 @@ export default function ChatPage() {
                             <ChatMessage
                                 message={msg}
                                 isLast={index === messages.length - 1}
-                                onAction={handleInsightAction}
                             />
                         </div>
                     ))}
@@ -360,13 +346,9 @@ export default function ChatPage() {
                         </div>
                     </div>
 
-                    <div className="text-center mt-2 flex justify-center items-center gap-3 opacity-60 hover:opacity-100 transition-opacity">
+                    <div className="text-center mt-2 opacity-60 hover:opacity-100 transition-opacity">
                         <span className="text-[10px] text-gray-500 font-medium tracking-wide uppercase">
-                            +{Math.floor(5 * multiplier)} LRA per Message
-                        </span>
-                        <span className="w-1 h-1 bg-gray-600 rounded-full" />
-                        <span className="text-[10px] text-purple-400 font-medium tracking-wide uppercase">
-                            Staking Multiplier: {multiplier.toFixed(2)}x
+                            +5 LRA points / message
                         </span>
                     </div>
 
@@ -380,7 +362,7 @@ export default function ChatPage() {
                                 className="absolute right-10 bottom-20 pointer-events-none"
                             >
                                 <div className="flex items-center gap-1 text-green-400 font-bold text-xl drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
-                                    +{Math.floor(5 * multiplier)} LRA
+                                    +5 LRA
                                     <Sparkles className="w-5 h-5" />
                                 </div>
                             </motion.div>
@@ -389,11 +371,6 @@ export default function ChatPage() {
                 </div>
 
             </div>
-            <StrategyModal
-                isOpen={isStrategyOpen}
-                onClose={() => setIsStrategyOpen(false)}
-                insight={selectedInsight}
-            />
         </AppLayout >
     );
 }

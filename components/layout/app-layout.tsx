@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { IconDashboard, IconMarket, IconMint, IconProfile } from '@/components/icons/custom-icons';
+import { IconDashboard, IconSoulmate, IconMint, IconProfile } from '@/components/icons/custom-icons';
 import { cn } from '@/lib/utils';
 import { WalletButton } from '@/components/wallet-button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -42,7 +42,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
     const navItems = [
         { href: '/dashboard', icon: IconDashboard, label: 'Dashboard' },
-        { href: '/market', icon: IconMarket, label: 'Market' },
+        { href: '/market', icon: IconSoulmate, label: 'Soulmate' },
         { href: '/create', icon: IconMint, label: 'Mint AI' },
         { href: '/profile', icon: IconProfile, label: 'Profile' },
     ];

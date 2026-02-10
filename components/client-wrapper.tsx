@@ -3,6 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { Providers } from '@/components/providers';
 import { I18nProvider } from '@/components/i18n-provider';
+import { useWalletAuth } from '@/hooks/use-wallet-auth';
+
+// Inner component that runs within WagmiProvider context
+function WalletAuthGate({ children }: { children: React.ReactNode }) {
+  // This hook auto-signs the auth message when wallet connects
+  useWalletAuth();
+  return <>{children}</>;
+}
 
 export function ClientWrapper({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -22,9 +30,11 @@ export function ClientWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <Providers>
-      <I18nProvider>
-        {children}
-      </I18nProvider>
+      <WalletAuthGate>
+        <I18nProvider>
+          {children}
+        </I18nProvider>
+      </WalletAuthGate>
     </Providers>
   );
 }

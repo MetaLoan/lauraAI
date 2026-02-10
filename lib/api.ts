@@ -71,6 +71,27 @@ class ApiClient {
     this.baseURL = baseURL
   }
 
+  // Get wallet auth headers from sessionStorage (set by useWalletAuth hook)
+  private getWalletAuthHeaders(): Record<string, string> {
+    if (typeof window === 'undefined') return {}
+    try {
+      const address = sessionStorage.getItem('wallet_address') || ''
+      const signature = sessionStorage.getItem('wallet_signature') || ''
+      const headers: Record<string, string> = {}
+      if (address) headers['X-Wallet-Address'] = address
+      if (signature) headers['X-Wallet-Signature'] = signature
+
+      // Check for invite code in URL
+      const urlParams = new URLSearchParams(window.location.search)
+      const inviterCode = urlParams.get('invite') || ''
+      if (inviterCode) headers['X-Inviter-Code'] = inviterCode
+
+      return headers
+    } catch {
+      return {}
+    }
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
@@ -78,39 +99,21 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
 
-    // 仅在 Telegram Mini App 内时附带 initData；网页版 dApp 不传，由后端 WEB_APP_MODE 使用默认用户
-    const webApp = typeof window !== 'undefined' ? (window as any).Telegram?.WebApp : undefined
-    let initData = webApp?.initData
-    if (!initData && typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.hash.slice(1))
-      initData = params.get('tgWebAppData') ?? undefined
-    }
-
-    let inviterCode = ''
-    const startParam = webApp?.initDataUnsafe?.start_param
-    if (startParam?.startsWith('invite_')) {
-      inviterCode = startParam.replace('invite_', '')
-    }
-
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     }
 
-    // 添加语言头
+    // Add language header
     const locale = getCurrentLocaleForApi()
     if (locale) {
       headers['Accept-Language'] = locale
     }
 
-    if (initData) {
-      headers['X-Telegram-Init-Data'] = initData
-    }
+    // Add wallet auth headers
+    const walletHeaders = this.getWalletAuthHeaders()
+    Object.assign(headers, walletHeaders)
 
-    if (inviterCode) {
-      headers['X-Inviter-Code'] = inviterCode
-    }
-
-    // 添加超时控制
+    // Timeout control
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeout)
 
@@ -125,9 +128,9 @@ class ApiClient {
       const data: ApiResponse<T> = await response.json()
 
       if (data.code !== 0) {
-        const msg = data.message || '请求失败'
-        const hint = msg.includes('Missing Telegram initData')
-          ? ' 网页版请确认后端已设置 WEB_APP_MODE=true（Fly: fly secrets set WEB_APP_MODE=true）'
+        const msg = data.message || 'Request failed'
+        const hint = msg.includes('Missing wallet authentication')
+          ? ' Please connect your wallet first.'
           : ''
         throw new ApiError(msg + hint, data.error_code)
       }
@@ -136,18 +139,10 @@ class ApiClient {
     } catch (error) {
       clearTimeout(timeoutId)
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('请求超时，请检查网络连接')
+        throw new Error('Request timeout. Please check your network.')
       }
       throw error
     }
-  }
-
-  // 认证
-  async telegramAuth(initData: string) {
-    return this.request('/auth/telegram', {
-      method: 'POST',
-      body: JSON.stringify({ initData }),
-    })
   }
 
   // 用户
@@ -196,17 +191,13 @@ class ApiClient {
     return this.request(`/characters/${id}`)
   }
 
-  // 聊天
+  // Chat
   async sendMessage(characterId: string, message: string) {
     const url = `${this.baseURL}/characters/${characterId}/chat`
-    const initData = (window as any).Telegram?.WebApp?.initData
 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-    }
-
-    if (initData) {
-      headers['X-Telegram-Init-Data'] = initData
+      ...this.getWalletAuthHeaders(),
     }
 
     const response = await fetch(url, {
@@ -216,11 +207,10 @@ class ApiClient {
     })
 
     if (!response.ok) {
-      throw new Error('发送消息失败')
+      throw new Error('Failed to send message')
     }
 
-    // 返回 EventSource 用于 SSE
-    return new EventSource(url.replace('/chat', '/chat?message=' + encodeURIComponent(message)))
+    return response
   }
 
   async getMessages(characterId: string, limit: number = 50) {
@@ -234,26 +224,19 @@ class ApiClient {
     }, 60000) // 60秒超时
   }
 
-  // Mini Me 生成
+  // Mini Me generation
   async generateMiniMe(file: File) {
     const formData = new FormData()
     formData.append('file', file)
 
     const url = `${this.baseURL}/minime/generate`
-    let initData = (window as any).Telegram?.WebApp?.initData
-
-    if (!initData && process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
-      initData = 'query_id=AAGLk...&user=%7B%22id%22%3A999999999%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22test_user%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1700000000&hash=fake_hash'
+    const headers: HeadersInit = {
+      ...this.getWalletAuthHeaders(),
     }
 
-    const headers: HeadersInit = {}
-    if (initData) {
-      headers['X-Telegram-Init-Data'] = initData
-    }
-
-    // 上传和生成可能需要较长时间
+    // Upload and generation may take a long time
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 90000) // 90秒超时
+    const timeoutId = setTimeout(() => controller.abort(), 90000) // 90s timeout
 
     try {
       const response = await fetch(url, {
@@ -266,13 +249,13 @@ class ApiClient {
 
       const data = await response.json()
       if (data.code !== 0) {
-        throw new Error(data.message || '生成失败')
+        throw new Error(data.message || 'Generation failed')
       }
       return data.data
     } catch (error) {
       clearTimeout(timeoutId)
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('请求超时，请检查网络连接')
+        throw new Error('Request timeout. Please check your network.')
       }
       throw error
     }
@@ -355,35 +338,16 @@ class ApiClient {
     return this.request(`/characters/${characterId}/unlock-price`)
   }
 
-  // ========== Market ==========
-  async getMarketCharacters(params: { page?: number; limit?: number; sort?: string } = {}) {
-    // Return mock data for now if dev mode or error
-    if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
-      return this.getMockMarketData();
-    }
-    return this.request('/market/characters', {
-      method: 'GET',
-      // Add query params logic here if needed
-    }).catch(() => this.getMockMarketData()); // Fallback to mock for demo
-  }
-
-  async purchaseCharacter(characterId: string) {
-    return this.request(`/market/purchase`, {
-      method: 'POST',
-      body: JSON.stringify({ characterId }),
-    });
-  }
+  // ========== Market (deprecated - now "My Soulmate") ==========
 
   // ========== Enhanced User Profile ==========
   async getUserProfile() {
-    const [profile, stakingInfo, referrals] = await Promise.all([
+    const [profile, referrals] = await Promise.all([
       this.getMe(),
-      this.getStakingInfo().catch(() => null),
       this.getReferrals().catch(() => ({ count: 0 }))
-    ]) as [any, any, any];
+    ]) as [any, any];
 
-    // Calculate rank based on staking and LRA balance
-    const totalAssets = (profile.staking_balance || 0) + (profile.lra_balance || 0);
+    const totalAssets = (profile.points || 0) + (profile.lra_balance || 0);
     let rank = 'Newcomer';
     if (totalAssets >= 100000) rank = 'Diamond Soul';
     else if (totalAssets >= 50000) rank = 'Platinum Soul';
@@ -392,27 +356,14 @@ class ApiClient {
     else if (totalAssets >= 1000) rank = 'Soul Seeker';
     else if (totalAssets >= 100) rank = 'Soul Initiate';
 
-    // Calculate total earnings (LRA balance as proxy)
-    const lraBalance = profile.lra_balance || 0;
-    const totalEarnings = lraBalance > 0 ? `${(lraBalance * 0.001).toFixed(4)} BNB` : '0 BNB';
-
-    // Format joined date
-    const joinedDate = profile.created_at 
+    const joinedDate = profile.created_at
       ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
       : 'Just now';
 
     return {
       ...profile,
-      // Real staking data from backend
-      staking_balance: stakingInfo?.staking_balance ?? profile.staking_balance ?? 0,
-      staking_multiplier: stakingInfo?.staking_multiplier ?? profile.staking_multiplier ?? 1.0,
-      is_locked: stakingInfo?.is_locked ?? false,
-      lock_expiry: stakingInfo?.lock_expiry ?? 0,
-      effective_apy: stakingInfo?.effective_apy ?? 12.5,
-      // Computed fields
       rank,
       referral_count: referrals?.count || 0,
-      total_earnings: totalEarnings,
       joined_date: joinedDate,
     };
   }
@@ -432,103 +383,6 @@ class ApiClient {
     });
   }
 
-  // ========== Staking ==========
-  async stakeLRA(amount: number): Promise<{
-    staking_balance: number;
-    staking_multiplier: number;
-    staked_at: number;
-    lock_expiry: number;
-    message: string;
-  }> {
-    return this.request('/staking/stake', {
-      method: 'POST',
-      body: JSON.stringify({ amount })
-    });
-  }
-
-  async unstakeLRA(amount: number): Promise<{
-    staking_balance: number;
-    staking_multiplier: number;
-    unstaked_amount: number;
-    message: string;
-  }> {
-    return this.request('/staking/unstake', {
-      method: 'POST',
-      body: JSON.stringify({ amount })
-    });
-  }
-
-  async getStakingInfo(): Promise<{
-    staking_balance: number;
-    staking_multiplier: number;
-    is_locked: boolean;
-    lock_expiry: number;
-    remaining_seconds: number;
-    base_apy: number;
-    effective_apy: number;
-    points: number;
-    lra_balance: number;
-  }> {
-    return this.request('/staking/info');
-  }
-
-  // ========== Intelligence & Automation ==========
-  async getMarketIntelligence() {
-    return this.request('/market/intelligence');
-  }
-
-  async getPools() {
-    return this.request('/market/pools');
-  }
-
-  async executeStrategy(strategy: string, poolName: string, amount: number) {
-    return this.request('/market/execute-strategy', {
-      method: 'POST',
-      body: JSON.stringify({ strategy, pool_name: poolName, amount })
-    });
-  }
-
-  // Mock Helpers
-  private getMockMarketData() {
-    return [
-      {
-        id: 'm1',
-        title: 'Cyber Ninja',
-        image_url: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&q=80&w=800',
-        type: 'protector',
-        price: '0.5 BNB',
-        rarity: 'Rare',
-        likes: 128
-      },
-      {
-        id: 'm2',
-        title: 'Ethereal Muse',
-        image_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800',
-        type: 'companion',
-        price: '0.8 BNB',
-        rarity: 'Legendary',
-        likes: 342
-      },
-      {
-        id: 'm3',
-        title: 'Quantum Scholar',
-        image_url: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=800',
-        type: 'mentor',
-        price: '0.3 BNB',
-        rarity: 'Common',
-        likes: 89
-      },
-      {
-        id: 'm4',
-        title: 'Neon Drifter',
-        image_url: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=800',
-        type: 'adventurer',
-        price: '0.45 BNB',
-        rarity: 'Uncommon',
-        likes: 156
-      }
-    ];
-  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL)

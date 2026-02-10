@@ -24,7 +24,12 @@ func InitDB() error {
 		return err
 	}
 
-	// 自动迁移
+	// Migration: drop legacy telegram_id column if it exists (replaced by wallet_address)
+	log.Println("Running migration: telegram_id -> wallet_address...")
+	DB.Exec("ALTER TABLE users DROP COLUMN IF EXISTS telegram_id")
+	log.Println("Migration complete")
+
+	// Auto-migrate models
 	err = DB.AutoMigrate(
 		&model.User{},
 		&model.Character{},
@@ -35,11 +40,11 @@ func InitDB() error {
 		return err
 	}
 
-	// 强制修复 birth_time 字段类型
-	log.Println("正在修复 birth_time 字段类型...")
+	// Fix birth_time field type
+	log.Println("Fixing birth_time field type...")
 	DB.Exec("ALTER TABLE users DROP COLUMN IF EXISTS birth_time")
 	DB.Exec("ALTER TABLE users ADD COLUMN birth_time time without time zone")
-	log.Println("birth_time 字段类型修复完成")
+	log.Println("birth_time field type fixed")
 
 	// 修复 image_url 字段类型（从 varchar(500) 改为 text 以支持 base64 图片）
 	log.Println("正在修复 image_url 字段类型...")

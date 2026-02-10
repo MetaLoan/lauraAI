@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { apiClient } from '@/lib/api';
 import Image from 'next/image';
-import { Loader2, User, Wallet, Award, Clock, Settings, Bell, Share2, LogOut, TrendingUp, Coins } from 'lucide-react';
+import { Loader2, User, Wallet, Award, Clock, Settings, Bell, Share2, LogOut, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAccount } from 'wagmi';
 import { cn } from '@/lib/utils';
@@ -125,39 +125,24 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                {/* Staking Info Card */}
-                <div className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 border border-green-500/20 rounded-2xl p-6">
+                {/* LRA Points (points only, no token) */}
+                <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/20 rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-green-400" /> Staking Status
+                            <Coins className="w-5 h-5 text-purple-400" /> LRA Points
                         </h3>
-                        <span className="text-green-400 text-sm font-medium">
-                            {profile?.staking_multiplier?.toFixed(2) || '1.00'}x Multiplier
-                        </span>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Staked Balance</p>
-                            <p className="text-xl font-bold text-white flex items-center gap-1">
-                                <Coins className="w-4 h-4 text-purple-400" />
-                                {profile?.staking_balance?.toLocaleString() || 0} LRA
-                            </p>
+                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Earned (chat, etc.)</p>
+                            <p className="text-xl font-bold text-white">{profile?.points?.toLocaleString() ?? 0}</p>
                         </div>
                         <div>
-                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">LRA Balance</p>
-                            <p className="text-xl font-bold text-white">{profile?.lra_balance?.toLocaleString() || 0} LRA</p>
-                        </div>
-                        <div>
-                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Effective APY</p>
-                            <p className="text-xl font-bold text-green-400">
-                                {((profile?.staking_multiplier || 1) * 12.5).toFixed(1)}%
-                            </p>
-                        </div>
-                        <div>
-                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Pending Points</p>
-                            <p className="text-xl font-bold text-purple-400">{profile?.points?.toLocaleString() || 0}</p>
+                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Total Claimed</p>
+                            <p className="text-xl font-bold text-white">{profile?.lra_balance?.toLocaleString() ?? 0}</p>
                         </div>
                     </div>
+                    <p className="text-gray-500 text-xs mt-3">Use Harvest on Dashboard to claim earned points.</p>
                 </div>
 
                 {/* Invite Dashboard */}

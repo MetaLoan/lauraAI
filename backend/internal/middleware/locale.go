@@ -41,14 +41,7 @@ func detectLocale(c *gin.Context) i18n.Locale {
 		}
 	}
 
-	// 2. 尝试从 Telegram initData 中解析语言
-	// 注意：这需要先经过 TelegramAuthMiddleware 处理
-	if user, exists := GetUserFromContext(c); exists && user != nil {
-		// 如果用户有语言偏好，可以从数据库获取
-		// 这里暂时使用默认语言
-	}
-
-	// 3. 默认语言
+	// 2. Default locale
 	return i18n.DefaultLocale
 }
 

@@ -61,11 +61,7 @@ export default function HelpUnlockPage({
     setStatus('helping')
     
     try {
-      // #region agent log
-      const webApp = (window as any).Telegram?.WebApp
-      const initData = webApp?.initData
-      fetch('http://127.0.0.1:7242/ingest/91080ee1-2ffe-4745-8552-767fa721acb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'help-unlock-page.tsx:handleHelpUnlock',message:'调用helpUnlock前',data:{characterId:characterData.id,hasInitData:!!initData,initDataLen:initData?.length||0},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
+      // Help unlock request
       
       await apiClient.helpUnlock(characterData.id.toString())
       

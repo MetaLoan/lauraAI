@@ -216,8 +216,7 @@ func (h *UnlockHandler) Unlock(c *gin.Context) {
 		}
 	}
 
-	// TODO: 实际验证支付（这里简化处理，假设支付成功）
-	// 在生产环境中，应该调用 Telegram Stars API 或 TON 区块链验证支付
+	// TODO: verify payment on-chain (simplified for now, assumes payment success)
 
 	// 更新解锁状态为完全解锁
 	if err := h.characterRepo.UpdateUnlockStatus(characterID, model.UnlockStatusFullUnlocked, nil); err != nil {
