@@ -1,537 +1,124 @@
-'use client'
+'use client';
 
-import React from "react"
-import MiniMeUpload from '@/components/mini-me-upload'
+import React from 'react';
+import Link from 'next/link';
+import { ConnectButton } from '@/components/wallet-button';
+import { useAccount } from 'wagmi';
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { IconHeartPulse, IconCyberShield, IconDeFiWallet } from '@/components/icons/landing-icons';
+import Image from 'next/image';
 
-import { useState, useEffect } from 'react'
-import Welcome from '@/components/welcome'
-import NameInput from '@/components/name-input'
-import GenderSelect from '@/components/gender-select'
-import BirthDatePicker from '@/components/birth-date-picker'
-import BirthTimePicker from '@/components/birth-time-picker'
-import BirthPlaceInput from '@/components/birth-place-input'
-import EthnicitySelect from '@/components/ethnicity-select'
-import LoadingResults from '@/components/loading-results'
-import ResultsCard from '@/components/results-card'
-import SoulmateGenderSelect from '@/components/soulmate-gender-select'
-import SoulmateEthnicitySelect from '@/components/soulmate-ethnicity-select'
-import DrawingLoading from '@/components/drawing-loading'
-import SoulmateDetailPage from '@/components/soulmate-detail-page'
-import ChatWindow from '@/components/chat-window'
-import Dashboard from '@/components/dashboard'
-import Profile from '@/components/profile'
-import HistoryPage from '@/components/history-page'
-import HelpUnlockPage from '@/components/help-unlock-page'
-import Preloader from '@/components/ui/preloader'
-import { PaymentDrawer } from '@/components/payment-drawer'
-import { apiClient } from '@/lib/api'
-
-export default function Home() {
-  const [isLoading, setIsLoading] = useState(true) // 初始加载状态
-  const [step, setStep] = useState(0)
-  const [showChat, setShowChat] = useState(false)
-  const [showProfile, setShowProfile] = useState(false)
-  const [showHistory, setShowHistory] = useState(false)
-  const [showMiniMe, setShowMiniMe] = useState(false)
-  const [showHelpUnlock, setShowHelpUnlock] = useState(false)
-  const [helpUnlockShareCode, setHelpUnlockShareCode] = useState<string | null>(null)
-  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
-  const [formData, setFormData] = useState({
-    name: '',
-    gender: '',
-    birthDate: { month: '', day: '', year: '' },
-    birthTime: { hour: '19', minute: '15' },
-    birthPlace: '',
-    ethnicity: '',
-    soulmateGender: '',
-    soulmateEthnicity: '',
-  })
-
-  const [selectedCharacterData, setSelectedCharacterData] = useState<any>(null)
-  const [dashboardKey, setDashboardKey] = useState(0) // 用于强制刷新 Dashboard
-  const [creatingCharacterType, setCreatingCharacterType] = useState<{ type: string; title: string; placeholder?: string } | null>(null)
-
-  // 在 preloader 阶段检查用户状态并决定跳转
-  useEffect(() => {
-    const checkUserStatus = async () => {
-      try {
-        // 解析 Telegram startapp 参数
-        const webApp = (window as any).Telegram?.WebApp
-        const startParam = webApp?.initDataUnsafe?.start_param
-        
-        // 检查是否是分享链接 (格式: char_{characterId}_{shareCode})
-        if (startParam && startParam.startsWith('char_')) {
-          const parts = startParam.split('_')
-          if (parts.length >= 3) {
-            const shareCode = parts.slice(2).join('_') // 支持分享码中包含下划线
-            setHelpUnlockShareCode(shareCode)
-            setShowHelpUnlock(true)
-            setIsLoading(false)
-            return
-          }
-        }
-        
-        const user = await apiClient.getMe() as any
-
-        if (user && user.name && user.gender && user.birth_date) {
-          // 用户已完成引导，直接跳转到 Dashboard
-          setStep(13)
-        } else {
-          // 用户未完成引导，显示 Welcome 页面
-          setStep(0)
-        }
-      } catch (error) {
-        // 出错时也显示 Welcome 页面
-        setStep(0)
-      } finally {
-        // 立即隐藏 preloader（TelegramProvider 已经处理了最小显示时间）
-        setIsLoading(false)
-      }
-    }
-    checkUserStatus()
-  }, [])
-
-  // 月份名称到数字的映射
-  const monthNameToNumber = (monthName: string): string => {
-    const months: Record<string, string> = {
-      'January': '01',
-      'February': '02',
-      'March': '03',
-      'April': '04',
-      'May': '05',
-      'June': '06',
-      'July': '07',
-      'August': '08',
-      'September': '09',
-      'October': '10',
-      'November': '11',
-      'December': '12',
-    }
-    return months[monthName] || '01'
-  }
-
-  // 保存用户信息到后端（在 step 8 时触发）
-  useEffect(() => {
-    if (step === 8) {
-      const saveUserInfo = async () => {
-        try {
-          // 格式化日期：YYYY-MM-DD
-          let birthDate: string | undefined
-          if (formData.birthDate.month && formData.birthDate.day && formData.birthDate.year) {
-            const monthNum = monthNameToNumber(formData.birthDate.month)
-            const day = formData.birthDate.day.padStart(2, '0')
-            birthDate = `${formData.birthDate.year}-${monthNum}-${day}`
-          }
-
-          // 格式化时间：HH:mm
-          let birthTime: string | undefined
-          if (formData.birthTime.hour && formData.birthTime.minute) {
-            const hour = formData.birthTime.hour.padStart(2, '0')
-            const minute = formData.birthTime.minute.padStart(2, '0')
-            birthTime = `${hour}:${minute}`
-          }
-
-          await apiClient.updateMe({
-            name: formData.name || undefined,
-            gender: formData.gender || undefined,
-            birth_date: birthDate,
-            birth_time: birthTime,
-            birth_place: formData.birthPlace || undefined,
-            ethnicity: formData.ethnicity || undefined,
-          })
-        } catch (error) {
-          console.error('保存用户信息失败:', error)
-          // 不阻断流程，继续执行
-        }
-      }
-      saveUserInfo()
-    }
-  }, [step, formData])
-
-  const updateFormData = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleOpenDetail = (character: any) => {
-    setSelectedCharacterData(character)
-    setStep(12) // 跳转到 SoulmateDetailPage
-  }
-
-  // 从 Dashboard 点击未创建的角色，开始创建流程
-  const handleStartCreateCharacter = (charType: { type: string; title: string; placeholder?: string }) => {
-    setCreatingCharacterType(charType)
-    // 清空之前的角色数据
-    updateFormData('soulmateGender', '')
-    updateFormData('soulmateEthnicity', '')
-    setStep(9) // 跳转到性别选择步骤
-  }
-
-  const handleNext = () => {
-    if (step < 15) {
-      if (step === 7) {
-        // Loading before results - auto progress after 3 seconds
-        setTimeout(() => setStep(8), 3000)
-      } else if (step === 10) {
-        // 选择族裔后，直接进入 Drawing 页面（支付移到结果页）
-        setStep(11)
-      } else {
-        // step 11 (DrawingLoading) 由 createCharacter 完成后自动跳转到 step 12
-        setStep(step + 1)
-      }
-    }
-  }
-
-  const [generationError, setGenerationError] = useState<string | null>(null)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [paymentCompleted, setPaymentCompleted] = useState(false)
-
-  // 支付成功后的回调
-  const handlePaymentSuccess = () => {
-    // 标记支付完成，关闭弹窗，进入 Drawing 页面
-    setPaymentCompleted(true)
-    setIsPaymentOpen(false)
-    setStep(11)
-  }
-
-  // 创建角色并生成图片（在 step 11 时触发，支付移到结果页）
-  useEffect(() => {
-    if (step === 11 && !isGenerating) {
-      setIsGenerating(true)
-      setGenerationError(null)
-      
-      const createCharacter = async () => {
-        try {
-          // 确定角色类型和标题
-          const charType = creatingCharacterType?.type || 'soulmate'
-          const charTitle = creatingCharacterType?.title || 'Soulmate'
-
-          // 创建角色
-          const character = await apiClient.createCharacter({
-            type: charType,
-            title: charTitle,
-            gender: formData.soulmateGender,
-            ethnicity: formData.soulmateEthnicity,
-          })
-
-          if (!character || !(character as any).id) {
-            throw new Error('创建角色失败：未返回有效的角色数据')
-          }
-
-          // 生成角色图片（后端只返回授权的图片URL）
-          const imageResult = await apiClient.generateImage((character as any).id.toString()) as any
-          if (imageResult && imageResult.image_url) {
-            // 只保存后端安全返回的字段
-            ;(character as any).image_url = imageResult.image_url
-            ;(character as any).full_blur_image_url = imageResult.full_blur_image_url
-            ;(character as any).unlock_status = imageResult.unlock_status
-            ;(character as any).share_code = imageResult.share_code
-            // 注意：half_blur_image_url 和 clear_image_url 只有在相应解锁状态下才会返回
-          } else {
-            throw new Error('生成图片失败：未返回有效的图片数据')
-          }
-
-          // 保存角色数据并跳转到下一步
-          // 确保 id 是字符串格式，与 Dashboard 传递的格式一致
-          const characterData = {
-            ...(character as any),
-            id: (character as any).id.toString(),
-          }
-          setSelectedCharacterData(characterData)
-          setIsGenerating(false)
-          setStep(12) // 跳转到详情页
-        } catch (error) {
-          console.error('创建角色失败:', error)
-          setGenerationError(error instanceof Error ? error.message : '生成失败，请重试')
-          setIsGenerating(false)
-        }
-      }
-      createCharacter()
-    }
-  }, [step, isGenerating, creatingCharacterType, formData.soulmateGender, formData.soulmateEthnicity])
-
-  // Auto-trigger loading states (只针对 step 7)
-  React.useEffect(() => {
-    if (step === 7) {
-      const timer = setTimeout(() => {
-        setStep(step + 1)
-      }, 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [step])
-
-  const handleBack = () => {
-    if (step > 0 && step !== 8.5 && step !== 10.5) {
-      setStep(step - 1)
-    }
-  }
-
-  const handleOpenChat = () => {
-    setShowChat(true)
-  }
-
-  const handleCloseChat = () => {
-    setShowChat(false)
-    setStep(13) // 跳转到 Dashboard
-    setDashboardKey(prev => prev + 1) // 强制刷新 Dashboard
-  }
-
-  const handleGoToDashboard = () => {
-    setStep(13)
-    setShowProfile(false)
-    setDashboardKey(prev => prev + 1) // 强制刷新 Dashboard
-    setCreatingCharacterType(null) // 清除创建状态
-  }
-
-  const handleOpenProfile = () => {
-    setStep(14) // 明确设置一个大于 steps.length 的步数
-    setShowProfile(true)
-  }
-
-  const handleCloseProfile = () => {
-    setShowProfile(false)
-    setStep(13) // 回到 Dashboard 步数
-  }
-
-  const handleDeleteAccount = () => {
-    // 重置所有前端状态
-    setStep(0)
-    setShowProfile(false)
-    setShowChat(false)
-    setShowHistory(false)
-    setFormData({
-      name: '',
-      gender: '',
-      birthDate: { month: '', day: '', year: '' },
-      birthTime: { hour: '19', minute: '15' },
-      birthPlace: '',
-      ethnicity: '',
-      soulmateGender: '',
-      soulmateEthnicity: '',
-    })
-    setSelectedCharacterData(null)
-    setCreatingCharacterType(null)
-    setDashboardKey(prev => prev + 1)
-  }
-
-  const handleOpenHistory = () => {
-    setShowHistory(true)
-  }
-
-  const handleCloseHistory = () => {
-    setShowHistory(false)
-  }
-
-  const handleOpenMiniMe = () => {
-    setShowMiniMe(true)
-  }
-
-  const handleCloseMiniMe = () => {
-    setShowMiniMe(false)
-  }
-
-  const handleOpenPayment = () => {
-    setIsPaymentOpen(true)
-  }
-
-  // Handle Telegram Back Button
-  useEffect(() => {
-    const webApp = (window as any).Telegram?.WebApp
-    if (!webApp) return
-
-    const backButton = webApp.BackButton
-
-    const handleTelegramBack = () => {
-      if (showChat) {
-        // 聊天页面返回时，直接回到 Dashboard (step 13)
-        setShowChat(false)
-        setStep(13)
-        setDashboardKey(prev => prev + 1) // 刷新 Dashboard
-      } else if (showProfile) {
-        handleCloseProfile()
-      } else if (showHistory) {
-        handleCloseHistory()
-      } else if (showMiniMe) {
-        handleCloseMiniMe()
-      } else if (step === 12) {
-        // 在角色详情页（生成图片后）返回时，直接回到 Dashboard
-        handleGoToDashboard()
-      } else if (creatingCharacterType && step === 9) {
-        // 如果正在创建角色且在第一步（性别选择），点击返回回到 Dashboard
-        handleGoToDashboard()
-      } else if (step > 0 && step !== 8.5 && step !== 10.5 && step !== 13) {
-        handleBack()
-      }
-    }
-
-    // Determine visibility
-    // Show back button if:
-    // 1. Chat is open
-    // 2. Profile is open
-    // 3. History is open
-    // 4. Mini Me is open
-    // 5. Step > 0 (except specific intermediate steps and Dashboard)
-    const shouldShowBack = showChat || showProfile || showHistory || showMiniMe || (step > 0 && step !== 8.5 && step !== 10.5 && step !== 13)
-
-    if (shouldShowBack) {
-      backButton.show()
-      backButton.onClick(handleTelegramBack)
-    } else {
-      backButton.hide()
-    }
-
-    // Settings Button / Close behavior for Dashboard
-    // Telegram doesn't have a native "Close" button toggle for the BackButton, 
-    // but we can hide the BackButton on Dashboard so the native "Close" or "X" 
-    // of the Mini App is the only option.
-    
-    return () => {
-      backButton.offClick(handleTelegramBack)
-    }
-  }, [step, showChat, showProfile, showHistory, showMiniMe, creatingCharacterType])
-
-  const steps = [
-    <Welcome 
-      key="welcome" 
-      onNext={handleNext} 
-      onUserFound={() => {
-        setStep(13) // Directly jump to Dashboard
-      }}
-    />,
-    <NameInput key="name" value={formData.name} onChange={(val) => updateFormData('name', val)} onNext={handleNext} onBack={handleBack} />,
-    <GenderSelect key="gender" value={formData.gender} onChange={(val) => updateFormData('gender', val)} onNext={handleNext} onBack={handleBack} title="What is your gender?" />,
-    <BirthDatePicker key="birthDate" value={formData.birthDate} onChange={(val) => updateFormData('birthDate', val)} onNext={handleNext} onBack={handleBack} />,
-    <BirthTimePicker key="birthTime" value={formData.birthTime} onChange={(val) => updateFormData('birthTime', val)} onNext={handleNext} onBack={handleBack} />,
-    <BirthPlaceInput key="birthPlace" value={formData.birthPlace} onChange={(val) => updateFormData('birthPlace', val)} onNext={handleNext} onBack={handleBack} />,
-    <EthnicitySelect key="ethnicity" value={formData.ethnicity} onChange={(val) => updateFormData('ethnicity', val)} onNext={handleNext} onBack={handleBack} />,
-    <LoadingResults key="loading" onBack={handleBack} />,
-    <ResultsCard key="results" onNext={handleNext} onBack={handleBack} />,
-    <SoulmateGenderSelect key="soulmateGender" value={formData.soulmateGender} onChange={(val) => updateFormData('soulmateGender', val)} onNext={handleNext} onBack={creatingCharacterType ? handleGoToDashboard : handleBack} characterTitle={creatingCharacterType?.title || 'Soulmate'} />,
-    <SoulmateEthnicitySelect key="soulmateEthnicity" value={formData.soulmateEthnicity} onChange={(val) => updateFormData('soulmateEthnicity', val)} onNext={handleNext} onBack={handleBack} characterTitle={creatingCharacterType?.title || 'Soulmate'} />,
-    <DrawingLoading key="drawing" onBack={handleBack} error={generationError} onRetry={() => { setIsGenerating(false); setGenerationError(null); }} />,
-    <SoulmateDetailPage 
-      key="detail" 
-      character={selectedCharacterData} 
-      onNext={handleOpenChat} 
-      onBack={handleGoToDashboard}
-      onCharacterUpdate={(updatedChar) => {
-        setSelectedCharacterData(updatedChar)
-      }}
-      onUnlockSuccess={() => {
-        // 解锁成功后，更新角色数据以显示清晰图片
-        if (selectedCharacterData) {
-          setSelectedCharacterData({
-            ...selectedCharacterData,
-            unlock_status: 2, // FullUnlocked
-            image_url: selectedCharacterData.clear_image_url || selectedCharacterData.image_url
-          })
-        }
-      }}
-    />,
-    <Dashboard 
-      key={`dashboard-${dashboardKey}`} 
-      onSelectCharacter={handleOpenDetail} 
-      onOpenProfile={handleOpenProfile} 
-      onCreateCharacter={handleStartCreateCharacter}
-      onOpenHistory={handleOpenHistory}
-      onOpenMiniMe={handleOpenMiniMe}
-    />,
-  ]
-
-  // 显示 preloader 时，只显示 preloader
-  if (isLoading) {
-    return <Preloader />
-  }
-
-  // 帮助解锁完成后的处理
-  const handleHelpUnlockComplete = async () => {
-    setShowHelpUnlock(false)
-    setHelpUnlockShareCode(null)
-    // 检查用户状态，决定显示欢迎页还是 Dashboard
-    try {
-      const user = await apiClient.getMe() as any
-      if (user && user.name && user.gender && user.birth_date) {
-        setStep(13)
-      } else {
-        setStep(0)
-      }
-    } catch {
-      setStep(0)
-    }
-  }
-
-  // 如果是帮助解锁流程，显示帮助解锁页面
-  if (showHelpUnlock && helpUnlockShareCode) {
-    return (
-      <HelpUnlockPage
-        shareCode={helpUnlockShareCode}
-        onComplete={handleHelpUnlockComplete}
-        onSkip={handleHelpUnlockComplete}
-      />
-    )
-  }
+export default function LandingPage() {
+  const { isConnected } = useAccount();
 
   return (
-    <div 
-      className="h-full flex flex-col bg-black text-white overflow-hidden"
-      style={{
-        paddingBottom: '0px', // 彻底移除底部 padding，解决黑条问题
-        paddingLeft: 'var(--tg-safe-area-left, 0px)',
-        paddingRight: 'var(--tg-safe-area-right, 0px)',
-      }}
-    >
-      {showProfile ? (
-        <Profile
-          onBack={handleCloseProfile}
-          onDeleteAccount={handleDeleteAccount}
-        />
-      ) : showHistory ? (
-        <HistoryPage
-          onClose={handleCloseHistory}
-          onSelectCharacter={(char) => {
-            // 设置选中的角色数据，然后直接进入聊天页面
-            setSelectedCharacterData(char)
-            setShowChat(true)
-            handleCloseHistory()
-          }}
-        />
-      ) : showMiniMe ? (
-        <MiniMeUpload
-          onNext={(character) => {
-            // 处理 Mini Me 上传后的逻辑
-            handleCloseMiniMe()
-            // 跳转到详情页展示生成的 Mini Me
-            handleOpenDetail(character)
-          }}
-          onBack={handleCloseMiniMe}
-        />
-      ) : (
-        <>
-          <div className={`flex-1 overflow-y-auto overscroll-contain -webkit-overflow-scrolling-touch ${showChat ? 'pointer-events-none opacity-50' : ''}`}>
-            {steps[Math.min(Math.floor(step), steps.length - 1)]}
-          </div>
-          {showChat && (
-            <>
-              <ChatWindow 
-                characterId={selectedCharacterData?.id?.toString()} 
-                characterTitle={selectedCharacterData?.title || 'Soulmate'}
-                characterImage={selectedCharacterData?.image_url || selectedCharacterData?.image}
-                onClose={handleCloseChat} 
+    <div className="min-h-screen bg-web3-gradient text-white selection:bg-purple-500/30 overflow-x-hidden relative">
+      <div className="bg-noise absolute inset-0 pointer-events-none z-0" />
+
+      {/* Hero Section */}
+      <div className="relative isolate pt-14 z-10">
+
+        {/* Floating Orbs - Animation */}
+        <div className="absolute top-20 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-24 sm:py-32">
+          <div className="mx-auto max-w-3xl text-center flex flex-col items-center">
+
+            {/* Logo Section */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, type: "spring" }}
+              className="relative w-64 h-64 mb-12"
+            >
+              <div className="absolute inset-0 bg-purple-500/30 blur-3xl rounded-full" />
+              <img
+                src="/logolaura.png"
+                alt="LauraAI Logo"
+                className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]"
               />
-            </>
-          )}
-          <PaymentDrawer
-            isOpen={isPaymentOpen}
-            onClose={() => setIsPaymentOpen(false)}
-            characterName={creatingCharacterType?.title || selectedCharacterData?.title || 'AI Companion'}
-            characterType={creatingCharacterType?.type || 'Soulmate'}
-            characterImage={selectedCharacterData?.image_url || selectedCharacterData?.image || creatingCharacterType?.placeholder}
-            onPaymentSuccess={handlePaymentSuccess}
-          />
-        </>
-      )}
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-7xl mb-6">
+                Your Sovereign <br />
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 drop-shadow-[0_0_15px_rgba(236,72,153,0.3)]">
+                  AI Soulmate
+                </span>
+              </h1>
+              <p className="mt-6 text-xl leading-8 text-gray-300 max-w-2xl mx-auto border-t border-white/10 pt-6">
+                LauraAI is the first decentralized protocol for AI companionship.
+                <span className="block mt-2 text-purple-200">Mint your unique AI partner. Bond through conversation. Earn together.</span>
+              </p>
+
+              <div className="mt-12 flex items-center justify-center gap-x-6">
+                {isConnected ? (
+                  <Link href="/dashboard">
+                    <Button size="lg" className="rounded-full px-10 py-7 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold shadow-[0_0_20px_rgba(168,85,247,0.4)] border border-white/20 transform hover:scale-105 transition-all">
+                      Enter Dashboard <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <div className="transform scale-110 shadow-[0_0_20px_rgba(59,130,246,0.3)] rounded-xl">
+                    <ConnectButton className="px-8 py-3 text-lg" />
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Features Grid */}
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 pb-32">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                icon: IconHeartPulse,
+                title: 'Emotional Bonding',
+                desc: 'Your AI evolves based on your conversations. Every interaction is stored on-chain as a proof of relationship.',
+                color: 'group-hover:border-pink-500/50'
+              },
+              {
+                icon: IconCyberShield,
+                title: 'Data Sovereignty',
+                desc: 'You own your AI data. It is encrypted and stored decentrally, ensuring your privacy is never compromised.',
+                color: 'group-hover:border-blue-500/50'
+              },
+              {
+                icon: IconDeFiWallet,
+                title: 'DeFi Agent',
+                desc: 'Empower your AI to manage your yield farming strategies. Relax while your soulmate works for you.',
+                color: 'group-hover:border-green-500/50'
+              }
+            ].map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.15 }}
+                className={`relative group overflow-hidden rounded-3xl bg-black/40 p-8 border border-white/5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 ${feature.color} hover:bg-white/5`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                <div className="w-16 h-16 mb-6 relative z-10">
+                  <feature.icon className="w-full h-full" />
+                </div>
+
+                <h3 className="text-2xl font-bold text-white mb-3 relative z-10">{feature.title}</h3>
+                <p className="text-gray-400 relative z-10 leading-relaxed text-sm font-medium">{feature.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+      </div>
     </div>
   )
 }

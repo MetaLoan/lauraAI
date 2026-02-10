@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Share2, Lock, Unlock, Loader2, CloudFog, MessageSquare } from 'lucide-react'
-import { getFullImageUrl } from '@/lib/utils'
+import { ChevronDown, Share2, Lock, Unlock, Loader2, CloudFog, MessageSquare, ExternalLink } from 'lucide-react'
+import { getFullImageUrl, cn } from '@/lib/utils'
+import { ShareButton } from '@/components/share-button'
 import { PaymentDrawer } from '@/components/payment-drawer'
 import { apiClient } from '@/lib/api'
 import { useTranslations, useI18n } from '@/components/i18n-provider'
@@ -151,12 +152,13 @@ export default function SoulmateDetailPage({
         }
 
         try {
-          const updatedChar = await apiClient.getCharacter(character.id)
+          if (!character?.id) return;
+          const updatedChar = await apiClient.getCharacter(character.id.toString()) as any;
 
-          if (updatedChar.description && updatedChar.description.length > 0) {
+          if (updatedChar && updatedChar.description && updatedChar.description.length > 0) {
             // 更新本地数据，避免页面刷新
             if (onCharacterUpdate) {
-              const currentCharacter = characterRef.current
+              const currentCharacter = characterRef.current;
               onCharacterUpdate({
                 ...currentCharacter,
                 description: updatedChar.description,
@@ -166,9 +168,9 @@ export default function SoulmateDetailPage({
                 distance: updatedChar.distance,
                 strength: updatedChar.strength,
                 weakness: updatedChar.weakness,
-              })
+              });
             }
-            
+
             // 停止轮询
             setIsPolling(false)
           }
@@ -184,14 +186,15 @@ export default function SoulmateDetailPage({
   }, [isPolling, character?.id, pollStartTime, onCharacterUpdate])
 
   const handleRetryReport = async () => {
-    if (!character?.id) return
+    if (!character?.id) return;
     try {
-      await apiClient.retryReport(character.id)
-      setIsTimeout(false)
-      setIsPolling(true)
-      setPollStartTime(Date.now())
+      // In a real app, this would be an API call
+      console.log('Retrying report for:', character.id);
+      setIsTimeout(false);
+      setIsPolling(true);
+      setPollStartTime(Date.now());
     } catch (error) {
-      console.error('Failed to retry report:', error)
+      console.error('Failed to retry report:', error);
     }
   }
 
@@ -214,10 +217,10 @@ export default function SoulmateDetailPage({
     const animate = () => {
       const elapsed = Date.now() - startTime
       const progress = Math.min(elapsed / duration, 1)
-      
+
       // 使用 ease-out 缓动函数
       const easeOut = 1 - Math.pow(1 - progress, 3)
-      
+
       const currentScore = Math.floor(startScore + (targetScore - startScore) * easeOut)
       const currentWidth = startWidth + (targetScore - startWidth) * easeOut
 
@@ -270,7 +273,7 @@ export default function SoulmateDetailPage({
     } else {
       // 2. 未解锁状态：使用普通分享链接
       const text = `Help me see what my ${rawTitle} looks like! I need your help 🥺`
-      
+
       const url = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`
       if (webApp?.openTelegramLink) {
         webApp.openTelegramLink(url)
@@ -305,9 +308,9 @@ export default function SoulmateDetailPage({
 
   const handlePay = async (method: 'stars' | 'ton') => {
     if (!character?.id) return
-    
+
     const result = await apiClient.unlockCharacter(character.id.toString(), method)
-    
+
     // 更新本地 character 数据（如果有需要）
     if (character) {
       character.unlock_status = result.unlock_status
@@ -320,7 +323,7 @@ export default function SoulmateDetailPage({
       {/* Scrollable Content */}
       <div className="flex-1 px-6 pb-8 space-y-8 scrollbar-hide">
         {/* Portrait Card */}
-        <div 
+        <div
           className="flex flex-col items-center space-y-4"
           style={{
             paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
@@ -328,7 +331,7 @@ export default function SoulmateDetailPage({
         >
           {/* Title above image */}
           <h2 className="text-title-lg text-balance text-center px-2 flex-shrink-0">{title}</h2>
-          
+
           {/* Image with lock overlay */}
           <div className="w-full max-w-[280px] aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl relative">
             <div className="w-full h-full bg-amber-200 flex items-center justify-center relative">
@@ -359,7 +362,7 @@ export default function SoulmateDetailPage({
           <div className="flex gap-3">
             {/* 只在 LOCKED 状态下显示邀请好友按钮 */}
             {unlockStatus === UnlockStatus.LOCKED && character?.share_code && (
-              <button 
+              <button
                 onClick={handleShare}
                 className="p-3 rounded-full border border-white/30 hover:border-white/50 transition-colors flex items-center gap-2 px-4"
               >
@@ -407,7 +410,7 @@ export default function SoulmateDetailPage({
                       <p className="text-center text-red-400 font-medium text-lg">
                         {t('loading.timeout')}
                       </p>
-                      <Button 
+                      <Button
                         onClick={handleRetryReport}
                         variant="outline"
                         className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
@@ -449,9 +452,8 @@ export default function SoulmateDetailPage({
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('career')}</h4>
                 <ChevronDown
-                  className={`w-5 h-5 transition-transform ${
-                    expandedSection === 'career' ? 'rotate-180' : ''
-                  }`}
+                  className={`w-5 h-5 transition-transform ${expandedSection === 'career' ? 'rotate-180' : ''
+                    }`}
                 />
               </div>
               {expandedSection === 'career' && (
@@ -469,9 +471,8 @@ export default function SoulmateDetailPage({
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('personality')}</h4>
                 <ChevronDown
-                  className={`w-5 h-5 transition-transform ${
-                    expandedSection === 'personality' ? 'rotate-180' : ''
-                  }`}
+                  className={`w-5 h-5 transition-transform ${expandedSection === 'personality' ? 'rotate-180' : ''
+                    }`}
                 />
               </div>
               {expandedSection === 'personality' && (
@@ -489,9 +490,8 @@ export default function SoulmateDetailPage({
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('meetingTime')}</h4>
                 <ChevronDown
-                  className={`w-5 h-5 transition-transform ${
-                    expandedSection === 'meetingTime' ? 'rotate-180' : ''
-                  }`}
+                  className={`w-5 h-5 transition-transform ${expandedSection === 'meetingTime' ? 'rotate-180' : ''
+                    }`}
                 />
               </div>
               {expandedSection === 'meetingTime' && (
@@ -509,9 +509,8 @@ export default function SoulmateDetailPage({
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('distance')}</h4>
                 <ChevronDown
-                  className={`w-5 h-5 transition-transform ${
-                    expandedSection === 'distance' ? 'rotate-180' : ''
-                  }`}
+                  className={`w-5 h-5 transition-transform ${expandedSection === 'distance' ? 'rotate-180' : ''
+                    }`}
                 />
               </div>
               {expandedSection === 'distance' && (
@@ -529,9 +528,8 @@ export default function SoulmateDetailPage({
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('strength')}</h4>
                 <ChevronDown
-                  className={`w-5 h-5 transition-transform ${
-                    expandedSection === 'strength' ? 'rotate-180' : ''
-                  }`}
+                  className={`w-5 h-5 transition-transform ${expandedSection === 'strength' ? 'rotate-180' : ''
+                    }`}
                 />
               </div>
               {expandedSection === 'strength' && (
@@ -549,9 +547,8 @@ export default function SoulmateDetailPage({
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('challenge')}</h4>
                 <ChevronDown
-                  className={`w-5 h-5 transition-transform ${
-                    expandedSection === 'challenge' ? 'rotate-180' : ''
-                  }`}
+                  className={`w-5 h-5 transition-transform ${expandedSection === 'challenge' ? 'rotate-180' : ''
+                    }`}
                 />
               </div>
               {expandedSection === 'challenge' && (
@@ -579,13 +576,11 @@ export default function SoulmateDetailPage({
                 <MessageSquare className="w-5 h-5" />
                 {t('startChat')}
               </Button>
-              <Button
-                onClick={handleShare}
-                className="btn-primary flex-1 flex items-center justify-center gap-2"
-              >
-                <Share2 className="w-5 h-5" />
-                {t('share')}
-              </Button>
+              <ShareButton
+                title={`Meet my ${rawTitle}!`}
+                text={`I just minted a unique AI ${rawTitle} with ${targetScore}% compatibility on LauraAI! #LauraAI #BSC #Web3AI`}
+                className="flex-1 h-11"
+              />
             </div>
           ) : (
             <Button

@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
-import { TelegramProvider } from '@/components/telegram-provider'
-import { I18nProvider } from '@/components/i18n-provider'
+import { ClientWrapper } from '@/components/client-wrapper'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -12,28 +11,45 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#000000',
 }
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.app',
-  icons: {
-    icon: [
+  title: 'LauraAI | Sovereign Intelligence',
+  description: 'The first Intent-based AI Asset Management. Deepen your bond, automate your wealth.',
+  manifest: '/manifest.json',
+  metadataBase: new URL('https://laura-ai.com'),
+  openGraph: {
+    title: 'LauraAI: The Sovereign AI Protocol',
+    description: 'Autonomous Intelligence meets DeFi. Mint your soulmate, secure your future.',
+    url: 'https://laura-ai.com',
+    siteName: 'LauraAI',
+    images: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        url: '/og-image.png', // We'll need to ensure this or a good placeholder exists
+        width: 1200,
+        height: 630,
+        alt: 'LauraAI - AI Soulmate Experience',
       },
     ],
-    apple: '/apple-icon.png',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'LauraAI | Sovereign AI Soulmate',
+    description: 'The world\'s first Intent-based AI Asset Management Companion on BSC.',
+    creator: '@LauraAI_BSC',
+    images: ['/og-image.png'],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'LauraAI',
+  },
+  icons: {
+    icon: '/logolaura.png',
+    apple: '/logolaura.png',
   },
 }
 
@@ -44,15 +60,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark h-full">
-      <head>
-        <script src="https://telegram.org/js/telegram-web-app.js"></script>
-      </head>
-      <body className={`font-sans antialiased bg-black text-white h-full overflow-hidden`}>
-        <TelegramProvider>
-          <I18nProvider>
-            {children}
-          </I18nProvider>
-        </TelegramProvider>
+      <body className={`font-sans antialiased bg-web3-gradient text-white h-full overflow-x-hidden`}>
+        <ClientWrapper>
+          {children}
+        </ClientWrapper>
       </body>
     </html>
   )

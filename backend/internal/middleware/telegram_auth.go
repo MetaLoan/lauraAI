@@ -19,23 +19,24 @@ const DefaultTestTelegramID int64 = 999999999
 
 func TelegramAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 开发模式：跳过 Telegram 验证，使用默认测试账号
-		if config.AppConfig.DevMode {
+		initData := c.GetHeader("X-Telegram-Init-Data")
+		if initData == "" {
+			initData = c.Query("initData")
+		}
+
+		// 开发模式 或 网页版模式且未提供 initData：使用默认测试账号，不要求 Telegram
+		useDefaultUser := config.AppConfig.DevMode || (config.AppConfig.WebAppMode && initData == "")
+		if useDefaultUser {
 			userRepo := repository.NewUserRepository()
 			user, err := userRepo.GetByTelegramID(DefaultTestTelegramID)
 			if err != nil {
-				// 测试账号不存在，尝试创建默认测试用户
 				user = &model.User{
 					TelegramID: DefaultTestTelegramID,
 					Name:       "Test User",
 				}
-				// 使用 CreateOrUpdate 避免并发冲突
 				if err := userRepo.CreateOrUpdate(user); err != nil {
-					// 即使 CreateOrUpdate 报错（比如唯一键冲突），也尝试最后查一次
 					log.Printf("CreateOrUpdate 失败: %v，尝试重新获取", err)
 				}
-
-				// 无论上面是否报错，都重新查一次以确保获取到正确的 User 对象（包含 ID）
 				user, err = userRepo.GetByTelegramID(DefaultTestTelegramID)
 				if err != nil {
 					response.Error(c, 500, "Failed to get/create test user: "+err.Error())
@@ -43,19 +44,9 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 					return
 				}
 			}
-
-			// 将用户信息存储到上下文
 			c.Set(UserContextKey, user)
 			c.Next()
 			return
-		}
-
-		// 生产模式：正常进行 Telegram 验证
-		// 从 Header 或 Query 获取 initData
-		log.Printf("TelegramAuth: 请求路径=%s, 方法=%s", c.Request.URL.Path, c.Request.Method)
-		initData := c.GetHeader("X-Telegram-Init-Data")
-		if initData == "" {
-			initData = c.Query("initData")
 		}
 
 		if initData == "" {
@@ -64,6 +55,8 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		// 正常进行 Telegram 验证
 		log.Printf("TelegramAuth: 收到 initData 长度=%d", len(initData))
 
 		// 验证 initData
@@ -80,7 +73,7 @@ func TelegramAuthMiddleware() gin.HandlerFunc {
 		if err != nil {
 			// 用户不存在，创建新用户
 			inviteCode := repository.GenerateInviteCode()
-			
+
 			// 尝试从 Header 获取邀请码并自动绑定
 			inviterCode := c.GetHeader("X-Inviter-Code")
 			var inviterID *uint64

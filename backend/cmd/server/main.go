@@ -160,9 +160,9 @@ func main() {
 		}
 
 		c.JSON(200, gin.H{
-			"message":       "所有数据已清空",
+			"message":        "所有数据已清空",
 			"tables_cleared": []string{"messages", "characters", "users"},
-			"deleted_files": deletedFiles,
+			"deleted_files":  deletedFiles,
 		})
 	})
 
@@ -175,6 +175,9 @@ func main() {
 		// 分享链接公开接口（无需认证）
 		unlockHandler := handler.NewUnlockHandler(reportService)
 		api.GET("/share/:code", unlockHandler.GetShareInfo)
+
+		// 管理端点：清空所有用户数据（需请求头 X-Admin-Key: <ADMIN_SECRET>）
+		api.POST("/admin/clear-all-data", handler.ClearAllData)
 	}
 
 	// Telegram Bot Webhook（公开，由 Telegram 服务器调用）
@@ -190,6 +193,8 @@ func main() {
 		apiAuth.GET("/users/me", userHandler.GetMe)
 		apiAuth.PUT("/users/me", userHandler.UpdateMe)
 		apiAuth.DELETE("/users/me", userHandler.DeleteMe)
+		apiAuth.POST("/users/me/points/sync", userHandler.SyncPoints)
+		apiAuth.POST("/users/me/points/harvest", userHandler.HarvestPoints)
 
 		// 角色相关
 		characterHandler := handler.NewCharacterHandler()
@@ -229,6 +234,21 @@ func main() {
 			miniMeHandler := handler.NewMiniMeHandler(visionService, imagenService)
 			apiAuth.POST("/minime/generate", miniMeHandler.UploadAndGenerateMiniMe)
 		}
+
+		// DeFi 相关
+		defiHandler := handler.NewDeFiHandler()
+		apiAuth.GET("/market/intelligence", defiHandler.GetMarketIntelligence)
+		apiAuth.GET("/market/pools", defiHandler.GetPools)
+		apiAuth.GET("/market/characters", defiHandler.GetMarketCharacters)
+		apiAuth.POST("/market/list", defiHandler.ListCharacter)
+		apiAuth.POST("/market/purchase", defiHandler.PurchaseCharacter)
+		apiAuth.POST("/market/delist", defiHandler.DelistCharacter)
+
+		// Staking 相关
+		stakingHandler := handler.NewStakingHandler()
+		apiAuth.POST("/staking/stake", stakingHandler.Stake)
+		apiAuth.POST("/staking/unstake", stakingHandler.Unstake)
+		apiAuth.GET("/staking/info", stakingHandler.GetInfo)
 	}
 
 	// 启动服务器

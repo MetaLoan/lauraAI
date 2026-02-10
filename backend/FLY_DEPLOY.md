@@ -52,7 +52,21 @@ fly secrets set POSTGRES_DSN="host=xxx user=xxx password=xxx dbname=lauraai port
 
 # 设置上传目录路径（必须与 fly.toml 中的 volume 挂载路径一致）
 fly secrets set UPLOADS_DIR="/root/uploads"
+
+# 网页版 dApp：不要求 Telegram initData，无 initData 时使用默认用户（推荐）
+fly secrets set WEB_APP_MODE="true"
+
+# 可选：清空所有用户数据的 API 密钥（见下方「管理端点」）
+# 若未设置，清空接口会返回 503。可用下面固定值，生产环境建议改为随机密钥：
+fly secrets set ADMIN_SECRET="lauraai-clear-all-2026"
 ```
+
+**数据库**：若使用 Fly Postgres，可先创建并绑定：
+```bash
+fly postgres create --name lauraai-db --region sin
+fly postgres attach lauraai-db --app lauraai-backend
+```
+绑定后会自动设置 `DATABASE_URL`。后端优先使用 `DATABASE_URL`，其次 `POSTGRES_DSN`。
 
 ## 6. 部署
 
@@ -79,6 +93,22 @@ https://lauraai-backend.fly.dev/api
 ```bash
 NEXT_PUBLIC_API_URL=https://lauraai-backend.fly.dev/api
 ```
+
+## 管理端点：清空所有用户数据
+
+**POST** `/api/admin/clear-all-data`
+
+请求头必须带：`X-Admin-Key: <ADMIN_SECRET>`（与你在 Fly 上设置的 `ADMIN_SECRET` 一致）。
+
+若你已按上文用固定密钥设置过，可直接执行：
+```bash
+curl -X POST https://lauraai-backend.fly.dev/api/admin/clear-all-data \
+  -H "X-Admin-Key: lauraai-clear-all-2026"
+```
+
+否则把 `lauraai-clear-all-2026` 换成你在 Fly 上设置的 `ADMIN_SECRET`。
+
+会清空表：`messages`、`characters`、`users`，以及 uploads 目录下的文件，并重置自增 ID。若未设置 `ADMIN_SECRET`，该接口返回 503。
 
 ## 常用命令
 

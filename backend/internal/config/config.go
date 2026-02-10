@@ -13,8 +13,10 @@ type Config struct {
 	GeminiAPIKey     string
 	PostgresDSN      string
 	DevMode          bool
+	WebAppMode       bool   // 网页版 dApp：无 Telegram initData 时使用默认用户，不再要求 Telegram
 	BaseURL          string
 	UploadsDir       string
+	AdminSecret      string // 用于 /api/admin/clear-all-data 的密钥（X-Admin-Key 头）
 }
 
 var AppConfig *Config
@@ -35,8 +37,10 @@ func LoadConfig() {
 		GeminiAPIKey:     getEnv("GEMINI_API_KEY", ""),
 		PostgresDSN:      dbDSN,
 		DevMode:          getEnv("DEV_MODE", "false") == "true",
+		WebAppMode:       getEnv("WEB_APP_MODE", "true") == "true", // 默认 true：网页版可不带 Telegram initData
 		BaseURL:          getEnv("BASE_URL", "https://lauraai-backend.fly.dev"),
 		UploadsDir:       getEnv("UPLOADS_DIR", "./uploads"),
+		AdminSecret:      getEnv("ADMIN_SECRET", ""),
 	}
 
 	if AppConfig.TelegramBotToken == "" {
@@ -47,6 +51,9 @@ func LoadConfig() {
 	}
 	if AppConfig.DevMode {
 		log.Println("开发模式已启用: 将跳过 Telegram 验证，使用默认测试账号")
+	}
+	if AppConfig.WebAppMode {
+		log.Println("网页版模式已启用: 无 Telegram initData 时使用默认用户")
 	}
 }
 

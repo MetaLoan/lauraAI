@@ -1,0 +1,18 @@
+{
+    "name": "LauraAI - Sovereign AI Soulmate",
+    "short_name": "LauraAI",
+    "description": "Your AI Soulmate on Binance Smart Chain. Chat, Earn, and Deepen your Bond.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#8B5CF6",
+    "icons": [
+        {
+            "src": "/logolaura.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "orientation": "portrait"
+}

@@ -1,5 +1,14 @@
-// API URL: 优先使用环境变量，否则使用默认值
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api'
+// API URL: 浏览器通过局域网 IP 访问时用同机 8081，否则用环境变量或默认值
+function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      return `http://${host}:8081/api`
+    }
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api'
+}
+const API_BASE_URL = getApiBaseUrl()
 
 // 请求超时时间（毫秒）
 const REQUEST_TIMEOUT = 15000
@@ -13,21 +22,24 @@ function getCurrentLocaleForApi(): string {
 
   // 1. 优先使用 localStorage 中保存的语言偏好
   try {
-    const savedLocale = localStorage.getItem(LOCALE_STORAGE_KEY)
-    if (savedLocale && ['en', 'zh', 'ru'].includes(savedLocale)) {
-      return savedLocale
+    if (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function') {
+      const savedLocale = localStorage.getItem(LOCALE_STORAGE_KEY)
+      if (savedLocale && ['en', 'zh', 'ru'].includes(savedLocale)) {
+        return savedLocale
+      }
     }
   } catch {
     // localStorage 不可用
   }
 
-  // 2. 尝试从 Telegram WebApp 获取语言
-  const webApp = (window as any).Telegram?.WebApp
-  const telegramLang = webApp?.initDataUnsafe?.user?.language_code
-  if (telegramLang) {
-    const lang = telegramLang.toLowerCase()
-    if (lang.startsWith('zh')) return 'zh'
-    if (lang.startsWith('ru')) return 'ru'
+  // 2. 尝试使用浏览器语言
+  if (typeof navigator !== 'undefined') {
+    const browserLang = navigator.language || (navigator as any).userLanguage
+    if (browserLang) {
+      const lang = browserLang.toLowerCase()
+      if (lang.startsWith('zh')) return 'zh'
+      if (lang.startsWith('ru')) return 'ru'
+    }
   }
 
   // 3. 默认英语
@@ -44,7 +56,7 @@ interface ApiResponse<T> {
 // 自定义错误类，包含 error_code
 class ApiError extends Error {
   error_code?: string
-  
+
   constructor(message: string, error_code?: string) {
     super(message)
     this.name = 'ApiError'
@@ -65,34 +77,19 @@ class ApiClient {
     timeout: number = REQUEST_TIMEOUT
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
-    
-    // 从 Telegram Mini App 获取 initData
-    const webApp = (window as any).Telegram?.WebApp
+
+    // 仅在 Telegram Mini App 内时附带 initData；网页版 dApp 不传，由后端 WEB_APP_MODE 使用默认用户
+    const webApp = typeof window !== 'undefined' ? (window as any).Telegram?.WebApp : undefined
     let initData = webApp?.initData
-    
-    // 获取邀请码 (支持 invite_CODE 和 char_ID_CODE 两种格式)
-    let inviterCode = ''
-    const startParam = webApp?.initDataUnsafe?.start_param
-    if (startParam) {
-      if (startParam.startsWith('invite_')) {
-        inviterCode = startParam.replace('invite_', '')
-      } else if (startParam.startsWith('char_')) {
-        // 分享链接格式: char_ID_SHARECODE，我们需要通过后端获取该角色的所有者邀请码
-        // 但为了简化，我们可以在这里先尝试解析，或者由后端根据 character_id 自动处理
-        // 目前先处理明确的 invite_ 格式
-      }
-    }
-    
-    // 备用方案：尝试从 URL 获取 initData (有些环境可能需要)
     if (!initData && typeof window !== 'undefined') {
-      const hash = window.location.hash.slice(1)
-      const params = new URLSearchParams(hash)
-      initData = params.get('tgWebAppData')
+      const params = new URLSearchParams(window.location.hash.slice(1))
+      initData = params.get('tgWebAppData') ?? undefined
     }
 
-    // 开发模式：如果未获取到 initData，使用伪造数据（仅开发环境）
-    if (!initData && process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
-      initData = 'query_id=AAGLk...&user=%7B%22id%22%3A999999999%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22test_user%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1700000000&hash=fake_hash'
+    let inviterCode = ''
+    const startParam = webApp?.initDataUnsafe?.start_param
+    if (startParam?.startsWith('invite_')) {
+      inviterCode = startParam.replace('invite_', '')
     }
 
     const headers: Record<string, string> = {
@@ -104,7 +101,7 @@ class ApiClient {
     if (locale) {
       headers['Accept-Language'] = locale
     }
-    
+
     if (initData) {
       headers['X-Telegram-Init-Data'] = initData
     }
@@ -128,7 +125,11 @@ class ApiClient {
       const data: ApiResponse<T> = await response.json()
 
       if (data.code !== 0) {
-        throw new ApiError(data.message || '请求失败', data.error_code)
+        const msg = data.message || '请求失败'
+        const hint = msg.includes('Missing Telegram initData')
+          ? ' 网页版请确认后端已设置 WEB_APP_MODE=true（Fly: fly secrets set WEB_APP_MODE=true）'
+          : ''
+        throw new ApiError(msg + hint, data.error_code)
       }
 
       return data.data as T
@@ -199,11 +200,11 @@ class ApiClient {
   async sendMessage(characterId: string, message: string) {
     const url = `${this.baseURL}/characters/${characterId}/chat`
     const initData = (window as any).Telegram?.WebApp?.initData
-    
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     }
-    
+
     if (initData) {
       headers['X-Telegram-Init-Data'] = initData
     }
@@ -352,6 +353,181 @@ class ApiClient {
     price_display: string
   }> {
     return this.request(`/characters/${characterId}/unlock-price`)
+  }
+
+  // ========== Market ==========
+  async getMarketCharacters(params: { page?: number; limit?: number; sort?: string } = {}) {
+    // Return mock data for now if dev mode or error
+    if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+      return this.getMockMarketData();
+    }
+    return this.request('/market/characters', {
+      method: 'GET',
+      // Add query params logic here if needed
+    }).catch(() => this.getMockMarketData()); // Fallback to mock for demo
+  }
+
+  async purchaseCharacter(characterId: string) {
+    return this.request(`/market/purchase`, {
+      method: 'POST',
+      body: JSON.stringify({ characterId }),
+    });
+  }
+
+  // ========== Enhanced User Profile ==========
+  async getUserProfile() {
+    const [profile, stakingInfo, referrals] = await Promise.all([
+      this.getMe(),
+      this.getStakingInfo().catch(() => null),
+      this.getReferrals().catch(() => ({ count: 0 }))
+    ]) as [any, any, any];
+
+    // Calculate rank based on staking and LRA balance
+    const totalAssets = (profile.staking_balance || 0) + (profile.lra_balance || 0);
+    let rank = 'Newcomer';
+    if (totalAssets >= 100000) rank = 'Diamond Soul';
+    else if (totalAssets >= 50000) rank = 'Platinum Soul';
+    else if (totalAssets >= 20000) rank = 'Gold Soul';
+    else if (totalAssets >= 5000) rank = 'Silver Soul';
+    else if (totalAssets >= 1000) rank = 'Soul Seeker';
+    else if (totalAssets >= 100) rank = 'Soul Initiate';
+
+    // Calculate total earnings (LRA balance as proxy)
+    const lraBalance = profile.lra_balance || 0;
+    const totalEarnings = lraBalance > 0 ? `${(lraBalance * 0.001).toFixed(4)} BNB` : '0 BNB';
+
+    // Format joined date
+    const joinedDate = profile.created_at 
+      ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+      : 'Just now';
+
+    return {
+      ...profile,
+      // Real staking data from backend
+      staking_balance: stakingInfo?.staking_balance ?? profile.staking_balance ?? 0,
+      staking_multiplier: stakingInfo?.staking_multiplier ?? profile.staking_multiplier ?? 1.0,
+      is_locked: stakingInfo?.is_locked ?? false,
+      lock_expiry: stakingInfo?.lock_expiry ?? 0,
+      effective_apy: stakingInfo?.effective_apy ?? 12.5,
+      // Computed fields
+      rank,
+      referral_count: referrals?.count || 0,
+      total_earnings: totalEarnings,
+      joined_date: joinedDate,
+    };
+  }
+
+  // Record points for chat
+  async syncPoints(amount: number) {
+    return this.request('/users/me/points/sync', {
+      method: 'POST',
+      body: JSON.stringify({ amount })
+    });
+  }
+
+  // Harvest points to LRA
+  async claimLRA() {
+    return this.request('/users/me/points/harvest', {
+      method: 'POST'
+    });
+  }
+
+  // ========== Staking ==========
+  async stakeLRA(amount: number): Promise<{
+    staking_balance: number;
+    staking_multiplier: number;
+    staked_at: number;
+    lock_expiry: number;
+    message: string;
+  }> {
+    return this.request('/staking/stake', {
+      method: 'POST',
+      body: JSON.stringify({ amount })
+    });
+  }
+
+  async unstakeLRA(amount: number): Promise<{
+    staking_balance: number;
+    staking_multiplier: number;
+    unstaked_amount: number;
+    message: string;
+  }> {
+    return this.request('/staking/unstake', {
+      method: 'POST',
+      body: JSON.stringify({ amount })
+    });
+  }
+
+  async getStakingInfo(): Promise<{
+    staking_balance: number;
+    staking_multiplier: number;
+    is_locked: boolean;
+    lock_expiry: number;
+    remaining_seconds: number;
+    base_apy: number;
+    effective_apy: number;
+    points: number;
+    lra_balance: number;
+  }> {
+    return this.request('/staking/info');
+  }
+
+  // ========== Intelligence & Automation ==========
+  async getMarketIntelligence() {
+    return this.request('/market/intelligence');
+  }
+
+  async getPools() {
+    return this.request('/market/pools');
+  }
+
+  async executeStrategy(strategy: string, poolName: string, amount: number) {
+    return this.request('/market/execute-strategy', {
+      method: 'POST',
+      body: JSON.stringify({ strategy, pool_name: poolName, amount })
+    });
+  }
+
+  // Mock Helpers
+  private getMockMarketData() {
+    return [
+      {
+        id: 'm1',
+        title: 'Cyber Ninja',
+        image_url: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&q=80&w=800',
+        type: 'protector',
+        price: '0.5 BNB',
+        rarity: 'Rare',
+        likes: 128
+      },
+      {
+        id: 'm2',
+        title: 'Ethereal Muse',
+        image_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800',
+        type: 'companion',
+        price: '0.8 BNB',
+        rarity: 'Legendary',
+        likes: 342
+      },
+      {
+        id: 'm3',
+        title: 'Quantum Scholar',
+        image_url: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=800',
+        type: 'mentor',
+        price: '0.3 BNB',
+        rarity: 'Common',
+        likes: 89
+      },
+      {
+        id: 'm4',
+        title: 'Neon Drifter',
+        image_url: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=800',
+        type: 'adventurer',
+        price: '0.45 BNB',
+        rarity: 'Uncommon',
+        likes: 156
+      }
+    ];
   }
 }
 

@@ -21,6 +21,15 @@ type User struct {
 	InviterID  *uint64 `gorm:"index" json:"inviter_id,omitempty"`
 	InviteCode string  `gorm:"type:varchar(20);uniqueIndex" json:"invite_code"`
 
+	// 资产/积分
+	Points     int64   `gorm:"default:0" json:"points"`
+	LRABalance float64 `gorm:"default:0" json:"lra_balance"`
+
+	// Staking 相关
+	StakingBalance    float64    `gorm:"default:0" json:"staking_balance"`
+	StakingMultiplier float64    `gorm:"default:1.0" json:"staking_multiplier"`
+	StakedAt          *time.Time `json:"staked_at,omitempty"`
+
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`

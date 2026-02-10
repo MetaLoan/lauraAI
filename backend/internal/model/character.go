@@ -10,85 +10,91 @@ import (
 type CharacterType string
 
 const (
-	CharacterTypeSoulmate          CharacterType = "soulmate"
-	CharacterTypeMiniMe            CharacterType = "mini_me"
-	CharacterTypeFutureHusband     CharacterType = "future_husband"
-	CharacterTypeFutureWife        CharacterType = "future_wife"
-	CharacterTypeFutureBaby        CharacterType = "future_baby"
-	CharacterTypeBoyfriend         CharacterType = "boyfriend"
-	CharacterTypeGirlfriend        CharacterType = "girlfriend"
-	CharacterTypeBestFriend        CharacterType = "best_friend"
-	CharacterTypeCompanion         CharacterType = "companion"
+	CharacterTypeSoulmate           CharacterType = "soulmate"
+	CharacterTypeMiniMe             CharacterType = "mini_me"
+	CharacterTypeFutureHusband      CharacterType = "future_husband"
+	CharacterTypeFutureWife         CharacterType = "future_wife"
+	CharacterTypeFutureBaby         CharacterType = "future_baby"
+	CharacterTypeBoyfriend          CharacterType = "boyfriend"
+	CharacterTypeGirlfriend         CharacterType = "girlfriend"
+	CharacterTypeBestFriend         CharacterType = "best_friend"
+	CharacterTypeCompanion          CharacterType = "companion"
 	CharacterTypeMysteriousStranger CharacterType = "mysterious_stranger"
-	CharacterTypeWiseMentor        CharacterType = "wise_mentor"
-	CharacterTypeDreamGuide        CharacterType = "dream_guide"
+	CharacterTypeWiseMentor         CharacterType = "wise_mentor"
+	CharacterTypeDreamGuide         CharacterType = "dream_guide"
 )
 
 // UnlockStatus 解锁状态枚举
 type UnlockStatus int
 
 const (
-	UnlockStatusLocked      UnlockStatus = 0 // 未解锁，显示完全模糊图
+	UnlockStatusLocked       UnlockStatus = 0 // 未解锁，显示完全模糊图
 	UnlockStatusHalfUnlocked UnlockStatus = 1 // 半解锁，显示半模糊图
 	UnlockStatusFullUnlocked UnlockStatus = 2 // 完全解锁，显示清晰图
 )
 
 type Character struct {
-	ID              uint64        `gorm:"primaryKey" json:"id"`
-	UserID          uint64        `gorm:"index;not null" json:"user_id"`
-	Type            CharacterType `gorm:"type:varchar(50);not null" json:"type"`
-	Title           string        `gorm:"type:varchar(255)" json:"title"`
-	Gender          string        `gorm:"type:varchar(50)" json:"gender"`
-	Ethnicity       string        `gorm:"type:varchar(100)" json:"ethnicity"`
-	ImageURL        string        `gorm:"type:text" json:"image_url"` // 保持兼容，存储当前应显示的图片
-	
+	ID        uint64        `gorm:"primaryKey" json:"id"`
+	UserID    uint64        `gorm:"index;not null" json:"user_id"`
+	Type      CharacterType `gorm:"type:varchar(50);not null" json:"type"`
+	Title     string        `gorm:"type:varchar(255)" json:"title"`
+	Gender    string        `gorm:"type:varchar(50)" json:"gender"`
+	Ethnicity string        `gorm:"type:varchar(100)" json:"ethnicity"`
+	ImageURL  string        `gorm:"type:text" json:"image_url"` // 保持兼容，存储当前应显示的图片
+
 	// AI 生成的多语言报告（一次生成三种语言，确保内容一致）
 	// 1. 缘分概述 (Description)
-	DescriptionEn   string        `gorm:"type:text" json:"-"` // 英文描述
-	DescriptionZh   string        `gorm:"type:text" json:"-"` // 中文描述
-	DescriptionRu   string        `gorm:"type:text" json:"-"` // 俄文描述
+	DescriptionEn string `gorm:"type:text" json:"-"` // 英文描述
+	DescriptionZh string `gorm:"type:text" json:"-"` // 中文描述
+	DescriptionRu string `gorm:"type:text" json:"-"` // 俄文描述
 	// 2. 事业运势 (Career)
-	CareerEn        string        `gorm:"type:text" json:"-"` // 英文事业
-	CareerZh        string        `gorm:"type:text" json:"-"` // 中文事业
-	CareerRu        string        `gorm:"type:text" json:"-"` // 俄文事业
+	CareerEn string `gorm:"type:text" json:"-"` // 英文事业
+	CareerZh string `gorm:"type:text" json:"-"` // 中文事业
+	CareerRu string `gorm:"type:text" json:"-"` // 俄文事业
 	// 3. 性格特点 (Personality)
-	PersonalityEn   string        `gorm:"type:text" json:"-"` // 英文性格
-	PersonalityZh   string        `gorm:"type:text" json:"-"` // 中文性格
-	PersonalityRu   string        `gorm:"type:text" json:"-"` // 俄文性格
+	PersonalityEn string `gorm:"type:text" json:"-"` // 英文性格
+	PersonalityZh string `gorm:"type:text" json:"-"` // 中文性格
+	PersonalityRu string `gorm:"type:text" json:"-"` // 俄文性格
 	// 4. 相遇时机 (MeetingTime)
-	MeetingTimeEn   string        `gorm:"type:text" json:"-"` // 英文相遇时间
-	MeetingTimeZh   string        `gorm:"type:text" json:"-"` // 中文相遇时间
-	MeetingTimeRu   string        `gorm:"type:text" json:"-"` // 俄文相遇时间
+	MeetingTimeEn string `gorm:"type:text" json:"-"` // 英文相遇时间
+	MeetingTimeZh string `gorm:"type:text" json:"-"` // 中文相遇时间
+	MeetingTimeRu string `gorm:"type:text" json:"-"` // 俄文相遇时间
 	// 5. 距离预测 (Distance)
-	DistanceEn      string        `gorm:"type:text" json:"-"` // 英文距离
-	DistanceZh      string        `gorm:"type:text" json:"-"` // 中文距离
-	DistanceRu      string        `gorm:"type:text" json:"-"` // 俄文距离
+	DistanceEn string `gorm:"type:text" json:"-"` // 英文距离
+	DistanceZh string `gorm:"type:text" json:"-"` // 中文距离
+	DistanceRu string `gorm:"type:text" json:"-"` // 俄文距离
 	// 6. 缘分优势 (Strength)
-	StrengthEn      string        `gorm:"type:text" json:"-"` // 英文优势
-	StrengthZh      string        `gorm:"type:text" json:"-"` // 中文优势
-	StrengthRu      string        `gorm:"type:text" json:"-"` // 俄文优势
+	StrengthEn string `gorm:"type:text" json:"-"` // 英文优势
+	StrengthZh string `gorm:"type:text" json:"-"` // 中文优势
+	StrengthRu string `gorm:"type:text" json:"-"` // 俄文优势
 	// 7. 成长机遇 (Challenge)
-	WeaknessEn      string        `gorm:"type:text" json:"-"` // 英文挑战
-	WeaknessZh      string        `gorm:"type:text" json:"-"` // 中文挑战
-	WeaknessRu      string        `gorm:"type:text" json:"-"` // 俄文挑战
-	
-	Compatibility   int           `gorm:"type:int;default:0" json:"compatibility"`
-	AstroSign       string        `gorm:"type:varchar(100)" json:"astro_sign"`
-	PersonalityPrompt string      `gorm:"type:text" json:"personality_prompt"`
-	
+	WeaknessEn string `gorm:"type:text" json:"-"` // 英文挑战
+	WeaknessZh string `gorm:"type:text" json:"-"` // 中文挑战
+	WeaknessRu string `gorm:"type:text" json:"-"` // 俄文挑战
+
+	Compatibility     int    `gorm:"type:int;default:0" json:"compatibility"`
+	AstroSign         string `gorm:"type:varchar(100)" json:"astro_sign"`
+	PersonalityPrompt string `gorm:"type:text" json:"personality_prompt"`
+
 	// 3张图片：完全模糊 -> 半模糊 -> 清晰
-	FullBlurImageURL string       `gorm:"type:text" json:"full_blur_image_url"` // 100% 模糊
-	HalfBlurImageURL string       `gorm:"type:text" json:"half_blur_image_url"` // 50% 模糊
-	ClearImageURL    string       `gorm:"type:text" json:"clear_image_url"`     // 清晰原图
-	
+	FullBlurImageURL string `gorm:"type:text" json:"full_blur_image_url"` // 100% 模糊
+	HalfBlurImageURL string `gorm:"type:text" json:"half_blur_image_url"` // 50% 模糊
+	ClearImageURL    string `gorm:"type:text" json:"clear_image_url"`     // 清晰原图
+
 	// 解锁状态
-	UnlockStatus     UnlockStatus `gorm:"type:int;default:0" json:"unlock_status"` // 0=未解锁, 1=半解锁, 2=完全解锁
-	UnlockHelperID   *uint64      `gorm:"index" json:"unlock_helper_id,omitempty"`
-	ShareCode        string       `gorm:"type:varchar(20);uniqueIndex" json:"share_code"`
-	
-	CreatedAt       time.Time     `json:"created_at"`
-	UpdatedAt       time.Time     `json:"updated_at"`
-	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
+	UnlockStatus   UnlockStatus `gorm:"type:int;default:0" json:"unlock_status"` // 0=未解锁, 1=半解锁, 2=完全解锁
+	UnlockHelperID *uint64      `gorm:"index" json:"unlock_helper_id,omitempty"`
+	ShareCode      string       `gorm:"type:varchar(20);uniqueIndex" json:"share_code"`
+
+	// Marketplace 相关
+	IsListed       bool       `gorm:"default:false" json:"is_listed"`
+	ListPrice      float64    `gorm:"default:0" json:"list_price"` // Price in BNB
+	ListedAt       *time.Time `json:"listed_at,omitempty"`
+	OnChainTokenID *uint64    `json:"on_chain_token_id,omitempty"` // NFT Token ID on blockchain
+
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// 关联
 	User         User      `gorm:"foreignKey:UserID" json:"-"`
