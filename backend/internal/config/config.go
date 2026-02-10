@@ -11,6 +11,7 @@ type Config struct {
 	Port             string
 	TelegramBotToken string
 	GeminiAPIKey     string
+	DeepSeekAPIKey   string // 文字对话使用 DeepSeek，优先于 Gemini
 	PostgresDSN      string
 	DevMode          bool
 	WebAppMode       bool   // 网页版 dApp：无 Telegram initData 时使用默认用户，不再要求 Telegram
@@ -35,6 +36,7 @@ func LoadConfig() {
 		Port:             getEnv("PORT", "8080"),
 		TelegramBotToken: getEnv("TELEGRAM_BOT_TOKEN", ""),
 		GeminiAPIKey:     getEnv("GEMINI_API_KEY", ""),
+		DeepSeekAPIKey:   getEnv("DEEPSEEK_API_KEY", ""),
 		PostgresDSN:      dbDSN,
 		DevMode:          getEnv("DEV_MODE", "false") == "true",
 		WebAppMode:       getEnv("WEB_APP_MODE", "true") == "true", // 默认 true：网页版可不带 Telegram initData
@@ -54,6 +56,9 @@ func LoadConfig() {
 	}
 	if AppConfig.WebAppMode {
 		log.Println("网页版模式已启用: 无 Telegram initData 时使用默认用户")
+	}
+	if AppConfig.DeepSeekAPIKey != "" {
+		log.Println("DEEPSEEK_API_KEY 已配置，文字对话将优先使用 DeepSeek")
 	}
 }
 

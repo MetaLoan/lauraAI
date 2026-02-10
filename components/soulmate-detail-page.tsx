@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Share2, Lock, Unlock, Loader2, CloudFog, MessageSquare, ExternalLink } from 'lucide-react'
+import { ChevronDown, Share2, Loader2, MessageSquare, ExternalLink } from 'lucide-react'
 import { getFullImageUrl, cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
-import { PaymentDrawer } from '@/components/payment-drawer'
 import { apiClient } from '@/lib/api'
 import { useTranslations, useI18n } from '@/components/i18n-provider'
 import ReportLoading from '@/components/report-loading'
@@ -74,16 +73,11 @@ export default function SoulmateDetailPage({
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [progressWidth, setProgressWidth] = useState(0)
-  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
-  const [unlockStatus, setUnlockStatus] = useState(character?.unlock_status ?? UnlockStatus.LOCKED)
-  const [priceStars, setPriceStars] = useState(300)
-  const [priceTON, setPriceTON] = useState(3)
-  const [isLoadingPrice, setIsLoadingPrice] = useState(false)
+  const [unlockStatus, setUnlockStatus] = useState(character?.unlock_status ?? UnlockStatus.FULL_UNLOCKED)
 
   const { t } = useTranslations('detail')
   const { t: tResults } = useTranslations('results')
   const { t: tCharacters } = useTranslations('characters')
-  const { t: tCommon } = useTranslations('common')
 
   const rawTitle = character?.title || "Soulmate"
   const targetScore = character?.compatibility || 92
@@ -97,22 +91,19 @@ export default function SoulmateDetailPage({
 
   const title = getLocalizedTitle()
 
-  // 根据解锁状态选择显示的图片
+  // 直接出结果：优先清晰图，不再区分解锁状态
   const getDisplayImage = () => {
-    switch (unlockStatus) {
-      case UnlockStatus.FULL_UNLOCKED:
-        return character?.clear_image_url || character?.image_url || character?.image || "/avatars/soulmate-female.jpg"
-      case UnlockStatus.HALF_UNLOCKED:
-        return character?.half_blur_image_url || character?.image_url || character?.image || "/avatars/soulmate-female.jpg"
-      default: // LOCKED
-        return character?.full_blur_image_url || character?.image_url || character?.image || "/avatars/soulmate-female.jpg"
-    }
+    return character?.clear_image_url || character?.image_url || character?.image
+      || character?.half_blur_image_url || character?.full_blur_image_url
+      || "/avatars/soulmate-female.jpg"
   }
 
   const image = getDisplayImage()
 
-  // 性格报告只有完全解锁才可见
+  // 有清晰图或后端已完全解锁则直接展示报告
   const isDescriptionVisible = unlockStatus === UnlockStatus.FULL_UNLOCKED
+    || !!character?.clear_image_url
+    || !!character?.image_url
   // 检查报告内容是否已生成（如果为空或为默认值，说明还在生成中）
   // 注意：后端如果生成失败，可能会返回空字符串，或者旧的默认值
   // 我们认为如果 description 存在且不为空，就是生成好了
@@ -248,76 +239,6 @@ export default function SoulmateDetailPage({
     setExpandedSection(expandedSection === section ? null : section)
   }
 
-  const handleShare = () => {
-    const webApp = (window as any).Telegram?.WebApp
-    const shareLink = `https://t.me/laura_tst_bot/app?startapp=char_${character?.id}_${character?.share_code}`
-
-    if (unlockStatus === UnlockStatus.FULL_UNLOCKED) {
-      // 1. 完全解锁状态：使用故事分享 (Stories) 展示高清图片
-      const text = `OMG, my ${rawTitle} looks like this! You should try it too! 🔥`
-      const imageUrl = getFullImageUrl(character?.clear_image_url || '')
-
-      if (webApp?.shareToStory) {
-        // 使用 shareToStory API 分享到故事
-        webApp.shareToStory(imageUrl, {
-          text: text,
-          widget_link: {
-            url: shareLink,
-            name: "Create Your Own"
-          }
-        })
-      } else {
-        // Fallback: 普通分享
-        webApp?.openTelegramLink?.(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`)
-      }
-    } else {
-      // 2. 未解锁状态：使用普通分享链接
-      const text = `Help me see what my ${rawTitle} looks like! I need your help 🥺`
-
-      const url = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`
-      if (webApp?.openTelegramLink) {
-        webApp.openTelegramLink(url)
-      } else {
-        window.open(url, '_blank')
-      }
-    }
-  }
-
-  // 拉起支付弹窗前获取最新的解锁状态和价格（价格由后端决定）
-  const handleOpenPayment = async () => {
-    setIsLoadingPrice(true)
-    if (character?.id) {
-      try {
-        const priceInfo = await apiClient.getUnlockPrice(character.id.toString()) as { unlock_status: number, price_stars: number, price_ton: number }
-        setUnlockStatus(priceInfo.unlock_status)
-        setPriceStars(priceInfo.price_stars)
-        setPriceTON(priceInfo.price_ton)
-      } catch (error) {
-        console.error('获取解锁价格失败:', error)
-      }
-    }
-    setIsLoadingPrice(false)
-    setIsPaymentOpen(true)
-  }
-
-  const handlePaymentSuccess = () => {
-    setUnlockStatus(UnlockStatus.FULL_UNLOCKED)
-    setIsPaymentOpen(false)
-    onUnlockSuccess?.()
-  }
-
-  const handlePay = async (method: 'stars' | 'ton') => {
-    if (!character?.id) return
-
-    const result = await apiClient.unlockCharacter(character.id.toString(), method)
-
-    // 更新本地 character 数据（如果有需要）
-    if (character) {
-      character.unlock_status = result.unlock_status
-      character.clear_image_url = result.image_url
-    }
-  }
-
   return (
     <div className="h-full flex flex-col">
       {/* Scrollable Content */}
@@ -341,44 +262,10 @@ export default function SoulmateDetailPage({
                 alt={title}
                 className="w-full h-full object-cover"
               />
-              {/* Lock overlay for locked states */}
-              {unlockStatus !== UnlockStatus.FULL_UNLOCKED && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
-                  <div className="bg-black/60 rounded-full p-4">
-                    <CloudFog className="w-10 h-10 text-white" />
-                  </div>
-                  {/* 100% 模糊状态下的提示文字 */}
-                  {unlockStatus === UnlockStatus.LOCKED && (
-                    <p className="text-white/90 text-sm text-center mt-4 px-6 leading-relaxed">
-                      {t('blurMessage')}
-                    </p>
-                  )}
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Action buttons below image */}
-          <div className="flex gap-3">
-            {/* 只在 LOCKED 状态下显示邀请好友按钮 */}
-            {unlockStatus === UnlockStatus.LOCKED && character?.share_code && (
-              <button
-                onClick={handleShare}
-                className="p-3 rounded-full border border-white/30 hover:border-white/50 transition-colors flex items-center gap-2 px-4"
-              >
-                <Share2 className="w-5 h-5" />
-                <span className="text-sm">{t('askFriendHelp')}</span>
-              </button>
-            )}
-          </div>
-
-          {/* Unlock status badge */}
-          {unlockStatus === UnlockStatus.HALF_UNLOCKED && (
-            <div className="bg-amber-500/20 border border-amber-500/30 rounded-full px-4 py-2 flex items-center gap-2">
-              <Unlock className="w-4 h-4 text-amber-500" />
-              <span className="text-sm text-amber-500">{t('friendHelped')}</span>
-            </div>
-          )}
+          {/* 直接出结果，已移除邀请好友助力与解锁状态角标 */}
         </div>
 
         {/* Divider - 只在非 Mini Me 时显示 */}
@@ -427,15 +314,9 @@ export default function SoulmateDetailPage({
                   </p>
                 )
               ) : (
-                <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <Lock className="w-5 h-5 text-gray-400" />
-                    <span className="text-gray-400 font-medium">{t('unlockDescription')} 🔒</span>
-                  </div>
-                  <p className="text-center text-body-sm text-gray-500">
-                    {t('unlockDescriptionHint')}
-                  </p>
-                </div>
+                <p className="text-center text-body-sm text-gray-500">
+                  {t('noDescription')}
+                </p>
               )}
             </div>
           </div>
@@ -567,56 +448,22 @@ export default function SoulmateDetailPage({
       {/* Footer Button */}
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-transparent z-50">
         <div className="max-w-md mx-auto">
-          {unlockStatus === UnlockStatus.FULL_UNLOCKED ? (
-            <div className="flex gap-3">
-              <Button
-                onClick={onNext}
-                className="btn-primary flex-1 flex items-center justify-center gap-2"
-              >
-                <MessageSquare className="w-5 h-5" />
-                {t('startChat')}
-              </Button>
-              <ShareButton
-                title={`Meet my ${rawTitle}!`}
-                text={`I just minted a unique AI ${rawTitle} with ${targetScore}% compatibility on LauraAI! #LauraAI #BSC #Web3AI`}
-                className="flex-1 h-11"
-              />
-            </div>
-          ) : (
+          <div className="flex gap-3">
             <Button
-              onClick={handleOpenPayment}
-              disabled={isLoadingPrice}
-              className="btn-primary flex items-center justify-center gap-2"
+              onClick={onNext}
+              className="btn-primary flex-1 flex items-center justify-center gap-2"
             >
-              {isLoadingPrice ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  {tCommon('loading')}
-                </>
-              ) : (
-                <>
-                  <Unlock className="w-5 h-5" />
-                  {isMiniMe ? t('unlock') : t('unlockFull')}
-                </>
-              )}
+              <MessageSquare className="w-5 h-5" />
+              {t('startChat')}
             </Button>
-          )}
+            <ShareButton
+              title={`Meet my ${rawTitle}!`}
+              text={`I just minted a unique AI ${rawTitle} with ${targetScore}% compatibility on LauraAI! #LauraAI #BSC #Web3AI`}
+              className="flex-1 h-11"
+            />
+          </div>
         </div>
       </div>
-
-      {/* Payment Drawer */}
-      <PaymentDrawer
-        isOpen={isPaymentOpen}
-        onClose={() => setIsPaymentOpen(false)}
-        characterName={title}
-        characterType={unlockStatus === UnlockStatus.LOCKED ? t('locked') : unlockStatus === UnlockStatus.HALF_UNLOCKED ? t('halfUnlocked') : t('fullUnlocked')}
-        characterImage={unlockStatus === UnlockStatus.HALF_UNLOCKED ? character?.half_blur_image_url : character?.full_blur_image_url}
-        priceStars={priceStars}
-        priceTON={priceTON}
-        isDiscounted={unlockStatus === UnlockStatus.HALF_UNLOCKED}
-        onPaymentSuccess={handlePaymentSuccess}
-        onPay={handlePay}
-      />
     </div>
   )
 }

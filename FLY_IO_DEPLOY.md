@@ -60,6 +60,8 @@ fly launch --no-deploy --name lauraai-backend --region sin
 
 2. **设置 Secrets**（必填）：
    ```bash
+   # 文字对话优先用 DeepSeek，未设置则回退 Gemini
+   fly secrets set DEEPSEEK_API_KEY="你的_deepseek_api_key"
    fly secrets set GEMINI_API_KEY="你的_gemini_api_key"
    fly secrets set POSTGRES_DSN="host=xxx user=xxx password=xxx dbname=lauraai port=5432 sslmode=require"
    fly secrets set UPLOADS_DIR="/root/uploads"

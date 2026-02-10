@@ -158,7 +158,7 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 			character.FullBlurImageURL = clearURL
 			character.HalfBlurImageURL = clearURL
 			character.ShareCode = repository.GenerateShareCode()
-			character.UnlockStatus = model.UnlockStatusLocked
+			character.UnlockStatus = model.UnlockStatusFullUnlocked
 			return clearURL, nil
 		}
 	}
@@ -185,17 +185,16 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 		halfBlurURL = clearURL
 	}
 
-	// 设置角色的图片字段
+	// 设置角色的图片字段；直接完全解锁，不再需要邀请好友助力
 	character.ClearImageURL = clearURL
 	character.FullBlurImageURL = fullBlurURL
 	character.HalfBlurImageURL = halfBlurURL
 	character.ShareCode = repository.GenerateShareCode()
-	character.UnlockStatus = model.UnlockStatusLocked
+	character.UnlockStatus = model.UnlockStatusFullUnlocked
 
-	log.Printf("[Imagen] 成功生成3张图片: 清晰, 半模糊, 完全模糊")
+	log.Printf("[Imagen] 成功生成图片，已直接设为完全解锁")
 
-	// 返回模糊图片作为默认显示（未解锁状态）
-	return fullBlurURL, nil
+	return clearURL, nil
 }
 
 // generateSecureFilename 生成加密安全的随机文件名

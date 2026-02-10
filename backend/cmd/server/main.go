@@ -28,11 +28,28 @@ func main() {
 		log.Fatalf("Failed to create upload directory: %v", err)
 	}
 
-	// 初始化 Gemini 服务
-	chatService, err := service.NewGeminiChatService()
-	if err != nil {
-		log.Printf("警告: Gemini Chat 服务初始化失败: %v", err)
-		chatService = nil
+	// 文字对话：优先 DeepSeek，否则回退 Gemini（生产环境不要用模拟回复）
+	var chatService service.ChatService
+	if config.AppConfig.DeepSeekAPIKey != "" {
+		ds, err := service.NewDeepSeekChatService()
+		if err != nil {
+			log.Printf("警告: DeepSeek Chat 服务初始化失败: %v", err)
+		} else {
+			chatService = ds
+			log.Println("文字对话: 使用 DeepSeek（真实 AI）")
+		}
+	}
+	if chatService == nil {
+		gs, err := service.NewGeminiChatService()
+		if err != nil {
+			log.Printf("警告: Gemini Chat 服务初始化失败: %v", err)
+		} else {
+			chatService = gs
+			log.Println("文字对话: 使用 Gemini")
+		}
+	}
+	if chatService == nil {
+		log.Println("警告: 未配置 DEEPSEEK_API_KEY 与 GEMINI_API_KEY，聊天接口将不可用")
 	}
 
 	imagenService, err := service.NewGeminiImagenService()
@@ -95,6 +112,21 @@ func main() {
 			return
 		}
 		c.JSON(200, gin.H{"message": "Fixed", "rows_affected": result.RowsAffected})
+	})
+
+	// 调试端点：清除指定角色的聊天消息（用于清除污染的历史记录）
+	r.DELETE("/debug/characters/:id/messages", func(c *gin.Context) {
+		if c.GetHeader("X-Debug-Key") != "lauraai-clear-2026" {
+			c.JSON(403, gin.H{"error": "Forbidden"})
+			return
+		}
+		charID := c.Param("id")
+		result := repository.DB.Exec("DELETE FROM messages WHERE character_id = ?", charID)
+		if result.Error != nil {
+			c.JSON(500, gin.H{"error": result.Error.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"message": "Deleted", "rows_affected": result.RowsAffected})
 	})
 
 	// 调试端点：清空所有数据（用于测试）

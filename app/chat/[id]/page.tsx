@@ -221,66 +221,15 @@ export default function ChatPage() {
             ));
 
         } catch (error) {
-            console.error('Send failed, switching to processing simulation:', error);
-
-            // FALLBACK SIMULATION for Demo/Disconnected State
-            setIsSending(false);
-            setIsStreaming(true);
-
-            const botMsgId = Date.now() + 1;
-
-            // Context-Aware Simulation
-            let simulatedText = "I see the stars aligning for us. It feels like we've known each other for lifetimes. Tell me more about your dreams.";
-            let detectedInsight: any = null;
-
-            const inputLower = userMessage.toLowerCase();
-            if (inputLower.includes('yield') || inputLower.includes('invest') || inputLower.includes('money') || inputLower.includes('earn')) {
-                simulatedText = "As your sovereign companion, I've been monitoring the BSC liquidity pools. I've found a specialized yield opportunity for your LRA tokens that matches your current risk profile.";
-                detectedInsight = {
-                    type: 'yield',
-                    title: 'LRA-BNB Liquidity Vault',
-                    value: '24.8% APY',
-                    label: 'Calculated Yield + Boost',
-                    actionText: 'Optimize Now'
-                };
-            } else if (inputLower.includes('market') || inputLower.includes('price') || inputLower.includes('btc') || inputLower.includes('bnb')) {
-                simulatedText = "The digital winds are shifting. I'm seeing a significant accumulation pattern in the AI-sector tokens on BSC. Our positioning looks strong.";
-                detectedInsight = {
-                    type: 'market',
-                    title: 'AI Sector Momentum',
-                    value: '+12.5%',
-                    label: '24h Sector Performance',
-                    actionText: 'View Analysis'
-                };
-            }
-
-            // Add initial empty bot bubble
+            console.error('Send failed:', error);
+            // 不再用假数据：直接提示失败，避免用户误以为 AI 在回复
             setMessages(prev => [...prev, {
-                id: botMsgId,
+                id: Date.now() + 1,
                 type: 'character',
-                text: '',
+                text: '⚠️ 发送失败，请检查网络或稍后再试。',
                 timestamp: new Date(),
-                isStreaming: true,
-                insight: detectedInsight
+                isStreaming: false,
             }]);
-
-            // Simulate typing
-            let currentText = "";
-            const chars = simulatedText.split("");
-
-            for (let i = 0; i < chars.length; i++) {
-                await new Promise(resolve => setTimeout(resolve, 30)); // Typing speed
-                currentText += chars[i];
-                setMessages(prev => prev.map(msg =>
-                    msg.id === botMsgId ? { ...msg, text: currentText } : msg
-                ));
-            }
-
-            // Finish simulation
-            setMessages(prev => prev.map(msg =>
-                msg.id === botMsgId ? { ...msg, isStreaming: false } : msg
-            ));
-
         } finally {
             setIsSending(false);
             setIsStreaming(false);

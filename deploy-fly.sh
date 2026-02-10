@@ -31,7 +31,7 @@ deploy_backend() {
   if ! fly status 2>/dev/null; then
     echo "首次需先: cd backend && fly launch --no-deploy --name lauraai-backend --region sin"
     echo "并创建 volume: fly volumes create uploads_data --size 10 --region sin"
-    echo "并设置 secrets: fly secrets set GEMINI_API_KEY=... POSTGRES_DSN=... UPLOADS_DIR=/root/uploads"
+    echo "并设置 secrets: fly secrets set DEEPSEEK_API_KEY=... GEMINI_API_KEY=... POSTGRES_DSN=... UPLOADS_DIR=/root/uploads"
     exit 1
   fi
   fly deploy

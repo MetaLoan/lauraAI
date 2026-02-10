@@ -27,10 +27,10 @@ func escapeJSON(s string) string {
 type ChatHandler struct {
 	characterRepo *repository.CharacterRepository
 	messageRepo   *repository.MessageRepository
-	chatService   *service.GeminiChatService
+	chatService   service.ChatService
 }
 
-func NewChatHandler(chatService *service.GeminiChatService) *ChatHandler {
+func NewChatHandler(chatService service.ChatService) *ChatHandler {
 	return &ChatHandler{
 		characterRepo: repository.NewCharacterRepository(),
 		messageRepo:   repository.NewMessageRepository(),
@@ -78,8 +78,11 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 		response.Error(c, 400, "Invalid request parameters: "+err.Error())
 		return
 	}
+	log.Printf("SendMessage: characterID=%s 本条内容=%q 历史条数将取20", idStr, req.Message)
 
-	// 保存用户消息
+	// 先取历史（不含本条），再保存用户消息，避免重复发给模型
+	historyMessages, _ := h.messageRepo.GetRecentByCharacterID(characterID, 20)
+
 	userMessage := &model.Message{
 		UserID:      user.ID,
 		CharacterID: characterID,
@@ -90,9 +93,6 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 		response.Error(c, 500, "Failed to save message: "+err.Error())
 		return
 	}
-
-	// 获取历史消息（最近 20 条）
-	historyMessages, _ := h.messageRepo.GetRecentByCharacterID(characterID, 20)
 
 	// 设置 SSE 响应头
 	c.Header("Content-Type", "text/event-stream")
@@ -106,6 +106,7 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 	locale := middleware.GetLocaleFromContext(c)
 	stream, err := h.chatService.ChatStream(ctx, character, historyMessages, req.Message, locale)
 	if err != nil {
+		log.Printf("SendMessage ChatStream error: %v", err)
 		response.Error(c, 500, "Failed to generate response: "+err.Error())
 		return
 	}
