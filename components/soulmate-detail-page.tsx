@@ -293,7 +293,7 @@ export default function SoulmateDetailPage({
   return (
     <div className="h-full flex flex-col">
       {/* Scrollable Content */}
-      <div className="flex-1 px-6 pb-8 space-y-8 scrollbar-hide">
+      <div className="flex-1 px-6 pb-8 space-y-8 overflow-y-auto scrollbar-hide">
         {/* Portrait Card */}
         <div
           className="flex flex-col items-center space-y-4"
@@ -492,8 +492,8 @@ export default function SoulmateDetailPage({
           </div>
         )}
 
-        {/* Bottom spacer for fixed button */}
-        <div className="h-32" />
+        {/* Bottom spacer for fixed button (increased to prevent content being hidden) */}
+        <div className="h-40" />
       </div>
 
       {/* Footer Buttons - Redesigned 3-button layout */}
