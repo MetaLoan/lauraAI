@@ -97,12 +97,16 @@ export function SoulmateGrid() {
                         {/* Overlay Gradient */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
 
+                        {/* Type Badge - Top Right */}
+                        <div className="absolute top-3 right-3 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-purple-600/90 to-pink-600/90 backdrop-blur-md border border-white/30 text-white shadow-lg shadow-purple-500/50">
+                            {char.type.replace('_', ' ')}
+                        </div>
+
                         {/* Content Overlay */}
                         <div className="absolute bottom-0 left-0 right-0 p-5 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
                             <h3 className="text-xl font-bold text-white mb-0.5">{char.title}</h3>
                             <div className="flex items-center gap-2 mb-3">
-                                <span className="text-xs font-mono text-purple-400 capitalize px-2 py-0.5 bg-purple-500/10 rounded border border-purple-500/20">{char.type.replace('_', ' ')}</span>
-                                <span className="text-[10px] text-green-400">Chat +5 LRA/msg</span>
+                                <span className="text-[10px] text-green-400 font-medium">Chat +5 LRA/msg</span>
                             </div>
 
                             {/* Bond Progress Line */}

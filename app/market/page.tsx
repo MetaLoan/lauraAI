@@ -165,8 +165,8 @@ export default function MySoulmatePage() {
                                             {/* Gradient Overlay */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-                                            {/* Type Badge */}
-                                            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-black/60 backdrop-blur-md border border-white/10 text-purple-300">
+                                            {/* Type Badge - Top Right with enhanced visibility */}
+                                            <div className="absolute top-3 right-3 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-purple-600/90 to-pink-600/90 backdrop-blur-md border border-white/30 text-white shadow-lg shadow-purple-500/50">
                                                 {TYPE_LABELS[char.type] || char.type}
                                             </div>
 
