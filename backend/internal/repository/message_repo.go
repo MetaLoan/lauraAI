@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"lauraai-backend/internal/model"
 )
 
@@ -31,4 +33,14 @@ func (r *MessageRepository) GetRecentByCharacterID(characterID uint64, limit int
 		Limit(limit).
 		Find(&messages).Error
 	return messages, err
+}
+
+// CountUserMessagesToday counts user-sent messages today (UTC) across all characters
+func (r *MessageRepository) CountUserMessagesToday(userID uint64) (int64, error) {
+	var count int64
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	err := DB.Model(&model.Message{}).
+		Where("user_id = ? AND sender_type = ? AND created_at >= ?", userID, model.SenderTypeUser, today).
+		Count(&count).Error
+	return count, err
 }

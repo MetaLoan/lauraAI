@@ -72,20 +72,38 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 	}
 
 	if character.Title == "" {
-		// 根据类型设置默认标题
-		switch character.Type {
-		case model.CharacterTypeSoulmate:
-			character.Title = "Soulmate"
-		case model.CharacterTypeMiniMe:
-			character.Title = "Mini Me"
-		default:
+		// Set human-readable title based on type
+		titleMap := map[model.CharacterType]string{
+			model.CharacterTypeSoulmate:           "Soulmate",
+			model.CharacterTypeMiniMe:             "Mini Me",
+			model.CharacterTypeFutureHusband:      "Future Husband",
+			model.CharacterTypeFutureWife:         "Future Wife",
+			model.CharacterTypeFutureBaby:         "Future Baby",
+			model.CharacterTypeBoyfriend:          "AI Boyfriend",
+			model.CharacterTypeGirlfriend:         "AI Girlfriend",
+			model.CharacterTypeBestFriend:         "Best Friend",
+			model.CharacterTypeCompanion:          "Companion",
+			model.CharacterTypeMysteriousStranger: "Mysterious Stranger",
+			model.CharacterTypeWiseMentor:         "Wise Mentor",
+			model.CharacterTypeDreamGuide:         "Dream Guide",
+		}
+		if title, ok := titleMap[character.Type]; ok {
+			character.Title = title
+		} else {
 			character.Title = string(character.Type)
 		}
 	}
 
-	// 每个角色类型只允许有一个最新的，删除同类型的旧角色
-	if err := h.characterRepo.DeleteByUserIDAndType(user.ID, model.CharacterType(req.Type)); err != nil {
-		// 忽略删除错误，继续创建
+	// Check if user already has a character of this type (no duplicate creation allowed)
+	existing, _ := h.characterRepo.GetByUserIDAndType(user.ID, model.CharacterType(req.Type))
+	if existing != nil && existing.ImageURL != "" {
+		response.Error(c, 409, "You already have a "+character.Title+". Each type can only be created once.")
+		return
+	}
+
+	// Delete any incomplete (no image) character of the same type to allow retry
+	if existing != nil {
+		h.characterRepo.DeleteByUserIDAndType(user.ID, model.CharacterType(req.Type))
 	}
 
 	if err := h.characterRepo.Create(character); err != nil {
@@ -177,6 +195,47 @@ func (h *CharacterHandler) CleanupEmpty(c *gin.Context) {
 	}
 
 	response.Success(c, gin.H{"deleted": count, "message": fmt.Sprintf("Cleaned up %d unused characters", count)})
+}
+
+// GetNFTMetadata returns ERC721-compatible metadata JSON for a character (public endpoint for marketplaces/wallets)
+func (h *CharacterHandler) GetNFTMetadata(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid character ID"})
+		return
+	}
+
+	character, err := h.characterRepo.GetByID(id)
+	if err != nil {
+		c.JSON(404, gin.H{"error": "Character not found"})
+		return
+	}
+
+	// Build the image URL (use clear image if available, else fallback)
+	imageURL := character.ClearImageURL
+	if imageURL == "" {
+		imageURL = character.ImageURL
+	}
+	if imageURL == "" {
+		imageURL = character.FullBlurImageURL
+	}
+
+	// ERC721 metadata standard
+	metadata := gin.H{
+		"name":        character.Title,
+		"description": fmt.Sprintf("LauraAI %s — %s %s, %s zodiac, %d%% compatibility", character.Title, character.Gender, character.Ethnicity, character.AstroSign, character.Compatibility),
+		"image":       imageURL,
+		"attributes": []gin.H{
+			{"trait_type": "Type", "value": string(character.Type)},
+			{"trait_type": "Gender", "value": character.Gender},
+			{"trait_type": "Ethnicity", "value": character.Ethnicity},
+			{"trait_type": "Zodiac Sign", "value": character.AstroSign},
+			{"trait_type": "Compatibility", "value": character.Compatibility, "display_type": "number"},
+		},
+	}
+
+	c.JSON(200, metadata)
 }
 
 // generateCharacterDescription 根据语言生成角色描述

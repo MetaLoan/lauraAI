@@ -185,9 +185,10 @@ Please generate SEVEN separate sections. Each section MUST be at least 4-5 sente
 IMPORTANT: 
 - Write ONLY the content for each section, no headers or labels
 - Separate each section with a blank line
-- Be VERY casual and use plain language (大白话)
+- Be VERY casual and use plain, everyday English
 - Each section MUST be 4-5 sentences long
-- Make predictions feel personal and exciting`,
+- Make predictions feel personal and exciting
+- Write EVERYTHING in English only`,
 		user.Name, user.BirthDate, getBirthTimeString(user.BirthTime), user.BirthPlace,
 		character.Gender, character.Type, character.Ethnicity, character.AstroSign,
 		character.Compatibility)

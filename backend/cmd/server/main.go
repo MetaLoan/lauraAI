@@ -205,6 +205,10 @@ func main() {
 		unlockHandler := handler.NewUnlockHandler(reportService)
 		api.GET("/share/:code", unlockHandler.GetShareInfo)
 
+		// NFT metadata endpoint (ERC721-compatible, public for marketplaces)
+		nftHandler := handler.NewCharacterHandler()
+		api.GET("/nft/metadata/:id", nftHandler.GetNFTMetadata)
+
 		// Admin endpoint: clear all user data (requires X-Admin-Key header)
 		api.POST("/admin/clear-all-data", handler.ClearAllData)
 	}
@@ -219,7 +223,6 @@ func main() {
 		apiAuth.PUT("/users/me", userHandler.UpdateMe)
 		apiAuth.DELETE("/users/me", userHandler.DeleteMe)
 		apiAuth.POST("/users/me/points/sync", userHandler.SyncPoints)
-		apiAuth.POST("/users/me/points/harvest", userHandler.HarvestPoints)
 
 		// 角色相关
 		characterHandler := handler.NewCharacterHandler()
@@ -246,6 +249,7 @@ func main() {
 			chatHandler := handler.NewChatHandler(chatService)
 			apiAuth.POST("/characters/:id/chat", chatHandler.SendMessage)
 			apiAuth.GET("/characters/:id/messages", chatHandler.GetMessages)
+			apiAuth.GET("/chat/daily-limit", chatHandler.GetDailyLimit)
 		}
 
 		// 图片生成相关

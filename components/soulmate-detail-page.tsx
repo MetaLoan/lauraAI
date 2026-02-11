@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Share2, Loader2, MessageSquare, ExternalLink } from 'lucide-react'
+import { ChevronDown, Share2, Loader2, MessageSquare, ExternalLink, Gem } from 'lucide-react'
 import { getFullImageUrl, cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
 import { apiClient } from '@/lib/api'
 import { useTranslations, useI18n } from '@/components/i18n-provider'
 import ReportLoading from '@/components/report-loading'
+import { useAccount, useWriteContract } from 'wagmi'
+import { LAURA_AI_SOULMATE_ABI, LAURA_AI_SOULMATE_ADDRESS } from '@/lib/contracts'
 
 // 解锁状态枚举
 const UnlockStatus = {
@@ -16,19 +18,34 @@ const UnlockStatus = {
   FULL_UNLOCKED: 2,
 } as const
 
-// 角色类型映射到翻译键
+// Character type to translation key mapping (supports both old raw type names and new proper titles)
 const characterTypeToKey: Record<string, string> = {
   'Soulmate': 'soulmate',
+  'soulmate': 'soulmate',
   'Mini Me': 'miniMe',
+  'mini_me': 'miniMe',
   'Future Husband': 'futureHusband',
+  'future_husband': 'futureHusband',
   'Future Baby': 'futureBaby',
+  'future_baby': 'futureBaby',
   'Future Wife': 'futureWife',
+  'future_wife': 'futureWife',
+  'AI Boyfriend': 'boyfriend',
   'Boyfriend': 'boyfriend',
+  'boyfriend': 'boyfriend',
   'Best Friend': 'bestFriend',
+  'best_friend': 'bestFriend',
+  'AI Girlfriend': 'girlfriend',
   'Girlfriend': 'girlfriend',
+  'girlfriend': 'girlfriend',
+  'Companion': 'companion',
+  'companion': 'companion',
   'Mysterious Stranger': 'mysteriousStranger',
+  'mysterious_stranger': 'mysteriousStranger',
   'Wise Mentor': 'wiseMentor',
+  'wise_mentor': 'wiseMentor',
   'Dream Guide': 'dreamGuide',
+  'dream_guide': 'dreamGuide',
 }
 
 interface SoulmateDetailPageProps {
@@ -73,6 +90,10 @@ export default function SoulmateDetailPage({
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [progressWidth, setProgressWidth] = useState(0)
+  const [isMinting, setIsMinting] = useState(false)
+  const [mintSuccess, setMintSuccess] = useState(false)
+  const { address } = useAccount()
+  const { writeContractAsync } = useWriteContract()
   const [unlockStatus, setUnlockStatus] = useState(character?.unlock_status ?? UnlockStatus.FULL_UNLOCKED)
 
   const { t } = useTranslations('detail')
@@ -83,9 +104,9 @@ export default function SoulmateDetailPage({
   const targetScore = character?.compatibility || 92
   const isMiniMe = character?.type === 'mini_me'
 
-  // 获取本地化的角色名称
+  // Get localized character name (check title first, then type field)
   const getLocalizedTitle = () => {
-    const key = characterTypeToKey[rawTitle]
+    const key = characterTypeToKey[rawTitle] || (character?.type ? characterTypeToKey[character.type] : undefined)
     return key ? tCharacters(key) : rawTitle
   }
 
@@ -99,6 +120,31 @@ export default function SoulmateDetailPage({
   }
 
   const image = getDisplayImage()
+
+  // NFT minting handler
+  const handleMintNFT = async () => {
+    if (!address || !character?.id) return
+    setIsMinting(true)
+    try {
+      // Build NFT metadata URI pointing to our backend
+      const metadataURI = `${apiClient.baseURL}/nft/metadata/${character.id}`
+      
+      await writeContractAsync({
+        address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
+        abi: LAURA_AI_SOULMATE_ABI,
+        functionName: 'safeMint',
+        args: [address, metadataURI],
+        value: BigInt(0), // free mint or adjust if mintPrice > 0
+      })
+      
+      setMintSuccess(true)
+    } catch (error: any) {
+      console.error('NFT mint failed:', error)
+      alert(error?.shortMessage || error?.message || 'Mint failed. Please try again.')
+    } finally {
+      setIsMinting(false)
+    }
+  }
 
   // 有清晰图或后端已完全解锁则直接展示报告
   const isDescriptionVisible = unlockStatus === UnlockStatus.FULL_UNLOCKED
@@ -447,7 +493,7 @@ export default function SoulmateDetailPage({
 
       {/* Footer Button */}
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-transparent z-50">
-        <div className="max-w-md mx-auto">
+        <div className="max-w-md mx-auto space-y-2">
           <div className="flex gap-3">
             <Button
               onClick={onNext}
@@ -462,6 +508,25 @@ export default function SoulmateDetailPage({
               className="flex-1 h-11"
             />
           </div>
+          {/* Mint as NFT */}
+          <Button
+            onClick={handleMintNFT}
+            disabled={isMinting || mintSuccess || !address}
+            className={cn(
+              "w-full h-11 flex items-center justify-center gap-2 font-bold text-sm transition-all",
+              mintSuccess
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+            )}
+          >
+            {isMinting ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Minting NFT...</>
+            ) : mintSuccess ? (
+              <>Minted Successfully!</>
+            ) : (
+              <><Gem className="w-4 h-4" /> Mint as NFT</>
+            )}
+          </Button>
         </div>
       </div>
     </div>

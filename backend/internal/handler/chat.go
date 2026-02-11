@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+const DailyMessageLimit = 10
 
 // escapeJSON 转义 JSON 字符串中的特殊字符
 func escapeJSON(s string) string {
@@ -67,6 +70,15 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 	// 验证角色属于当前用户
 	if character.UserID != user.ID {
 		response.Error(c, 403, "Access denied")
+		return
+	}
+
+	// Check daily message limit (10 messages per day across all characters)
+	todayCount, err := h.messageRepo.CountUserMessagesToday(user.ID)
+	if err != nil {
+		log.Printf("SendMessage: failed to count today's messages: %v", err)
+	} else if todayCount >= DailyMessageLimit {
+		response.Error(c, 429, fmt.Sprintf("Daily message limit reached (%d/%d). Come back tomorrow!", todayCount, DailyMessageLimit))
 		return
 	}
 
@@ -133,6 +145,27 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 
 	c.Writer.WriteString("data: [DONE]\n\n")
 	c.Writer.Flush()
+}
+
+// GetDailyLimit returns the user's daily message usage
+func (h *ChatHandler) GetDailyLimit(c *gin.Context) {
+	user, exists := middleware.GetUserFromContext(c)
+	if !exists {
+		response.Error(c, 401, "Unauthorized")
+		return
+	}
+
+	todayCount, err := h.messageRepo.CountUserMessagesToday(user.ID)
+	if err != nil {
+		response.Error(c, 500, "Failed to check daily limit")
+		return
+	}
+
+	response.Success(c, gin.H{
+		"used":      todayCount,
+		"limit":     DailyMessageLimit,
+		"remaining": DailyMessageLimit - int(todayCount),
+	})
 }
 
 // GetMessages 获取聊天历史

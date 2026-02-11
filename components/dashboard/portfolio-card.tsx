@@ -1,18 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useAccount, useBalance, useWriteContract, useChainId } from 'wagmi';
+import { useAccount, useBalance, useChainId } from 'wagmi';
 import { Loader2, Wallet, Sparkles, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { LAURA_AI_TOKEN_ADDRESS, LAURA_AI_TOKEN_ABI } from '@/lib/contracts';
 import { apiClient } from '@/lib/api';
-import { parseUnits } from 'viem';
 
 export function PortfolioCard() {
     const { address, isConnected } = useAccount();
     const chainId = useChainId();
     const [profile, setProfile] = useState<any>(null);
-    const [isClaiming, setIsClaiming] = useState(false);
-
-    const { writeContractAsync } = useWriteContract();
 
     const { data: nativeBalance, isLoading: isLoadingNative, refetch: refetchNative } = useBalance({
         address,
@@ -31,30 +26,6 @@ export function PortfolioCard() {
         if (isConnected) fetchProfile();
     }, [isConnected]);
 
-    const handleClaim = async () => {
-        if (!profile?.points || profile.points <= 0 || !address) return;
-
-        setIsClaiming(true);
-        try {
-            const mintAmount = parseUnits(profile.points.toString(), 18);
-            await writeContractAsync({
-                address: LAURA_AI_TOKEN_ADDRESS as `0x${string}`,
-                abi: LAURA_AI_TOKEN_ABI,
-                functionName: 'mint',
-                args: [address, mintAmount],
-            });
-            await apiClient.claimLRA();
-            await fetchProfile();
-            refetchNative();
-            alert(`Successfully harvested ${profile.points} LRA!`);
-        } catch (error) {
-            console.error('Harvest failed:', error);
-            alert('Harvest failed.');
-        } finally {
-            setIsClaiming(false);
-        }
-    };
-
     if (!isConnected) {
         return (
             <div className="rounded-2xl bg-gradient-to-br from-purple-900/50 to-blue-900/50 border border-white/10 p-6 text-center">
@@ -63,6 +34,8 @@ export function PortfolioCard() {
             </div>
         );
     }
+
+    const lraBalance = profile?.lra_balance ?? 0;
 
     return (
         <>
@@ -86,33 +59,21 @@ export function PortfolioCard() {
                     )}
                 </div>
 
-                {/* LRA Points (points only, no token) */}
+                {/* LRA Balance */}
                 <div className="rounded-2xl bg-gradient-to-br from-purple-900/40 to-pink-900/40 border border-purple-500/30 p-6 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-10">
                         <Sparkles className="w-16 h-16 text-purple-400" />
                     </div>
-                    <h3 className="text-purple-200 text-sm font-medium mb-1">LRA Points</h3>
+                    <h3 className="text-purple-200 text-sm font-medium mb-1">LRA Balance</h3>
                     <div className="text-2xl font-bold text-white flex items-end gap-2">
                         {profile ? (
-                            <span>{profile.points?.toLocaleString() ?? 0}</span>
+                            <span>{Math.floor(lraBalance).toLocaleString()}</span>
                         ) : (
                             <Loader2 className="w-6 h-6 animate-spin" />
                         )}
                         <span className="text-sm font-normal text-purple-200 mb-1">LRA</span>
                     </div>
-                    <Button
-                        size="sm"
-                        onClick={handleClaim}
-                        disabled={isClaiming || !profile?.points || profile.points <= 0}
-                        className="mt-4 w-full bg-white text-black hover:bg-gray-100 font-bold uppercase tracking-wider text-xs h-10 shadow-lg group"
-                    >
-                        {isClaiming ? (
-                            <RefreshCcw className="w-4 h-4 animate-spin mr-2" />
-                        ) : (
-                            <Sparkles className="w-4 h-4 mr-2 group-hover:animate-pulse" />
-                        )}
-                        Harvest LRA
-                    </Button>
+                    <p className="text-xs text-purple-300/50 mt-2">Earn LRA by chatting with your AI characters</p>
                 </div>
             </div>
 

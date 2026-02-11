@@ -49,24 +49,40 @@ export default function ChatPage() {
     const [inputValue, setInputValue] = useState('');
     const [loading, setLoading] = useState(false);
     const [messagesLoaded, setMessagesLoaded] = useState(false);
-    const [points, setPoints] = useState(0);
+    const [lraBalance, setLraBalance] = useState(0);
     const [showEarned, setShowEarned] = useState(false);
 
     const [isSending, setIsSending] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
+    const [dailyUsed, setDailyUsed] = useState(0);
+    const [dailyLimit, setDailyLimit] = useState(10);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const dailyRemaining = Math.max(0, dailyLimit - dailyUsed);
+    const isLimitReached = dailyRemaining <= 0;
 
     useEffect(() => {
         const loadProfile = async () => {
             try {
                 const profile = await apiClient.getUserProfile();
-                if (profile) setPoints(profile.points ?? 0);
+                if (profile) setLraBalance(profile.lra_balance ?? 0);
             } catch (e) {
                 console.error('Failed to load points:', e);
             }
         };
+        const loadDailyLimit = async () => {
+            try {
+                const result = await apiClient.getDailyLimit() as any;
+                if (result) {
+                    setDailyUsed(result.used ?? 0);
+                    setDailyLimit(result.limit ?? 10);
+                }
+            } catch (e) {
+                console.error('Failed to load daily limit:', e);
+            }
+        };
         loadProfile();
+        loadDailyLimit();
     }, []);
 
     // Use `useEffect` to scroll whenever messages length or content changes
@@ -109,7 +125,7 @@ export default function ChatPage() {
     }, [characterId]);
 
     const handleSendMessage = async () => {
-        if (!inputValue.trim() || !characterId || isSending || isStreaming) return;
+        if (!inputValue.trim() || !characterId || isSending || isStreaming || isLimitReached) return;
 
         const userMessage = inputValue.trim();
         setInputValue('');
@@ -126,12 +142,13 @@ export default function ChatPage() {
         };
         setMessages(prev => [...prev, userMsgObj]);
 
-        // Sync Earning
+        // Sync Earning (adds directly to lra_balance)
         const earnAmount = 5;
         const syncResult = await apiClient.syncPoints(earnAmount);
         if (syncResult) {
-            setPoints(syncResult.points);
+            setLraBalance(syncResult.lra_balance ?? lraBalance + earnAmount);
         }
+        setDailyUsed(prev => prev + 1);
         setShowEarned(true);
         setTimeout(() => setShowEarned(false), 2000);
 
@@ -272,7 +289,10 @@ export default function ChatPage() {
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20 shadow-inner ml-2">
                         <Wallet className="w-3.5 h-3.5 text-green-400" />
-                        <span className="text-[10px] font-semibold text-green-300 uppercase tracking-widest">{points} LRA</span>
+                        <span className="text-[10px] font-semibold text-green-300 uppercase tracking-widest">{Math.floor(lraBalance)} LRA</span>
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full border shadow-inner ml-2 ${isLimitReached ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
+                        <span className={`text-[10px] font-semibold uppercase tracking-widest ${isLimitReached ? 'text-red-400' : 'text-gray-400'}`}>{dailyRemaining}/{dailyLimit} msgs</span>
                     </div>
                 </div>
 
@@ -286,7 +306,7 @@ export default function ChatPage() {
                             <p className="text-lg font-medium text-white/80">Start a conversation</p>
                             <p className="text-sm mt-1 text-white/40">Your soulmate is waiting to connect with you.</p>
                             <div className="mt-8 text-xs px-3 py-1 bg-purple-500/10 text-purple-300 rounded-full border border-purple-500/20">
-                                Earn +5 Points per Message
+                                Earn +5 LRA per Message
                             </div>
                         </div>
                     )}
@@ -314,6 +334,12 @@ export default function ChatPage() {
 
                 {/* Input Area */}
                 <div className="px-4 pb-4 pt-2 bg-gradient-to-t from-black via-black/80 to-transparent sticky bottom-0 z-20">
+                    {isLimitReached ? (
+                        <div className="text-center py-4 px-6 bg-red-500/10 border border-red-500/20 rounded-2xl">
+                            <p className="text-red-300 font-medium text-sm">Daily message limit reached ({dailyLimit}/{dailyLimit})</p>
+                            <p className="text-gray-500 text-xs mt-1">Come back tomorrow for more conversations!</p>
+                        </div>
+                    ) : (
                     <div className="relative group p-1 rounded-[28px] bg-gradient-to-r from-white/10 via-white/5 to-white/10 p-[1px]">
                         {/* Gradient Border Content Wrapper */}
                         <div className="flex gap-2 bg-black/80 backdrop-blur-xl rounded-[26px] p-1.5 pl-4 items-center shadow-lg border border-white/5">
@@ -345,10 +371,11 @@ export default function ChatPage() {
                             </Button>
                         </div>
                     </div>
+                    )}
 
                     <div className="text-center mt-2 opacity-60 hover:opacity-100 transition-opacity">
                         <span className="text-[10px] text-gray-500 font-medium tracking-wide uppercase">
-                            +5 LRA points / message
+                            +5 LRA / message · {dailyRemaining} left today
                         </span>
                     </div>
 

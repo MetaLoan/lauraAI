@@ -111,8 +111,8 @@ export default function ProfilePage() {
                             <p className="text-xl font-bold text-white">{profile?.total_earnings || '0.00 BNB'}</p>
                         </div>
                         <div className="text-center md:text-left">
-                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Points Balance</p>
-                            <p className="text-xl font-bold text-white">{profile?.points?.toLocaleString() || 0}</p>
+                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">LRA Balance</p>
+                            <p className="text-xl font-bold text-white">{Math.floor(profile?.lra_balance ?? 0).toLocaleString()}</p>
                         </div>
                         <div className="text-center md:text-left">
                             <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Referrals</p>
@@ -125,24 +125,18 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                {/* LRA Points (points only, no token) */}
+                {/* LRA Balance */}
                 <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/20 rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                            <Coins className="w-5 h-5 text-purple-400" /> LRA Points
+                            <Coins className="w-5 h-5 text-purple-400" /> LRA Balance
                         </h3>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Earned (chat, etc.)</p>
-                            <p className="text-xl font-bold text-white">{profile?.points?.toLocaleString() ?? 0}</p>
-                        </div>
-                        <div>
-                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Total Claimed</p>
-                            <p className="text-xl font-bold text-white">{profile?.lra_balance?.toLocaleString() ?? 0}</p>
-                        </div>
+                    <div>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Total Earned</p>
+                        <p className="text-3xl font-bold text-white">{Math.floor(profile?.lra_balance ?? 0).toLocaleString()} <span className="text-sm font-normal text-purple-300">LRA</span></p>
                     </div>
-                    <p className="text-gray-500 text-xs mt-3">Use Harvest on Dashboard to claim earned points.</p>
+                    <p className="text-gray-500 text-xs mt-3">Earn LRA by chatting with your AI characters. +5 LRA per message.</p>
                 </div>
 
                 {/* Invite Dashboard */}

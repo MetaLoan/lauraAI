@@ -12,6 +12,7 @@ import { useAccount } from 'wagmi';
 import Image from 'next/image';
 import { getFullImageUrl } from '@/lib/utils';
 import SoulmateDetailPage from '@/components/soulmate-detail-page';
+import DrawingLoading from '@/components/drawing-loading';
 
 // ============ 预设角色类型定义 ============
 interface PresetType {
@@ -200,10 +201,14 @@ export default function CreatePage() {
                     });
                 }
 
-                // 加载已创建的角色
+                // Load existing characters (only those with images count as "created")
                 const characters = await apiClient.getCharacters() as any[];
                 if (characters && Array.isArray(characters)) {
-                    setExistingTypes(characters.map((c: any) => c.type));
+                    setExistingTypes(
+                        characters
+                            .filter((c: any) => c.image_url && c.image_url !== '')
+                            .map((c: any) => c.type)
+                    );
                 }
 
                 // 如果资料不完整，先填资料
@@ -501,11 +506,17 @@ export default function CreatePage() {
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.05, duration: 0.3 }}
+                                            disabled={isCreated}
                                             onClick={() => {
+                                                if (isCreated) return;
                                                 setSelectedType(preset.type);
                                                 setCurrentStep('gender');
                                             }}
-                                            className="group relative bg-black/40 border border-white/10 rounded-2xl text-left hover:border-purple-500/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10 overflow-hidden aspect-[3/4]"
+                                            className={`group relative bg-black/40 border rounded-2xl text-left transition-all duration-300 overflow-hidden aspect-[3/4] ${
+                                                isCreated
+                                                    ? 'border-green-500/20 opacity-60 cursor-not-allowed'
+                                                    : 'border-white/10 hover:border-purple-500/40 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10'
+                                            }`}
                                         >
                                             {/* Preset Image Background */}
                                             {preset.presetImage && (
@@ -522,9 +533,13 @@ export default function CreatePage() {
 
                                             {/* Created Badge */}
                                             {isCreated && (
-                                                <div className="absolute top-3 right-3 z-20 px-2 py-0.5 rounded-full bg-green-500/20 backdrop-blur-md border border-green-500/30 text-[10px] font-bold text-green-400">
-                                                    Created
-                                                </div>
+                                                <>
+                                                    <div className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-green-500/20 backdrop-blur-md border border-green-500/30 text-[10px] font-bold text-green-400 flex items-center gap-1">
+                                                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                                                        Created
+                                                    </div>
+                                                    <div className="absolute inset-0 z-15 bg-black/30" />
+                                                </>
                                             )}
 
                                             {/* Content at Bottom */}
@@ -669,30 +684,16 @@ export default function CreatePage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="flex flex-col items-center justify-center min-h-[500px] space-y-8"
+                            className="min-h-[600px]"
                         >
-                            {/* Animated DNA-style loader */}
-                            <div className="relative">
-                                <div className="w-32 h-32 rounded-full border-2 border-purple-500/30 flex items-center justify-center">
-                                    <div className="w-24 h-24 rounded-full border-2 border-pink-500/30 flex items-center justify-center animate-spin" style={{ animationDuration: '3s' }}>
-                                        <div className="w-16 h-16 rounded-full border-2 border-purple-500/50 flex items-center justify-center animate-spin" style={{ animationDuration: '2s', animationDirection: 'reverse' }}>
-                                            <Sparkles className="w-8 h-8 text-purple-400 animate-pulse" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="absolute inset-0 bg-purple-500/5 rounded-full blur-[40px] animate-pulse" />
-                            </div>
-
-                            <div className="text-center space-y-3">
-                                <h3 className="text-2xl font-bold text-white">AI Is Generating Your Character</h3>
-                                <p className="text-gray-400 max-w-sm">
-                                    Analyzing DNA traits and creating your avatar. Please wait...
-                                </p>
-                                <div className="flex items-center justify-center gap-2 text-purple-400 text-sm">
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    <span>Estimated 15-30 seconds</span>
-                                </div>
-                            </div>
+                            <DrawingLoading
+                                characterTitle={PRESET_TYPES.find(p => p.type === selectedType)?.label || 'Character'}
+                                error={generationError}
+                                onRetry={() => {
+                                    setGenerationError(null);
+                                    handleCreateCharacter();
+                                }}
+                            />
                         </motion.div>
                     )}
 
@@ -710,10 +711,14 @@ export default function CreatePage() {
                                 onBack={() => {
                                     setCreatedCharacter(null);
                                     setCurrentStep('preset');
-                                    // Refresh existing types
+                                    // Refresh existing types (only with images count)
                                     apiClient.getCharacters().then((chars: any) => {
                                         if (Array.isArray(chars)) {
-                                            setExistingTypes(chars.map((c: any) => c.type));
+                                            setExistingTypes(
+                                                chars
+                                                    .filter((c: any) => c.image_url && c.image_url !== '')
+                                                    .map((c: any) => c.type)
+                                            );
                                         }
                                     });
                                 }}

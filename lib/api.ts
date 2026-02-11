@@ -376,11 +376,9 @@ class ApiClient {
     });
   }
 
-  // Harvest points to LRA
-  async claimLRA() {
-    return this.request('/users/me/points/harvest', {
-      method: 'POST'
-    });
+  // Get daily message limit status
+  async getDailyLimit() {
+    return this.request('/chat/daily-limit');
   }
 
 }
