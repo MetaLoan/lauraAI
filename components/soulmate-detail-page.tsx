@@ -301,8 +301,15 @@ export default function SoulmateDetailPage({
             paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
           }}
         >
-          {/* Title above image */}
-          <h2 className="text-title-lg text-balance text-center px-2 flex-shrink-0">{title}</h2>
+          {/* Title and Compatibility Score */}
+          <div className="w-full max-w-[280px] flex items-center justify-between px-2 flex-shrink-0">
+            <h2 className="text-title-lg font-bold">{title}</h2>
+            {!isMiniMe && targetScore && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 backdrop-blur-sm">
+                <span className="text-xl font-bold text-white">{score}%</span>
+              </div>
+            )}
+          </div>
 
           {/* Image with lock overlay */}
           <div className="w-full max-w-[280px] aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl relative">
@@ -330,14 +337,12 @@ export default function SoulmateDetailPage({
             <h3 className="text-center text-title-md font-bold mb-6">{tResults('compatibility')}</h3>
 
             {/* Progress Bar */}
-            <div className="mb-4 h-2 rounded-full bg-white/10 overflow-hidden">
+            <div className="mb-6 h-2 rounded-full bg-white/10 overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-amber-400 to-amber-600"
                 style={{ width: `${progressWidth}%` }}
               />
             </div>
-
-            <p className="text-center text-5xl font-bold mb-6">{score}%</p>
 
             {/* Personality Report */}
             <div className="relative">
