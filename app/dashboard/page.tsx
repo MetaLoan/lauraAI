@@ -69,21 +69,21 @@ export default function DashboardPage() {
                         <Link href="/create/minime">
                             <div className="group relative bg-gradient-to-br from-pink-900/40 to-purple-900/40 border border-pink-500/30 rounded-2xl p-6 hover:border-pink-500/50 transition-all hover:-translate-y-1 cursor-pointer overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-[60px] group-hover:bg-pink-500/20 transition-all" />
-                                <div className="relative z-10 flex items-start gap-4">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <User className="w-7 h-7 text-white" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-4 mb-3">
+                                        <div className="w-14 h-14 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                                            <User className="w-7 h-7 text-white" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
                                             Create Mini Me
                                             <ArrowRight className="w-4 h-4 text-pink-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                         </h3>
-                                        <p className="text-gray-400 text-sm">Upload your photo and get an AI avatar version of yourself</p>
                                     </div>
-                                </div>
-                                <div className="mt-4 flex items-center gap-2 text-pink-400 text-xs font-medium">
-                                    <Camera className="w-3 h-3" />
-                                    Takes 30 seconds
+                                    <p className="text-gray-400 text-sm leading-relaxed mb-4">Upload your photo and get an AI avatar version of yourself</p>
+                                    <div className="flex items-center gap-2 text-pink-400 text-xs font-medium">
+                                        <Camera className="w-3 h-3" />
+                                        Takes 30 seconds
+                                    </div>
                                 </div>
                             </div>
                         </Link>
@@ -92,21 +92,21 @@ export default function DashboardPage() {
                         <Link href="/create">
                             <div className="group relative bg-gradient-to-br from-purple-900/40 to-indigo-900/40 border border-purple-500/30 rounded-2xl p-6 hover:border-purple-500/50 transition-all hover:-translate-y-1 cursor-pointer overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-[60px] group-hover:bg-purple-500/20 transition-all" />
-                                <div className="relative z-10 flex items-start gap-4">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <Sparkles className="w-7 h-7 text-white" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-4 mb-3">
+                                        <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                                            <Sparkles className="w-7 h-7 text-white" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
                                             Mint Soulmate
                                             <ArrowRight className="w-4 h-4 text-purple-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                         </h3>
-                                        <p className="text-gray-400 text-sm">Create your unique AI companion based on your profile</p>
                                     </div>
-                                </div>
-                                <div className="mt-4 flex items-center gap-2 text-purple-400 text-xs font-medium">
-                                    <Plus className="w-3 h-3" />
-                                    Powered by AI
+                                    <p className="text-gray-400 text-sm leading-relaxed mb-4">Create your unique AI companion based on your profile</p>
+                                    <div className="flex items-center gap-2 text-purple-400 text-xs font-medium">
+                                        <Plus className="w-3 h-3" />
+                                        Powered by AI
+                                    </div>
                                 </div>
                             </div>
                         </Link>
@@ -115,21 +115,21 @@ export default function DashboardPage() {
                         <Link href="/market">
                             <div className="group relative bg-gradient-to-br from-pink-900/40 to-rose-900/40 border border-pink-500/30 rounded-2xl p-6 hover:border-pink-500/50 transition-all hover:-translate-y-1 cursor-pointer overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-[60px] group-hover:bg-pink-500/20 transition-all" />
-                                <div className="relative z-10 flex items-start gap-4">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <Heart className="w-7 h-7 text-white" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-4 mb-3">
+                                        <div className="w-14 h-14 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                                            <Heart className="w-7 h-7 text-white" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
                                             My Soulmate
                                             <ArrowRight className="w-4 h-4 text-pink-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                         </h3>
-                                        <p className="text-gray-400 text-sm">View your AI soulmates and tap to start chatting</p>
                                     </div>
-                                </div>
-                                <div className="mt-4 flex items-center gap-2 text-pink-400 text-xs font-medium">
-                                    <Sparkles className="w-3 h-3" />
-                                    Earn LRA points by chatting
+                                    <p className="text-gray-400 text-sm leading-relaxed mb-4">View your AI soulmates and tap to start chatting</p>
+                                    <div className="flex items-center gap-2 text-pink-400 text-xs font-medium">
+                                        <Sparkles className="w-3 h-3" />
+                                        Earn LRA points by chatting
+                                    </div>
                                 </div>
                             </div>
                         </Link>
