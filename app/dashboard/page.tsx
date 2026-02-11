@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { AppLayout } from '@/components/layout/app-layout';
-import { PortfolioCard } from '@/components/dashboard/portfolio-card';
+import { PortfolioCard, PortfolioRefreshButton } from '@/components/dashboard/portfolio-card';
 import { SoulmateGrid } from '@/components/dashboard/soulmate-grid';
 import { useAccount } from 'wagmi';
 import { Loader2, User, Camera, Plus, ArrowRight, Heart } from 'lucide-react';
@@ -50,9 +50,12 @@ export default function DashboardPage() {
 
                 {/* Portfolio Overview */}
                 <section>
-                    <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                        Your Portfolio
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                            Your Portfolio
+                        </h2>
+                        <PortfolioRefreshButton />
+                    </div>
                     <PortfolioCard />
                 </section>
 

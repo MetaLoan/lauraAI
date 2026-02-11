@@ -4,6 +4,40 @@ import { Loader2, Wallet, Sparkles, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/api';
 
+// Separate refresh button component for reuse
+export function PortfolioRefreshButton({ onRefresh }: { onRefresh?: () => void }) {
+    const { address } = useAccount();
+    const chainId = useChainId();
+    const { refetch: refetchNative } = useBalance({ address });
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            await refetchNative();
+            if (onRefresh) await onRefresh();
+        } finally {
+            setTimeout(() => setIsRefreshing(false), 500);
+        }
+    };
+
+    if (chainId !== 31337) return null;
+
+    return (
+        <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="border-white/20 text-gray-300 hover:bg-white/10 h-9"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+        >
+            <RefreshCcw className={`w-3.5 h-3.5 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+        </Button>
+    );
+}
+
 export function PortfolioCard() {
     const { address, isConnected } = useAccount();
     const chainId = useChainId();
@@ -76,20 +110,6 @@ export function PortfolioCard() {
                     <p className="text-xs text-purple-300/50 mt-2">Earn LRA by chatting with your AI characters</p>
                 </div>
             </div>
-
-            {chainId === 31337 && (
-                <div className="mt-4">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="border-white/20 text-gray-300 hover:bg-white/10"
-                        onClick={() => { refetchNative(); fetchProfile(); }}
-                    >
-                        <RefreshCcw className="w-3.5 h-3.5 mr-1.5" /> Refresh
-                    </Button>
-                </div>
-            )}
         </>
     );
 }
