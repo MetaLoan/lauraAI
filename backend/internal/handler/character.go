@@ -5,7 +5,9 @@ import (
 	"log"
 	"math/rand"
 	"strconv"
+	"strings"
 
+	"lauraai-backend/internal/config"
 	"lauraai-backend/internal/i18n"
 	"lauraai-backend/internal/middleware"
 	"lauraai-backend/internal/model"
@@ -197,6 +199,31 @@ func (h *CharacterHandler) CleanupEmpty(c *gin.Context) {
 	response.Success(c, gin.H{"deleted": count, "message": fmt.Sprintf("Cleaned up %d unused characters", count)})
 }
 
+// toAbsoluteURL converts relative URLs to absolute URLs using the configured BASE_URL
+func toAbsoluteURL(url string) string {
+	if url == "" {
+		return ""
+	}
+	// If already absolute (http/https), return as-is
+	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+		return url
+	}
+	// If data: URI, return as-is
+	if strings.HasPrefix(url, "data:") {
+		return url
+	}
+	// Otherwise prepend BASE_URL
+	baseURL := config.AppConfig.BaseURL
+	// Ensure BASE_URL doesn't end with slash if URL starts with slash
+	if strings.HasSuffix(baseURL, "/") && strings.HasPrefix(url, "/") {
+		return baseURL + url[1:]
+	}
+	if !strings.HasPrefix(url, "/") {
+		return baseURL + "/" + url
+	}
+	return baseURL + url
+}
+
 // GetNFTMetadata returns ERC721-compatible metadata JSON for a character (public endpoint for marketplaces/wallets)
 func (h *CharacterHandler) GetNFTMetadata(c *gin.Context) {
 	idStr := c.Param("id")
@@ -221,11 +248,14 @@ func (h *CharacterHandler) GetNFTMetadata(c *gin.Context) {
 		imageURL = character.FullBlurImageURL
 	}
 
+	// Convert to absolute URL for NFT wallets/marketplaces
+	absoluteImageURL := toAbsoluteURL(imageURL)
+
 	// ERC721 metadata standard
 	metadata := gin.H{
 		"name":        character.Title,
 		"description": fmt.Sprintf("LauraAI %s — %s %s, %s zodiac, %d%% compatibility", character.Title, character.Gender, character.Ethnicity, character.AstroSign, character.Compatibility),
-		"image":       imageURL,
+		"image":       absoluteImageURL,
 		"attributes": []gin.H{
 			{"trait_type": "Type", "value": string(character.Type)},
 			{"trait_type": "Gender", "value": character.Gender},

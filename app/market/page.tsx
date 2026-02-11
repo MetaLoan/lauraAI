@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { apiClient } from '@/lib/api';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Loader2, MessageCircle, Plus, Heart, Sparkles, Star } from 'lucide-react';
+import { Loader2, MessageCircle, Plus, Heart, Sparkles, Star, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getFullImageUrl } from '@/lib/utils';
+import SoulmateDetailPage from '@/components/soulmate-detail-page';
 
 // Character type labels
 const TYPE_LABELS: Record<string, string> = {
@@ -39,8 +41,10 @@ interface Character {
 }
 
 export default function MySoulmatePage() {
+    const router = useRouter();
     const [characters, setCharacters] = useState<Character[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
 
     useEffect(() => {
         fetchCharacters();
@@ -141,7 +145,7 @@ export default function MySoulmatePage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.08, duration: 0.4, ease: 'easeOut' }}
                             >
-                                <Link href={`/chat/${char.id}`} className="block">
+                                <button onClick={() => setSelectedCharacter(char)} className="block w-full text-left">
                                     <div className="group relative bg-black/40 border border-white/10 rounded-2xl overflow-hidden hover:border-purple-500/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10 cursor-pointer">
                                         {/* Image */}
                                         <div className="relative aspect-[3/4] overflow-hidden">
@@ -190,7 +194,7 @@ export default function MySoulmatePage() {
                                             </div>
                                         </div>
                                     </div>
-                                </Link>
+                                </button>
                             </motion.div>
                         ))}
 
@@ -212,6 +216,46 @@ export default function MySoulmatePage() {
                     </div>
                 )}
             </div>
+
+            {/* Character Detail Modal */}
+            <AnimatePresence>
+                {selectedCharacter && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setSelectedCharacter(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full max-w-2xl h-[90vh] bg-black border border-white/10 rounded-3xl overflow-hidden relative"
+                        >
+                            <button
+                                onClick={() => setSelectedCharacter(null)}
+                                className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors"
+                            >
+                                <X className="w-5 h-5 text-white" />
+                            </button>
+                            <SoulmateDetailPage
+                                character={selectedCharacter}
+                                onNext={() => {
+                                    setSelectedCharacter(null);
+                                    router.push(`/chat/${selectedCharacter.id}`);
+                                }}
+                                onBack={() => setSelectedCharacter(null)}
+                                onCharacterUpdate={(updated) => {
+                                    setSelectedCharacter(updated);
+                                    fetchCharacters();
+                                }}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </AppLayout>
     );
 }

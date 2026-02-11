@@ -94,9 +94,9 @@ func (s *GeminiReportService) GenerateMultiLangReport(ctx context.Context, user 
 	}
 	log.Printf("[Report] 英文报告生成成功")
 
-	// 第二步：翻译成中文
-	log.Println("[Report] 步骤2: 翻译成中文...")
-	zhReport, err := s.translateReport(ctx, englishReport, "Chinese (Simplified). Use very casual, down-to-earth, and plain language (大白话). Avoid formal or poetic words.")
+	// Step 2: Translate to Chinese
+	log.Println("[Report] Step 2: Translating to Chinese...")
+	zhReport, err := s.translateReport(ctx, englishReport, "Chinese (Simplified). Use very casual, down-to-earth, and plain everyday language. Avoid formal or poetic words.")
 	if err != nil {
 		log.Printf("[Report] 中文翻译失败: %v, 使用模拟翻译", err)
 		zhReport = s.getMockTranslation(englishReport, "zh")
