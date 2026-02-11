@@ -95,9 +95,11 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 	var resp *genai.GenerateContentResponse
 	var err error
 	maxRetries := 3
+	
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		resp, err = s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), nil)
 		if err == nil {
+			log.Printf("[Imagen] API call successful on attempt %d", attempt)
 			break
 		}
 		
@@ -119,26 +121,41 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 		time.Sleep(waitTime)
 	}
 
-	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
-		return "", fmt.Errorf("Image not generated")
+	// Check if response is valid
+	if len(resp.Candidates) == 0 {
+		log.Printf("[Imagen] ERROR: No candidates in response")
+		if resp.PromptFeedback != nil {
+			log.Printf("[Imagen] PromptFeedback: %+v", resp.PromptFeedback)
+		}
+		return "", fmt.Errorf("Image not generated: no candidates in response (check API quota/safety filters)")
 	}
+
+	if len(resp.Candidates[0].Content.Parts) == 0 {
+		log.Printf("[Imagen] ERROR: No parts in candidate")
+		log.Printf("[Imagen] Candidate: %+v", resp.Candidates[0])
+		return "", fmt.Errorf("Image not generated: no parts in candidate")
+	}
+
+	log.Printf("[Imagen] Response has %d candidates, %d parts", len(resp.Candidates), len(resp.Candidates[0].Content.Parts))
 
 	var imageData []byte
 	// var mimeType string
 
-	for _, part := range resp.Candidates[0].Content.Parts {
+	for i, part := range resp.Candidates[0].Content.Parts {
+		log.Printf("[Imagen] Part %d: Text=%v, InlineData=%v", i, part.Text != "", part.InlineData != nil)
 		if part.InlineData != nil {
 			imageData = part.InlineData.Data
 			// mimeType = part.InlineData.MIMEType
+			log.Printf("[Imagen] Found image data in part %d, size: %d bytes", i, len(imageData))
 			break
 		}
 		if part.Text != "" {
-			log.Printf("[Imagen] 收到文本响应: %s", part.Text)
+			log.Printf("[Imagen] Part %d text response: %s", i, part.Text)
 		}
 	}
 
 	if imageData == nil {
-		return "", fmt.Errorf("Image data not found in response")
+		return "", fmt.Errorf("Image data not found in response. Check Gemini API quota/limits or model availability")
 	}
 
 	// 解码图片
