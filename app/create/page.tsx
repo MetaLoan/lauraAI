@@ -5,14 +5,16 @@ import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/api';
-import { Loader2, ArrowLeft, Check, Sparkles, ChevronRight, User, Heart, Users, Baby, Crown, Compass, BookOpen, Ghost, Star, Moon } from 'lucide-react';
+import { Loader2, ArrowLeft, Check, Sparkles, ChevronRight, User, Heart, Users, Baby, Crown, Compass, BookOpen, Ghost, Star, Moon, X, Gem } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConnectButton } from '@/components/wallet-button';
-import { useAccount } from 'wagmi';
+import { useAccount, useWriteContract, useReadContract } from 'wagmi';
+import { formatEther } from 'viem';
 import Image from 'next/image';
 import { getFullImageUrl } from '@/lib/utils';
 import SoulmateDetailPage from '@/components/soulmate-detail-page';
 import DrawingLoading from '@/components/drawing-loading';
+import { LAURA_AI_SOULMATE_ABI, LAURA_AI_SOULMATE_ADDRESS } from '@/lib/contracts';
 
 // ============ 预设角色类型定义 ============
 interface PresetType {
@@ -152,7 +154,20 @@ type StepType = 'profile' | 'preset' | 'gender' | 'ethnicity' | 'generating' | '
 
 export default function CreatePage() {
     const router = useRouter();
-    const { isConnected } = useAccount();
+    const { isConnected, address } = useAccount();
+    const { writeContractAsync } = useWriteContract();
+
+    // Read mint price from contract
+    const { data: mintPriceRaw } = useReadContract({
+        address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
+        abi: LAURA_AI_SOULMATE_ABI,
+        functionName: 'mintPrice',
+    });
+    const mintPrice = mintPriceRaw ? BigInt(mintPriceRaw.toString()) : BigInt(0);
+    const mintPriceDisplay = mintPrice > 0 ? formatEther(mintPrice) : '0';
+
+    // Mint state
+    const [mintStep, setMintStep] = useState<'idle' | 'minting' | 'generating' | 'done'>('idle');
 
     // 步骤状态
     const [currentStep, setCurrentStep] = useState<StepType>('preset');
@@ -176,6 +191,10 @@ export default function CreatePage() {
 
     // 已创建的角色列表（用于标记"已创建"）
     const [existingTypes, setExistingTypes] = useState<string[]>([]);
+    // 已创建角色的完整数据（用于点击跳转详情弹窗）
+    const [existingCharacters, setExistingCharacters] = useState<any[]>([]);
+    // 详情弹窗中选中的角色
+    const [selectedCharacterForDetail, setSelectedCharacterForDetail] = useState<any>(null);
 
     // 生成状态
     const [isGenerating, setIsGenerating] = useState(false);
@@ -204,11 +223,9 @@ export default function CreatePage() {
                 // Load existing characters (only those with images count as "created")
                 const characters = await apiClient.getCharacters() as any[];
                 if (characters && Array.isArray(characters)) {
-                    setExistingTypes(
-                        characters
-                            .filter((c: any) => c.image_url && c.image_url !== '')
-                            .map((c: any) => c.type)
-                    );
+                    const created = characters.filter((c: any) => c.image_url && c.image_url !== '');
+                    setExistingTypes(created.map((c: any) => c.type));
+                    setExistingCharacters(created.map((c: any) => ({ ...c, id: c.id?.toString?.() ?? String(c.id) })));
                 }
 
                 // 如果资料不完整，先填资料
@@ -248,14 +265,16 @@ export default function CreatePage() {
         }
     };
 
-    // ============ 创建角色 ============
+    // ============ 创建角色（Mint + 生图一体化） ============
     const handleCreateCharacter = async () => {
-        if (!soulmateGender || !soulmateEthnicity || !selectedType) return;
+        if (!soulmateGender || !soulmateEthnicity || !selectedType || !address) return;
         setIsGenerating(true);
         setGenerationError(null);
         setCurrentStep('generating');
+        setMintStep('minting');
 
         try {
+            // Step 1: Create character in backend (get character ID)
             const character = await apiClient.createCharacter({
                 type: selectedType,
                 gender: soulmateGender,
@@ -264,7 +283,25 @@ export default function CreatePage() {
 
             if (!character?.id) throw new Error('Failed to create character');
 
-            // 生成图片
+            // Step 2: Mint NFT on-chain (pay mint fee)
+            const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+                ? 'http://localhost:8081'
+                : 'https://lauraai-backend.fly.dev';
+            const metadataURI = `${baseUrl}/api/nft/metadata/${character.id}`;
+
+            console.log('Minting NFT with metadata URI:', metadataURI, 'mintPrice:', mintPrice.toString());
+
+            await writeContractAsync({
+                address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
+                abi: LAURA_AI_SOULMATE_ABI,
+                functionName: 'safeMint',
+                args: [address, metadataURI],
+                value: mintPrice,
+            });
+
+            // Step 3: Mint succeeded → Generate image
+            setMintStep('generating');
+
             const imageResult = await apiClient.generateImage(character.id.toString()) as any;
             if (imageResult?.image_url) {
                 character.image_url = imageResult.image_url;
@@ -273,6 +310,7 @@ export default function CreatePage() {
                 character.share_code = imageResult.share_code;
             }
 
+            setMintStep('done');
             setCreatedCharacter({
                 ...character,
                 id: character.id.toString(),
@@ -280,10 +318,12 @@ export default function CreatePage() {
             setCurrentStep('result');
         } catch (error: any) {
             console.error('Failed to create character:', error);
-            setGenerationError(error.message || 'Creation failed. Please try again.');
+            const msg = error?.shortMessage || error?.message || 'Creation failed. Please try again.';
+            setGenerationError(msg);
             setCurrentStep('ethnicity'); // Go back
         } finally {
             setIsGenerating(false);
+            setMintStep('idle');
         }
     };
 
@@ -500,45 +540,62 @@ export default function CreatePage() {
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                                 {PRESET_TYPES.map((preset, index) => {
                                     const isCreated = existingTypes.includes(preset.type);
+                                    const existingChar = existingCharacters.find((c: any) => c.type === preset.type);
                                     return (
-                                        <motion.button
+                                        <motion.div
                                             key={preset.type}
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.05, duration: 0.3 }}
-                                            disabled={isCreated}
+                                            role="button"
+                                            tabIndex={0}
                                             onClick={() => {
-                                                if (isCreated) return;
-                                                setSelectedType(preset.type);
-                                                setCurrentStep('gender');
+                                                if (isCreated && existingChar) {
+                                                    setSelectedCharacterForDetail(existingChar);
+                                                } else {
+                                                    setSelectedType(preset.type);
+                                                    setCurrentStep('gender');
+                                                }
                                             }}
-                                            className={`group relative bg-black/40 border rounded-2xl text-left transition-all duration-300 overflow-hidden aspect-[3/4] ${
+                                            onKeyDown={(e) => {
+                                                if (e.key !== 'Enter' && e.key !== ' ') return;
+                                                if (isCreated && existingChar) setSelectedCharacterForDetail(existingChar);
+                                                else { setSelectedType(preset.type); setCurrentStep('gender'); }
+                                            }}
+                                            className={`group relative bg-black/40 border rounded-2xl text-left transition-all duration-300 overflow-hidden aspect-[3/4] cursor-pointer ${
                                                 isCreated
-                                                    ? 'border-green-500/20 opacity-60 cursor-not-allowed'
+                                                    ? 'border-green-500/20 hover:border-green-500/40 hover:opacity-90 hover:-translate-y-1 hover:shadow-xl'
                                                     : 'border-white/10 hover:border-purple-500/40 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10'
                                             }`}
                                         >
-                                            {/* Preset Image Background */}
-                                            {preset.presetImage && (
+                                            {/* Card Image: generated image when created, else preset at 50% opacity */}
+                                            {isCreated && existingChar && (existingChar.image_url || existingChar.clear_image_url) ? (
                                                 <Image
-                                                    src={preset.presetImage}
+                                                    src={getFullImageUrl(existingChar.image_url || existingChar.clear_image_url || '')}
                                                     alt={preset.label}
                                                     fill
                                                     className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                                                 />
-                                            )}
+                                            ) : preset.presetImage ? (
+                                                <Image
+                                                    src={preset.presetImage}
+                                                    alt={preset.label}
+                                                    fill
+                                                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-50"
+                                                />
+                                            ) : null}
 
                                             {/* Gradient Overlay */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-80 transition-opacity" />
 
-                                            {/* Created Badge */}
+                                            {/* Created Badge - more visible */}
                                             {isCreated && (
                                                 <>
-                                                    <div className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-green-500/20 backdrop-blur-md border border-green-500/30 text-[10px] font-bold text-green-400 flex items-center gap-1">
-                                                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                                                    <div className="absolute top-3 right-3 z-20 px-3 py-2 rounded-xl bg-green-600/95 backdrop-blur-md border-2 border-green-400/80 text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 shadow-lg shadow-green-500/40">
+                                                        <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
                                                         Created
                                                     </div>
-                                                    <div className="absolute inset-0 z-15 bg-black/30" />
+                                                    <div className="absolute inset-0 z-15 bg-black/5" />
                                                 </>
                                             )}
 
@@ -556,7 +613,7 @@ export default function CreatePage() {
                                                 </h3>
                                                 <p className="text-[11px] text-gray-300 leading-relaxed line-clamp-2">{preset.description}</p>
                                             </div>
-                                        </motion.button>
+                                        </motion.div>
                                     );
                                 })}
                             </div>
@@ -662,22 +719,30 @@ export default function CreatePage() {
                                     ))}
                                 </div>
 
-                                {/* Generate Button */}
-                                <div className="max-w-md mx-auto">
+                                {/* Mint & Generate Button */}
+                                <div className="max-w-md mx-auto space-y-3">
                                     <Button
                                         onClick={handleCreateCharacter}
-                                        disabled={!soulmateEthnicity || isGenerating}
-                                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-40 disabled:cursor-not-allowed gap-2"
+                                        disabled={!soulmateEthnicity || isGenerating || !address}
+                                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 disabled:opacity-40 disabled:cursor-not-allowed gap-2"
                                     >
-                                        <Sparkles className="w-5 h-5" />
-                                        Generate AI Avatar
+                                        <Gem className="w-5 h-5" />
+                                        Mint & Create
+                                        {mintPrice > 0 && (
+                                            <span className="ml-1 text-sm opacity-90">({mintPriceDisplay} BNB)</span>
+                                        )}
                                     </Button>
+                                    {mintPrice > 0 && (
+                                        <p className="text-center text-xs text-gray-500">
+                                            Minting fee: {mintPriceDisplay} BNB · Paid on-chain to mint your unique NFT
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
                     )}
 
-                    {/* ============ 生成中 ============ */}
+                    {/* ============ 生成中（Mint + 生图） ============ */}
                     {currentStep === 'generating' && (
                         <motion.div
                             key="generating"
@@ -686,14 +751,28 @@ export default function CreatePage() {
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="min-h-[600px]"
                         >
-                            <DrawingLoading
-                                characterTitle={PRESET_TYPES.find(p => p.type === selectedType)?.label || 'Character'}
-                                error={generationError}
-                                onRetry={() => {
-                                    setGenerationError(null);
-                                    handleCreateCharacter();
-                                }}
-                            />
+                            {mintStep === 'minting' ? (
+                                <div className="flex flex-col items-center justify-center py-20 space-y-6">
+                                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center border border-amber-500/30">
+                                        <Gem className="w-10 h-10 text-amber-400 animate-pulse" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-white">Confirm in Wallet</h2>
+                                    <p className="text-gray-400 text-center max-w-sm">
+                                        Please confirm the mint transaction in your wallet.
+                                        {mintPrice > 0 && <span className="block mt-1 text-amber-400 font-medium">Fee: {mintPriceDisplay} BNB</span>}
+                                    </p>
+                                    <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+                                </div>
+                            ) : (
+                                <DrawingLoading
+                                    characterTitle={PRESET_TYPES.find(p => p.type === selectedType)?.label || 'Character'}
+                                    error={generationError}
+                                    onRetry={() => {
+                                        setGenerationError(null);
+                                        handleCreateCharacter();
+                                    }}
+                                />
+                            )}
                         </motion.div>
                     )}
 
@@ -705,30 +784,71 @@ export default function CreatePage() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
                         >
-                            <SoulmateDetailPage
+                        <SoulmateDetailPage
                                 character={createdCharacter}
                                 onNext={() => router.push(`/chat/${createdCharacter.id}`)}
                                 onBack={() => {
                                     setCreatedCharacter(null);
                                     setCurrentStep('preset');
-                                    // Refresh existing types (only with images count)
+                                    // Refresh existing types and full list (only with images count)
                                     apiClient.getCharacters().then((chars: any) => {
                                         if (Array.isArray(chars)) {
-                                            setExistingTypes(
-                                                chars
-                                                    .filter((c: any) => c.image_url && c.image_url !== '')
-                                                    .map((c: any) => c.type)
-                                            );
+                                            const created = chars.filter((c: any) => c.image_url && c.image_url !== '');
+                                            setExistingTypes(created.map((c: any) => c.type));
+                                            setExistingCharacters(created.map((c: any) => ({ ...c, id: c.id?.toString?.() ?? String(c.id) })));
                                         }
                                     });
                                 }}
                                 onCharacterUpdate={setCreatedCharacter}
-                                onUnlockSuccess={() => { }}
-                            />
+                            onUnlockSuccess={() => { }}
+                        />
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Detail modal for "Created" characters */}
+            <AnimatePresence>
+                {selectedCharacterForDetail && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setSelectedCharacterForDetail(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full max-w-2xl h-[90vh] bg-black border border-white/10 rounded-3xl overflow-hidden relative"
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setSelectedCharacterForDetail(null)}
+                                className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors"
+                            >
+                                <X className="w-5 h-5 text-white" />
+                            </button>
+                            <SoulmateDetailPage
+                                character={selectedCharacterForDetail}
+                                onNext={() => {
+                                    setSelectedCharacterForDetail(null);
+                                    router.push(`/chat/${selectedCharacterForDetail.id}`);
+                                }}
+                                onBack={() => setSelectedCharacterForDetail(null)}
+                                onCharacterUpdate={(updated) => {
+                                    setSelectedCharacterForDetail(updated);
+                                    setExistingCharacters((prev) =>
+                                        prev.map((c: any) => (c.id === updated?.id ? { ...c, ...updated } : c))
+                                    );
+                                }}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </AppLayout>
     );
 }

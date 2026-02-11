@@ -26,23 +26,9 @@ export function ShareButton({
     const [isOpen, setIsOpen] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    const shareData = {
-        title,
-        text,
-        url,
-    };
-
-    const handleNativeShare = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share(shareData);
-            } catch (err) {
-                console.log('Share failed', err);
-                setIsOpen(true);
-            }
-        } else {
-            setIsOpen(true);
-        }
+    const handleShareClick = () => {
+        // App-level share only: always show in-app modal, never trigger system share sheet
+        setIsOpen(true);
     };
 
     const handleCopy = () => {
@@ -61,7 +47,7 @@ export function ShareButton({
             <Button
                 variant={variant}
                 size={size}
-                onClick={handleNativeShare}
+                onClick={handleShareClick}
                 className={cn("rounded-full border-white/10 hover:bg-white/10 text-white", className)}
             >
                 <Share2 className={size === 'icon' ? "w-5 h-5" : "w-4 h-4 mr-2"} />

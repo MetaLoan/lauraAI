@@ -44,3 +44,32 @@ func (r *MessageRepository) CountUserMessagesToday(userID uint64) (int64, error)
 		Count(&count).Error
 	return count, err
 }
+
+// CountUserCharacterMessagesToday counts user-sent messages today (UTC) for a specific character
+func (r *MessageRepository) CountUserCharacterMessagesToday(userID, characterID uint64) (int64, error) {
+	var count int64
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	err := DB.Model(&model.Message{}).
+		Where("user_id = ? AND character_id = ? AND sender_type = ? AND created_at >= ?",
+			userID, characterID, model.SenderTypeUser, today).
+		Count(&count).Error
+	return count, err
+}
+
+// CharacterDailyUsage holds per-character daily message usage
+type CharacterDailyUsage struct {
+	CharacterID uint64 `json:"character_id"`
+	Used        int64  `json:"used"`
+}
+
+// CountAllCharacterMessagesToday returns today's user-sent message counts grouped by character
+func (r *MessageRepository) CountAllCharacterMessagesToday(userID uint64) ([]CharacterDailyUsage, error) {
+	var results []CharacterDailyUsage
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	err := DB.Model(&model.Message{}).
+		Select("character_id, COUNT(*) as used").
+		Where("user_id = ? AND sender_type = ? AND created_at >= ?", userID, model.SenderTypeUser, today).
+		Group("character_id").
+		Scan(&results).Error
+	return results, err
+}

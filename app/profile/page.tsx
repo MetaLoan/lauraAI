@@ -78,14 +78,14 @@ export default function ProfilePage() {
                             <div className="w-full h-full rounded-full bg-black overflow-hidden relative">
                                 {/* Avatar Placeholder */}
                                 <div className="flex items-center justify-center h-full w-full bg-white/10 text-3xl font-bold">
-                                    {profile?.username?.charAt(0).toUpperCase() || <User />}
+                                    {profile?.name?.charAt(0).toUpperCase() || <User />}
                                 </div>
                             </div>
                         </div>
 
                         <div className="text-center md:text-left flex-1">
                             <h1 className="text-3xl font-bold text-white mb-1">
-                                {profile?.username || 'Anonymous User'}
+                                {profile?.name || 'Anonymous User'}
                             </h1>
                             <p className="text-purple-300 flex items-center justify-center md:justify-start gap-2 text-sm font-medium">
                                 <span className="truncate max-w-[200px]">{address}</span>
@@ -105,11 +105,7 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Stats Row */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-white/10">
-                        <div className="text-center md:text-left">
-                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Total Earnings</p>
-                            <p className="text-xl font-bold text-white">{profile?.total_earnings || '0.00 BNB'}</p>
-                        </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8 pt-8 border-t border-white/10">
                         <div className="text-center md:text-left">
                             <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">LRA Balance</p>
                             <p className="text-xl font-bold text-white">{Math.floor(profile?.lra_balance ?? 0).toLocaleString()}</p>
@@ -133,10 +129,8 @@ export default function ProfilePage() {
                         </h3>
                     </div>
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Total Earned</p>
                         <p className="text-3xl font-bold text-white">{Math.floor(profile?.lra_balance ?? 0).toLocaleString()} <span className="text-sm font-normal text-purple-300">LRA</span></p>
                     </div>
-                    <p className="text-gray-500 text-xs mt-3">Earn LRA by chatting with your AI characters. +5 LRA per message.</p>
                 </div>
 
                 {/* Invite Dashboard */}

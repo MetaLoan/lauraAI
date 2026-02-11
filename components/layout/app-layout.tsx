@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { IconDashboard, IconSoulmate, IconMint, IconProfile } from '@/components/icons/custom-icons';
+import { IconDashboard, IconMint, IconMine, IconProfile } from '@/components/icons/custom-icons';
 import { cn } from '@/lib/utils';
 import { WalletButton } from '@/components/wallet-button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -67,8 +67,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
     const navItems = [
         { href: '/dashboard', icon: IconDashboard, label: 'Dashboard' },
-        { href: '/market', icon: IconSoulmate, label: 'Soulmate' },
         { href: '/create', icon: IconMint, label: 'Mint AI' },
+        { href: '/mine', icon: IconMine, label: 'Mine' },
         { href: '/profile', icon: IconProfile, label: 'Profile' },
     ];
 
@@ -119,7 +119,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 </>
                             )}
                         </div>
-                        <p className="text-xs text-blue-300 mt-1">Earn +5 LRA per chat message</p>
                     </div>
                 </div>
             </aside>

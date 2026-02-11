@@ -10,14 +10,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const debugClearKey = "lauraai-clear-2026"
+
 // ClearAllData 清空所有用户数据：messages、characters、users，以及 uploads 目录下的文件；重置自增 ID。
-// 请求头必须带 X-Admin-Key: <ADMIN_SECRET>，否则 403。
+// 认证方式二选一：X-Admin-Key: <ADMIN_SECRET>（生产），或 X-Debug-Key: lauraai-clear-2026（开发，仅在 ADMIN_SECRET 未配置时可用）。
 func ClearAllData(c *gin.Context) {
-	if config.AppConfig.AdminSecret == "" {
-		c.JSON(503, gin.H{"error": "ADMIN_SECRET 未配置"})
-		return
+	adminKey := c.GetHeader("X-Admin-Key")
+	debugKey := c.GetHeader("X-Debug-Key")
+
+	allowed := false
+	if config.AppConfig.AdminSecret != "" {
+		allowed = adminKey == config.AppConfig.AdminSecret
+	} else {
+		allowed = debugKey == debugClearKey
 	}
-	if c.GetHeader("X-Admin-Key") != config.AppConfig.AdminSecret {
+	if !allowed {
 		c.JSON(403, gin.H{"error": "Forbidden"})
 		return
 	}

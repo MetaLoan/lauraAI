@@ -41,6 +41,16 @@ export const IconMint = ({ className }: { className?: string }) => (
     </svg>
 );
 
+export const IconMine = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <path d="M20 12V17C20 18.8856 20 19.8284 19.4142 20.4142C18.8284 21 17.8856 21 16 21H8C6.11438 21 5.17157 21 4.58579 20.4142C4 19.8284 4 18.8856 4 17V12" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M2 7L6.31429 3.56286C7.59553 2.52095 8.23614 2 9 2H15C15.7639 2 16.4045 2.52095 17.6857 3.56286L22 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M15 15C15 16.6569 13.6569 18 12 18C10.3431 18 9 16.6569 9 15C9 13.3431 10.3431 12 12 12C13.6569 12 15 13.3431 15 15Z" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="12" cy="15" r="1.5" className="fill-amber-500/40" />
+        <path d="M12 8V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="opacity-50" />
+    </svg>
+);
+
 export const IconProfile = ({ className }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
         <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="currentColor" strokeWidth="1.5" />

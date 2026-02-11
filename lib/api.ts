@@ -352,9 +352,15 @@ class ApiClient {
     });
   }
 
-  // Get daily message limit status
-  async getDailyLimit() {
-    return this.request('/chat/daily-limit');
+  // Get daily message limit status (global or per character)
+  async getDailyLimit(characterId?: string) {
+    const query = characterId ? `?character_id=${characterId}` : '';
+    return this.request(`/chat/daily-limit${query}`);
+  }
+
+  // Get per-character daily limits for all characters
+  async getAllDailyLimits() {
+    return this.request('/chat/daily-limits');
   }
 
 }

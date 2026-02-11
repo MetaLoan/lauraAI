@@ -2,14 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Share2, Loader2, MessageSquare, ExternalLink, Gem, Star } from 'lucide-react'
+import { ChevronDown, Share2, Loader2, MessageSquare, ExternalLink } from 'lucide-react'
 import { getFullImageUrl, cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
 import { apiClient } from '@/lib/api'
 import { useTranslations, useI18n } from '@/components/i18n-provider'
 import ReportLoading from '@/components/report-loading'
-import { useAccount, useWriteContract } from 'wagmi'
-import { LAURA_AI_SOULMATE_ABI, LAURA_AI_SOULMATE_ADDRESS } from '@/lib/contracts'
 
 // 解锁状态枚举
 const UnlockStatus = {
@@ -90,10 +88,6 @@ export default function SoulmateDetailPage({
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [progressWidth, setProgressWidth] = useState(0)
-  const [isMinting, setIsMinting] = useState(false)
-  const [mintSuccess, setMintSuccess] = useState(false)
-  const { address } = useAccount()
-  const { writeContractAsync } = useWriteContract()
   const [unlockStatus, setUnlockStatus] = useState(character?.unlock_status ?? UnlockStatus.FULL_UNLOCKED)
 
   const { t } = useTranslations('detail')
@@ -120,36 +114,6 @@ export default function SoulmateDetailPage({
   }
 
   const image = getDisplayImage()
-
-  // NFT minting handler
-  const handleMintNFT = async () => {
-    if (!address || !character?.id) return
-    setIsMinting(true)
-    try {
-      // Build NFT metadata URI with full HTTPS URL (required by NFT standards)
-      const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-        ? 'http://localhost:8081'
-        : 'https://lauraai-backend.fly.dev'
-      const metadataURI = `${baseUrl}/api/nft/metadata/${character.id}`
-      
-      console.log('Minting NFT with metadata URI:', metadataURI)
-      
-      await writeContractAsync({
-        address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
-        abi: LAURA_AI_SOULMATE_ABI,
-        functionName: 'safeMint',
-        args: [address, metadataURI],
-        value: BigInt(0), // free mint or adjust if mintPrice > 0
-      })
-      
-      setMintSuccess(true)
-    } catch (error: any) {
-      console.error('NFT mint failed:', error)
-      alert(error?.shortMessage || error?.message || 'Mint failed. Please try again.')
-    } finally {
-      setIsMinting(false)
-    }
-  }
 
   // 有清晰图或后端已完全解锁则直接展示报告
   const isDescriptionVisible = unlockStatus === UnlockStatus.FULL_UNLOCKED
@@ -301,16 +265,8 @@ export default function SoulmateDetailPage({
             paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
           }}
         >
-          {/* Title and Compatibility Score */}
-          <div className="w-full max-w-[280px] flex items-center justify-between px-2 flex-shrink-0">
-            <h2 className="text-title-lg font-bold">{title}</h2>
-            {!isMiniMe && targetScore && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/90 to-orange-500/90 border border-amber-400/50 backdrop-blur-sm shadow-lg shadow-amber-500/30">
-                <Star className="w-4 h-4 text-yellow-300 fill-yellow-300" />
-                <span className="text-xl font-bold text-white">{score}%</span>
-              </div>
-            )}
-          </div>
+          {/* Title above image */}
+          <h2 className="text-5xl font-bold text-balance text-center px-2 flex-shrink-0 pt-4">{title}</h2>
 
           {/* Image with lock overlay */}
           <div className="w-full max-w-[280px] aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl relative">
@@ -338,12 +294,14 @@ export default function SoulmateDetailPage({
             <h3 className="text-center text-title-md font-bold mb-6">{tResults('compatibility')}</h3>
 
             {/* Progress Bar */}
-            <div className="mb-6 h-2 rounded-full bg-white/10 overflow-hidden">
+            <div className="mb-4 h-2 rounded-full bg-white/10 overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-amber-400 to-amber-600"
                 style={{ width: `${progressWidth}%` }}
               />
             </div>
+
+            <p className="text-center text-5xl font-bold mb-6">{score}%</p>
 
             {/* Personality Report */}
             <div className="relative">
@@ -502,7 +460,7 @@ export default function SoulmateDetailPage({
         <div className="h-40" />
       </div>
 
-      {/* Footer Buttons - Redesigned 3-button layout */}
+      {/* Footer Buttons */}
       <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-gradient-to-t from-[#0B0218]/95 via-[#0B0218]/90 to-transparent backdrop-blur-sm z-50">
         <div className="max-w-md mx-auto space-y-3">
           {/* Primary: Start Chat */}
@@ -514,36 +472,12 @@ export default function SoulmateDetailPage({
             {t('startChat')}
           </Button>
           
-          {/* Secondary Actions Row */}
-          <div className="flex gap-2.5">
-            {/* Mint NFT */}
-            <Button
-              onClick={handleMintNFT}
-              disabled={isMinting || mintSuccess || !address}
-              className={cn(
-                "flex-1 h-11 flex items-center justify-center gap-2 font-semibold text-sm rounded-xl transition-all shadow-md",
-                mintSuccess
-                  ? "bg-green-600 hover:bg-green-700 text-white shadow-green-500/20"
-                  : "bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-amber-500/20",
-                (isMinting || !address) && "opacity-60 cursor-not-allowed"
-              )}
-            >
-              {isMinting ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Minting...</>
-              ) : mintSuccess ? (
-                <>✓ Minted</>
-              ) : (
-                <><Gem className="w-4 h-4" /> Mint NFT</>
-              )}
-            </Button>
-            
-            {/* Share */}
-            <ShareButton
-              title={`Meet my ${rawTitle}!`}
-              text={`I just created a unique AI ${rawTitle} with ${targetScore}% compatibility on LauraAI! #LauraAI #BSC #Web3AI`}
-              className="flex-1 h-11 bg-white/10 hover:bg-white/15 border border-white/20 text-white font-semibold text-sm rounded-xl shadow-md shadow-black/10 transition-all backdrop-blur-sm flex items-center justify-center gap-2"
-            />
-          </div>
+          {/* Share */}
+          <ShareButton
+            title={`Meet my ${rawTitle}!`}
+            text={`I just created a unique AI ${rawTitle} with ${targetScore}% compatibility on LauraAI! #LauraAI #BSC #Web3AI`}
+            className="w-full h-11 bg-white/10 hover:bg-white/15 border border-white/20 text-white font-semibold text-sm rounded-xl shadow-md shadow-black/10 transition-all backdrop-blur-sm flex items-center justify-center gap-2"
+          />
         </div>
       </div>
     </div>

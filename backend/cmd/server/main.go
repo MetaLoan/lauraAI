@@ -250,6 +250,7 @@ func main() {
 			apiAuth.POST("/characters/:id/chat", chatHandler.SendMessage)
 			apiAuth.GET("/characters/:id/messages", chatHandler.GetMessages)
 			apiAuth.GET("/chat/daily-limit", chatHandler.GetDailyLimit)
+			apiAuth.GET("/chat/daily-limits", chatHandler.GetAllDailyLimits)
 		}
 
 		// 图片生成相关

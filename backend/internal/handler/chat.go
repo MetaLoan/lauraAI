@@ -73,12 +73,12 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 		return
 	}
 
-	// Check daily message limit (10 messages per day across all characters)
-	todayCount, err := h.messageRepo.CountUserMessagesToday(user.ID)
+	// Check daily message limit per character (10 messages per character per day, resets at UTC 00:00)
+	todayCount, err := h.messageRepo.CountUserCharacterMessagesToday(user.ID, characterID)
 	if err != nil {
 		log.Printf("SendMessage: failed to count today's messages: %v", err)
 	} else if todayCount >= DailyMessageLimit {
-		response.Error(c, 429, fmt.Sprintf("Daily message limit reached (%d/%d). Come back tomorrow!", todayCount, DailyMessageLimit))
+		response.Error(c, 429, fmt.Sprintf("Daily chat limit reached for this character (%d/%d). Come back tomorrow!", todayCount, DailyMessageLimit))
 		return
 	}
 
@@ -147,7 +147,7 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 	c.Writer.Flush()
 }
 
-// GetDailyLimit returns the user's daily message usage
+// GetDailyLimit returns the user's daily message usage (optionally per character)
 func (h *ChatHandler) GetDailyLimit(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
@@ -155,6 +155,29 @@ func (h *ChatHandler) GetDailyLimit(c *gin.Context) {
 		return
 	}
 
+	// If character_id query param is provided, return per-character limit
+	charIDStr := c.Query("character_id")
+	if charIDStr != "" {
+		charID, err := strconv.ParseUint(charIDStr, 10, 64)
+		if err != nil {
+			response.Error(c, 400, "Invalid character_id")
+			return
+		}
+		todayCount, err := h.messageRepo.CountUserCharacterMessagesToday(user.ID, charID)
+		if err != nil {
+			response.Error(c, 500, "Failed to check daily limit")
+			return
+		}
+		response.Success(c, gin.H{
+			"character_id": charID,
+			"used":         todayCount,
+			"limit":        DailyMessageLimit,
+			"remaining":    DailyMessageLimit - int(todayCount),
+		})
+		return
+	}
+
+	// Default: return global usage across all characters
 	todayCount, err := h.messageRepo.CountUserMessagesToday(user.ID)
 	if err != nil {
 		response.Error(c, 500, "Failed to check daily limit")
@@ -165,6 +188,41 @@ func (h *ChatHandler) GetDailyLimit(c *gin.Context) {
 		"used":      todayCount,
 		"limit":     DailyMessageLimit,
 		"remaining": DailyMessageLimit - int(todayCount),
+	})
+}
+
+// GetAllDailyLimits returns per-character daily usage for all characters
+func (h *ChatHandler) GetAllDailyLimits(c *gin.Context) {
+	user, exists := middleware.GetUserFromContext(c)
+	if !exists {
+		response.Error(c, 401, "Unauthorized")
+		return
+	}
+
+	usages, err := h.messageRepo.CountAllCharacterMessagesToday(user.ID)
+	if err != nil {
+		response.Error(c, 500, "Failed to check daily limits")
+		return
+	}
+
+	// Build a map: character_id -> {used, limit, remaining}
+	limits := make([]gin.H, 0, len(usages))
+	for _, u := range usages {
+		remaining := DailyMessageLimit - int(u.Used)
+		if remaining < 0 {
+			remaining = 0
+		}
+		limits = append(limits, gin.H{
+			"character_id": u.CharacterID,
+			"used":         u.Used,
+			"limit":        DailyMessageLimit,
+			"remaining":    remaining,
+		})
+	}
+
+	response.Success(c, gin.H{
+		"per_character_limit": DailyMessageLimit,
+		"characters":          limits,
 	})
 }
 
