@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"io"
+	"log"
 
 	"lauraai-backend/internal/middleware"
 	"lauraai-backend/internal/model"
@@ -27,7 +28,8 @@ func NewMiniMeHandler(visionService *service.GeminiVisionService, imagenService 
 	}
 }
 
-// UploadAndGenerateMiniMe 处理自拍上传并生成 Mini Me
+// UploadAndGenerateMiniMe 处理自拍上传：分析图片 + 创建角色记录（不再同步生图）
+// 生图通过前端调用 POST /api/characters/:id/generate-image 异步完成，与普通角色流程一致
 func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
@@ -45,7 +47,6 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 
 	// 验证文件类型
 	mimeType := header.Header.Get("Content-Type")
-	// 增加对 image/heic 的支持（虽然前端应该已经转换了，但后端保持鲁棒性）
 	if mimeType != "image/jpeg" && mimeType != "image/png" && mimeType != "image/webp" && mimeType != "image/heic" {
 		response.Error(c, 400, "Only JPG, PNG, WEBP, HEIC formats are supported")
 		return
@@ -58,7 +59,7 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 		return
 	}
 
-	// 2. 调用 Vision API 分析图片
+	// 2. 调用 Vision API 分析图片，提取面部描述
 	ctx := c.Request.Context()
 	description, err := h.visionService.AnalyzeImage(ctx, fileBytes, mimeType)
 	if err != nil {
@@ -66,41 +67,34 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 		return
 	}
 
+	log.Printf("[MiniMe] 用户 %d 图片分析完成: %s", user.ID, description)
+
 	// 3. 删除之前的 mini_me 角色（每个用户只能有一个）
 	if err := h.characterRepo.DeleteByUserIDAndType(user.ID, model.CharacterTypeMiniMe); err != nil {
 		// 忽略删除错误，继续创建
+		log.Printf("[MiniMe] 删除旧角色忽略错误: %v", err)
 	}
 
-	// 4. 创建 Character 记录（先创建，让 GenerateMiniMeImage 填充图片字段）
-	// Mini Me 和其他角色一样，需要通过好友助力或付费解锁
-	// Mini Me 没有详细报告，只存储英文描述用于后续 AI 处理
+	// 4. 创建 Character 记录（image_status 为空，等前端 Mint 后再调 generate-image）
 	character := &model.Character{
 		UserID:        user.ID,
 		Type:          model.CharacterTypeMiniMe,
 		Title:         "Mini Me",
 		DescriptionEn: fmt.Sprintf("Generated from selfie analysis: %s", description),
-		Gender:        "Unknown", // 可以尝试从描述中提取，或者让用户确认
+		Gender:        "Unknown",
 		Ethnicity:     "Unknown",
+		ImageStatus:   "", // 空状态，等待前端触发异步生图
 	}
-
-	// 5. 调用 Imagen API 生成 Mini Me（会设置 ClearImageURL, FullBlurImageURL, HalfBlurImageURL, ShareCode, UnlockStatus）
-	_, err = h.imagenService.GenerateMiniMeImage(ctx, description, character)
-	if err != nil {
-		response.Error(c, 500, "Failed to generate Mini Me: "+err.Error())
-		return
-	}
-
-	// 设置 ImageURL 为当前应显示的图片（根据解锁状态，初始为模糊图）
-	character.ImageURL = character.GetDisplayImageURL()
 
 	if err := h.characterRepo.Create(character); err != nil {
 		response.Error(c, 500, "Failed to save character: "+err.Error())
 		return
 	}
 
+	log.Printf("[MiniMe] 用户 %d 角色 %d 创建成功（异步模式，等待前端触发生图）", user.ID, character.ID)
+
 	locale := middleware.GetLocaleFromContext(c)
 	response.Success(c, gin.H{
 		"character": character.ToSafeResponse(string(locale)),
-		"image_url": character.GetDisplayImageURL(),
 	})
 }

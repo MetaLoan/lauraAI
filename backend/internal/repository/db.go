@@ -15,11 +15,11 @@ var DB *gorm.DB
 
 func InitDB() error {
 	var err error
-	
+
 	DB, err = gorm.Open(postgres.Open(config.AppConfig.PostgresDSN), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
-	
+
 	if err != nil {
 		return err
 	}
@@ -27,6 +27,10 @@ func InitDB() error {
 	// Migration: drop legacy telegram_id column if it exists (replaced by wallet_address)
 	log.Println("Running migration: telegram_id -> wallet_address...")
 	DB.Exec("ALTER TABLE users DROP COLUMN IF EXISTS telegram_id")
+	// Ensure wallet_address exists and existing rows have non-null value before NOT NULL constraint
+	DB.Exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS wallet_address varchar(42)")
+	DB.Exec("UPDATE users SET wallet_address = '0x0000000000000000000000000000000000000000' WHERE wallet_address IS NULL OR wallet_address = ''")
+	DB.Exec("ALTER TABLE users ALTER COLUMN wallet_address SET NOT NULL")
 	log.Println("Migration complete")
 
 	// Auto-migrate models
@@ -35,7 +39,7 @@ func InitDB() error {
 		&model.Character{},
 		&model.Message{},
 	)
-	
+
 	if err != nil {
 		return err
 	}

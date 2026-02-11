@@ -229,8 +229,9 @@ export default function DashboardPage() {
                         <div className="flex flex-col items-center justify-center py-16 liquid-glass-card rounded-2xl">
                             <h3 className="text-xl font-semibold mb-6 text-white">No Soulmates Yet</h3>
                             <Link href="/create">
-                                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold gap-2">
-                                    <Sparkles className="w-4 h-4" /> Create Now
+                                <Button variant="outline" size="sm" className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5">
+                                    <Plus className="w-4 h-4 mr-1.5" />
+                                    Create Now
                                 </Button>
                             </Link>
                         </div>

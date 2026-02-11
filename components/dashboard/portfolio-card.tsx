@@ -29,7 +29,7 @@ export function PortfolioRefreshButton({ onRefresh }: { onRefresh?: () => void }
             type="button"
             variant="outline"
             size="sm"
-            className="rounded-full border-white/20 text-white hover:bg-white/10 h-9 px-5"
+            className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
             onClick={handleRefresh}
             disabled={isRefreshing}
         >

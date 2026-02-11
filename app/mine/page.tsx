@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { apiClient } from '@/lib/api';
-import { Loader2, MessageCircle, Sparkles, ChevronRight, AlertTriangle, RotateCw, Wallet } from 'lucide-react';
+import { Loader2, MessageCircle, Sparkles, ChevronRight, AlertTriangle, RotateCw, Wallet, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@/components/wallet-button';
@@ -240,9 +240,9 @@ export default function MinePage() {
                         <h3 className="text-xl font-semibold mb-6 text-white">No Characters Yet</h3>
                         <button
                             onClick={() => router.push('/create')}
-                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-8 py-4 rounded-2xl flex items-center gap-3 transition-all hover:scale-105 shadow-xl shadow-purple-500/20"
+                            className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5 flex items-center gap-2 transition-colors"
                         >
-                            <img src="/icons/3d/sparkles.png" className="w-6 h-6 object-contain" alt="Create" />
+                            <Plus className="w-4 h-4" />
                             Create Now
                         </button>
                     </div>

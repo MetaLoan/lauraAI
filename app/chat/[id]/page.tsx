@@ -257,9 +257,15 @@ export default function ChatPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 glass-bar rounded-none z-10 flex-shrink-0">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')} className="hover:bg-white/10 text-white hover:text-white rounded-full flex-shrink-0">
-                            <ArrowLeft className="w-5 h-5" />
-                        </Button>
+                        <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => router.push('/dashboard')}
+                                className="flex-shrink-0 rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                            >
+                                <ArrowLeft className="w-4 h-4 mr-1.5" />
+                                Back
+                            </Button>
                         <div className="relative w-10 h-10 rounded-full overflow-hidden border border-purple-500/30 flex-shrink-0">
                             {character?.image_url || character?.image ? (
                                 <Image

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, AlertCircle, RefreshCw } from 'lucide-react'
+import { ArrowLeft, AlertCircle, RefreshCw } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 
 interface CharacterCreationFormProps {
@@ -96,11 +96,13 @@ export default function CharacterCreationForm({
             Retry
           </Button>
           <Button
-            onClick={onBack}
             variant="outline"
-            className="border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-full font-semibold"
+            size="sm"
+            onClick={onBack}
+            className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
           >
-            Go Back
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
+            Back
           </Button>
         </div>
       </div>
@@ -111,12 +113,15 @@ export default function CharacterCreationForm({
     <div className="fixed inset-0 bg-black/95 z-50 overflow-y-auto flex flex-col">
       {/* Header */}
       <div className="flex items-center gap-4 px-6 py-4 sticky top-0 glass-bar rounded-none">
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onBack}
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
         >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
+          <ArrowLeft className="w-4 h-4 mr-1.5" />
+          Back
+        </Button>
         <h1 className="text-title-md font-bold flex-1">Create {characterName}</h1>
       </div>
 

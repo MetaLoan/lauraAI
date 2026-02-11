@@ -1,10 +1,10 @@
 import hre from "hardhat";
 
-// 要转入的地址
-const TARGET_ADDRESS = "0x0ff03d337a1f42a73f1ebe064a187dfcbe69344b";
+// 要转入的地址（可通过环境变量 TARGET_ADDRESS 覆盖）
+const TARGET_ADDRESS = process.env.TARGET_ADDRESS || "0xf344a94d7919b663b9c04d3cc02bdcbf065c5171";
 
-// 云端 Fly RPC 部署的 LRA 地址（与 deploy.js --network fly 的 Token 一致）
-const LRA_TOKEN_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+// 云端 Fly RPC 或本地首次部署的 LRA 地址（可通过 LRA_TOKEN_ADDRESS 覆盖）
+const LRA_TOKEN_ADDRESS = process.env.LRA_TOKEN_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();

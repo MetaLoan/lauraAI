@@ -31,6 +31,15 @@ const PRESET_ICON_STYLE = "w-10 h-10 object-contain drop-shadow-[0_4px_8px_rgba(
 
 const PRESET_TYPES: PresetType[] = [
     {
+        type: 'mini_me',
+        label: 'Mini Me',
+        description: 'Upload a selfie and AI creates your unique avatar',
+        icon: <img src="/icons/3d/profile.png" className={PRESET_ICON_STYLE} alt="Mini Me" />,
+        gradient: 'from-cyan-500 to-blue-600',
+        bgGlow: 'bg-cyan-500/10',
+        presetImage: '/minime.jpg',
+    },
+    {
         type: 'girlfriend',
         label: 'AI Girlfriend',
         description: 'Sweet and caring companion who truly understands you',
@@ -400,7 +409,8 @@ export default function CreatePage() {
     const handleBack = () => {
         switch (currentStep) {
             case 'profile':
-                if (profileComplete) setCurrentStep('preset');
+                // 总是允许返回到 preset 选择页面
+                setCurrentStep('preset');
                 break;
             case 'gender':
                 setCurrentStep('preset');
@@ -449,17 +459,6 @@ export default function CreatePage() {
         <>
         <AppLayout>
             <div className="max-w-4xl mx-auto w-full px-4 py-6">
-                {/* Back Button */}
-                {currentStep !== 'preset' && currentStep !== 'generating' && (
-                    <Button
-                        variant="ghost"
-                        onClick={handleBack}
-                        className="mb-4 rounded-full px-4 py-2 border border-white/20 text-white hover:text-white hover:bg-white/10 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4 mr-2" /> Back
-                    </Button>
-                )}
-
                 <AnimatePresence mode="wait">
                     {/* ============ 资料收集步骤 ============ */}
                     {currentStep === 'profile' && (
@@ -468,15 +467,23 @@ export default function CreatePage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="space-y-8"
+                            className="space-y-0"
                         >
+                            {/* Back Button - 放在步骤内部，跟随步骤一起动画 */}
+                            <div className="mb-4">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleBack}
+                                    className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                                >
+                                    <ArrowLeft className="w-4 h-4 mr-1.5" />
+                                    Back
+                                </Button>
+                            </div>
                                 {/* Header */}
-                                <div className="text-center space-y-3">
-                                    <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto">
-                                        <img src="/icons/3d/profile.png" className="w-14 h-14 object-contain" alt="Profile" />
-                                    </div>
+                                <div className="text-center mb-6">
                                     <h2 className="text-2xl md:text-3xl font-bold text-white">Complete Your Profile</h2>
-                                    <p className="text-white">Fill this in once. Future character creation only requires gender and ethnicity.</p>
                                 </div>
 
                                 {/* Form Fields */}
@@ -489,7 +496,7 @@ export default function CreatePage() {
                                             value={profileData.name}
                                             onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
                                             placeholder="Enter your name"
-                                            className="w-full rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none transition-colors"
+                                            className="w-full rounded-xl px-4 py-3 text-white placeholder-gray-500 bg-white/10 border border-white/20 focus:border-white/40 focus:outline-none transition-colors"
                                         />
                                     </div>
 
@@ -521,30 +528,30 @@ export default function CreatePage() {
                                             type="date"
                                             value={profileData.birthDate}
                                             onChange={(e) => setProfileData(prev => ({ ...prev, birthDate: e.target.value }))}
-                                            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors [color-scheme:dark]"
+                                            className="w-full rounded-xl px-4 py-3 text-white bg-white/10 border border-white/20 focus:border-white/40 focus:outline-none transition-colors [color-scheme:dark]"
                                         />
                                     </div>
 
                                     {/* Birth Time (optional) */}
                                     <div>
-                                        <label className="block text-sm font-medium text-white mb-2">Birth Time <span className="text-white">(optional)</span></label>
+                                        <label className="block text-sm font-medium text-white mb-2">Birth Time <span className="text-white/60">(optional)</span></label>
                                         <input
                                             type="time"
                                             value={profileData.birthTime}
                                             onChange={(e) => setProfileData(prev => ({ ...prev, birthTime: e.target.value }))}
-                                            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors [color-scheme:dark]"
+                                            className="w-full rounded-xl px-4 py-3 text-white bg-white/10 border border-white/20 focus:border-white/40 focus:outline-none transition-colors [color-scheme:dark]"
                                         />
                                     </div>
 
                                     {/* Birth Place (optional) */}
                                     <div>
-                                        <label className="block text-sm font-medium text-white mb-2">Birth Place <span className="text-white">(optional)</span></label>
+                                        <label className="block text-sm font-medium text-white mb-2">Birth Place <span className="text-white/60">(optional)</span></label>
                                         <input
                                             type="text"
                                             value={profileData.birthPlace}
                                             onChange={(e) => setProfileData(prev => ({ ...prev, birthPlace: e.target.value }))}
                                             placeholder="e.g. London, New York"
-                                            className="w-full rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none transition-colors"
+                                            className="w-full rounded-xl px-4 py-3 text-white placeholder-gray-400 bg-white/10 border border-white/20 focus:border-white/40 focus:outline-none transition-colors"
                                         />
                                     </div>
 
@@ -570,18 +577,27 @@ export default function CreatePage() {
                                     </div>
                                 </div>
 
-                                {/* Submit */}
-                                <div>
+                                {/* Submit - 复用 Enter Dashboard 按钮样式 */}
+                                <div className="mt-8">
                                     <Button
                                         onClick={handleSaveProfile}
                                         disabled={!profileData.name || !profileData.gender || !profileData.birthDate || !profileData.ethnicity || isSavingProfile}
-                                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                                        className="enter-dashboard-btn group w-full h-14 text-lg font-bold liquid-glass-card rounded-full text-white disabled:opacity-40 disabled:cursor-not-allowed gap-2 relative overflow-hidden transform hover:scale-105 active:scale-[0.98] shadow-[0_0_20px_rgba(168,85,247,0.25)] ![transition:box-shadow_0.4s_ease,scale_0.4s_cubic-bezier(0.34,1.56,0.64,1)]"
                                     >
-                                        {isSavingProfile ? (
-                                            <><Loader2 className="w-5 h-5 animate-spin text-white mr-2" /> Saving...</>
-                                        ) : (
-                                            <><Check className="w-5 h-5 mr-2" /> Save & Continue</>
-                                        )}
+                                        <span className="btn-gradient-layer absolute inset-0 rounded-full pointer-events-none opacity-50 transition-opacity duration-200 group-hover:opacity-75 group-active:opacity-75" aria-hidden />
+                                        <span className="relative z-10 flex items-center justify-center gap-2">
+                                            {isSavingProfile ? (
+                                                <>
+                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                    <span>Saving...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Check className="w-5 h-5" />
+                                                    <span>Save &amp; Continue</span>
+                                                </>
+                                            )}
+                                        </span>
                                     </Button>
                                 </div>
                         </motion.div>
@@ -620,6 +636,8 @@ export default function CreatePage() {
                                             onClick={() => {
                                                 if (isCreated && existingChar) {
                                                     setSelectedCharacterForDetail(existingChar);
+                                                } else if (preset.type === 'mini_me') {
+                                                    router.push('/create/minime');
                                                 } else {
                                                     setSelectedType(preset.type);
                                                     setCurrentStep('gender');
@@ -628,6 +646,7 @@ export default function CreatePage() {
                                             onKeyDown={(e) => {
                                                 if (e.key !== 'Enter' && e.key !== ' ') return;
                                                 if (isCreated && existingChar) setSelectedCharacterForDetail(existingChar);
+                                                else if (preset.type === 'mini_me') router.push('/create/minime');
                                                 else { setSelectedType(preset.type); setCurrentStep('gender'); }
                                             }}
                                             className={`group relative rounded-2xl text-left transition-all duration-300 overflow-hidden aspect-[3/4] cursor-pointer ${isCreated
@@ -706,6 +725,19 @@ export default function CreatePage() {
                             exit={{ opacity: 0, x: -20 }}
                             className="space-y-8"
                         >
+                                {/* Back Button */}
+                                <div className="mb-4">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleBack}
+                                        className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                                    >
+                                        <ArrowLeft className="w-4 h-4 mr-1.5" />
+                                        Back
+                                    </Button>
+                                </div>
+
                                 {/* Header */}
                                 <div className="text-center space-y-3">
                                     <div className="text-sm text-white font-medium">
@@ -747,6 +779,19 @@ export default function CreatePage() {
                             exit={{ opacity: 0, x: -20 }}
                             className="space-y-8"
                         >
+                                {/* Back Button */}
+                                <div className="mb-4">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleBack}
+                                        className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                                    >
+                                        <ArrowLeft className="w-4 h-4 mr-1.5" />
+                                        Back
+                                    </Button>
+                                </div>
+
                                 {/* Header */}
                                 <div className="text-center space-y-3">
                                     <div className="text-sm text-white font-medium">
@@ -833,13 +878,16 @@ export default function CreatePage() {
                                     <h2 className="text-xl font-bold text-white">Transaction Failed</h2>
                                     <p className="text-red-400 text-center max-w-sm">{generationError}</p>
                                     <Button
+                                        variant="outline"
+                                        size="sm"
                                         onClick={() => {
                                             setGenerationError(null);
                                             setCurrentStep('ethnicity');
                                         }}
-                                        className="bg-white/10 hover:bg-white/20 text-white"
+                                        className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
                                     >
-                                        Go Back
+                                        <ArrowLeft className="w-4 h-4 mr-1.5" />
+                                        Back
                                     </Button>
                                 </div>
                             ) : generationFailed ? (
@@ -867,11 +915,12 @@ export default function CreatePage() {
                                             {isRetrying ? 'Retrying...' : 'Retry Generation'}
                                         </Button>
                                         <Button
+                                            variant="outline"
+                                            size="sm"
                                             onClick={() => router.push('/dashboard')}
-                                            variant="ghost"
-                                            className="text-white hover:bg-white/10 hover:text-white gap-2"
+                                            className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
                                         >
-                                            <Home className="w-4 h-4" />
+                                            <Home className="w-4 h-4 mr-1.5" />
                                             Back to Home
                                         </Button>
                                     </div>
@@ -892,21 +941,23 @@ export default function CreatePage() {
 
                                     {/* 底部操作栏 */}
                                     <div className="flex flex-col items-center gap-3 pb-6 pt-2">
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex flex-wrap items-center justify-center gap-3">
                                             <Button
+                                                variant="outline"
+                                                size="sm"
                                                 onClick={handleManualRefresh}
-                                                variant="ghost"
-                                                className="text-white hover:bg-purple-500/10 hover:text-white gap-2"
+                                                className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
                                             >
-                                                <RefreshCw className="w-4 h-4" />
+                                                <RefreshCw className="w-4 h-4 mr-1.5" />
                                                 Refresh
                                             </Button>
                                             <Button
+                                                variant="outline"
+                                                size="sm"
                                                 onClick={() => router.push('/dashboard')}
-                                                variant="ghost"
-                                                className="text-white hover:bg-white/10 hover:text-white gap-2"
+                                                className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
                                             >
-                                                <Home className="w-4 h-4" />
+                                                <Home className="w-4 h-4 mr-1.5" />
                                                 Back to Home
                                             </Button>
                                         </div>

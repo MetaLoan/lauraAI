@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	imageGenMaxRetries = 3                // 图片生成最大重试次数
-	imageGenRetryDelay = 5 * time.Second  // 重试间隔
+	imageGenMaxRetries = 3               // 图片生成最大重试次数
+	imageGenRetryDelay = 5 * time.Second // 重试间隔
 )
 
 type ImageHandler struct {
@@ -127,12 +127,23 @@ func (h *ImageHandler) doGenerateImageAndReport(character *model.Character, user
 	log.Printf("[Image] 开始后台生成角色 %d 的图片...", character.ID)
 
 	// Step 1: 生成图片（最多重试 imageGenMaxRetries 次）
+	// Mini Me 使用专用的 GenerateMiniMeImage（基于自拍描述），其他角色使用 GenerateImage
+	isMiniMe := character.Type == model.CharacterTypeMiniMe
+
 	var lastErr error
 	imageGenSuccess := false
 	for attempt := 1; attempt <= imageGenMaxRetries; attempt++ {
-		log.Printf("[Image] 角色 %d 图片生成第 %d/%d 次尝试...", character.ID, attempt, imageGenMaxRetries)
+		log.Printf("[Image] 角色 %d (%s) 图片生成第 %d/%d 次尝试...", character.ID, character.Type, attempt, imageGenMaxRetries)
 
-		_, err := h.imagenService.GenerateImage(ctx, character)
+		var err error
+		if isMiniMe {
+			// Mini Me：从 DescriptionEn 中提取自拍分析描述
+			description := character.DescriptionEn
+			_, err = h.imagenService.GenerateMiniMeImage(ctx, description, character)
+		} else {
+			_, err = h.imagenService.GenerateImage(ctx, character)
+		}
+
 		if err == nil {
 			imageGenSuccess = true
 			break
