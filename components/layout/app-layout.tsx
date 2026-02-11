@@ -1,12 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { IconDashboard, IconSoulmate, IconMint, IconProfile } from '@/components/icons/custom-icons';
 import { cn } from '@/lib/utils';
 import { WalletButton } from '@/components/wallet-button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAccount } from 'wagmi';
+import { apiClient } from '@/lib/api';
+import { Loader2 } from 'lucide-react';
 
 interface NavItemProps {
     href: string;
@@ -39,6 +42,28 @@ const NavItem = ({ href, icon: Icon, label, active, iconType = 'lucide' }: NavIt
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const { isConnected } = useAccount();
+    const [lraBalance, setLraBalance] = useState<number | null>(null);
+    const [isLoadingBalance, setIsLoadingBalance] = useState(false);
+
+    useEffect(() => {
+        const fetchBalance = async () => {
+            if (!isConnected) {
+                setLraBalance(null);
+                return;
+            }
+            setIsLoadingBalance(true);
+            try {
+                const profile = await apiClient.getUserProfile();
+                setLraBalance(profile?.lra_balance ?? 0);
+            } catch (e) {
+                console.error('Failed to load LRA balance:', e);
+            } finally {
+                setIsLoadingBalance(false);
+            }
+        };
+        fetchBalance();
+    }, [isConnected]);
 
     const navItems = [
         { href: '/dashboard', icon: IconDashboard, label: 'Dashboard' },
@@ -82,8 +107,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <div className="p-4 border-t border-white/10">
                     <div className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 rounded-xl p-4 border border-white/5">
                         <h4 className="text-sm font-medium text-purple-200 mb-1">Your Balance</h4>
-                        <p className="text-2xl font-bold text-white">0 LRA</p>
-                        <p className="text-xs text-blue-300 mt-1">Pending Harvest</p>
+                        <div className="flex items-baseline gap-2">
+                            {isLoadingBalance ? (
+                                <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+                            ) : (
+                                <>
+                                    <p className="text-2xl font-bold text-white">
+                                        {lraBalance !== null ? Math.floor(lraBalance).toLocaleString() : '—'}
+                                    </p>
+                                    <span className="text-sm text-purple-200">LRA</span>
+                                </>
+                            )}
+                        </div>
+                        <p className="text-xs text-blue-300 mt-1">Earn +5 LRA per chat message</p>
                     </div>
                 </div>
             </aside>
