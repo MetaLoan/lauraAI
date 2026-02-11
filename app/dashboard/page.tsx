@@ -9,8 +9,7 @@ import { useAccount } from 'wagmi';
 import { Loader2, User, Camera, Plus, ArrowRight, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-import { ShareButton } from '@/components/share-button';
-import { Sparkles, Trophy } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export default function DashboardPage() {
     const { address, isConnected, isConnecting } = useAccount();
@@ -31,31 +30,6 @@ export default function DashboardPage() {
     return (
         <AppLayout>
             <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Promo Banner */}
-                <div className="relative group overflow-hidden rounded-3xl bg-black border border-purple-500/20 p-8 shadow-2xl">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600/5 to-transparent pointer-events-none" />
-                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div className="text-center md:text-left flex-1">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-purple-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
-                                <Sparkles className="w-3 h-3" /> Genesis Phase
-                            </div>
-                            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">Expand the Protocol.</h2>
-                            <p className="text-gray-400 text-lg font-light leading-relaxed">
-                                Share the vision. Earn LRA genesis rewards for every Tier-1 invitation.
-                            </p>
-                        </div>
-                        <div className="flex flex-col items-center gap-4">
-                            <ShareButton
-                                text="Sovereign AI is here. Join the genesis of @LauraAI_BSC. #LauraAI #AIFi"
-                                className="h-16 px-10 text-lg font-bold bg-white text-black hover:bg-gray-200 border-none transition-all"
-                            />
-                            <div className="flex items-center gap-2 text-[11px] text-gray-500 uppercase tracking-widest font-medium">
-                                <Trophy className="w-4 h-4 text-purple-500" /> 1,245 Pioneers Active
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 {/* Welcome Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
