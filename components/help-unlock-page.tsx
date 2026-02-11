@@ -106,8 +106,8 @@ export default function HelpUnlockPage({
           paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
         }}
       >
-        <Loader2 className="w-12 h-12 animate-spin mb-4" />
-        <p className="text-gray-400">Loading...</p>
+        <Loader2 className="w-12 h-12 animate-spin text-white mb-4" />
+        <p className="text-white">Loading...</p>
       </div>
     )
   }
@@ -123,8 +123,8 @@ export default function HelpUnlockPage({
           paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
         }}
       >
-        <Loader2 className="w-12 h-12 animate-spin mb-4" />
-        <p className="text-gray-400">Redirecting...</p>
+        <Loader2 className="w-12 h-12 animate-spin text-white mb-4" />
+        <p className="text-white">Redirecting...</p>
       </div>
     )
   }
@@ -141,7 +141,7 @@ export default function HelpUnlockPage({
         <div className="text-center space-y-6 max-w-sm">
           <div className="text-5xl">🤝</div>
           <h1 className="text-2xl font-bold">Already Helped!</h1>
-          <p className="text-gray-400">
+          <p className="text-white">
             You&apos;ve already helped {ownerName} before. Each friend can only help once!
           </p>
           <Button onClick={onSkip} className="btn-primary">
@@ -162,7 +162,7 @@ export default function HelpUnlockPage({
       >
         <div className="text-center space-y-6 max-w-sm">
           <h1 className="text-2xl font-bold">Oops!</h1>
-          <p className="text-gray-400">{error}</p>
+          <p className="text-white">{error}</p>
           <Button onClick={onSkip} className="btn-primary">
             Continue to App
           </Button>
@@ -195,7 +195,7 @@ export default function HelpUnlockPage({
           
           <div className="space-y-2">
             <h1 className="text-2xl font-bold">You helped {ownerName}!</h1>
-            <p className="text-gray-400">
+            <p className="text-white">
               Their photo is now 50% clearer. They'll be so happy!
             </p>
           </div>
@@ -225,7 +225,7 @@ export default function HelpUnlockPage({
       >
         {/* Title */}
         <div className="text-center space-y-2">
-          <p className="text-gray-400 text-sm uppercase tracking-wider">Help your friend</p>
+          <p className="text-white text-sm uppercase tracking-wider">Help your friend</p>
           <h1 className="text-2xl font-bold">
             Help {ownerName} see their
           </h1>
@@ -261,7 +261,7 @@ export default function HelpUnlockPage({
         </div>
 
         {/* Description */}
-        <p className="text-center text-gray-400 max-w-xs">
+        <p className="text-center text-white max-w-xs">
           Tap the button below to help {ownerName} reveal 50% of their {characterData?.title?.toLowerCase() || 'AI match'} photo!
         </p>
       </div>
@@ -275,7 +275,7 @@ export default function HelpUnlockPage({
         >
           {status === 'helping' ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin text-white" />
               Unlocking...
             </>
           ) : (
@@ -288,7 +288,7 @@ export default function HelpUnlockPage({
         
         <button 
           onClick={onSkip}
-          className="w-full text-center text-gray-500 text-sm py-2"
+          className="w-full text-center text-white text-sm py-2"
         >
           Skip and continue
         </button>

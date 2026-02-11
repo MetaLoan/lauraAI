@@ -34,7 +34,7 @@ export default function Preloader() {
         <h1 className="text-2xl font-bold text-white tracking-widest mb-2">Soul Face</h1>
         
         {/* Slogan */}
-        <p className="text-sm font-light text-white/50 tracking-wide">Where Destiny Takes Form</p>
+        <p className="text-sm font-light text-white tracking-wide">Where Destiny Takes Form</p>
       </div>
 
       {/* Loading Bar - positioned at bottom */}

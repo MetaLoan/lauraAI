@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api';
-import { Loader2, Copy, Check, Users, Gift, Share2, UserPlus, Trophy, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, Copy, Check, Users, Gift, UserPlus, Trophy, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -105,38 +105,35 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
 
     if (loading) {
         return (
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+            <div className="liquid-glass-card rounded-2xl p-6 flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-white" />
             </div>
         );
     }
 
-    // Compact mode for embedding in Profile page
+    // Compact mode: 单层底 + 间距，与页面协调
     if (compact) {
         return (
-            <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-                {/* Header - Always visible */}
+            <div className="rounded-2xl liquid-glass-card overflow-hidden">
+                {/* Header */}
                 <button
                     onClick={toggleExpand}
-                    className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+                    className="w-full py-4 px-4 flex items-center justify-between hover:bg-white/[0.04] transition-colors"
                 >
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                            <Users className="w-5 h-5 text-purple-400" />
-                        </div>
+                        <img src="/icons/3d/referral.png" className="w-10 h-10 object-contain flex-shrink-0" alt="Referral" />
                         <div className="text-left">
                             <h3 className="text-white font-semibold">Referral Program</h3>
-                            <p className="text-gray-400 text-sm">{referralCount} friends invited</p>
+                            <p className="text-white text-sm mt-0.5">{referralCount} friends invited</p>
                         </div>
                     </div>
                     {expanded ? (
-                        <ChevronUp className="w-5 h-5 text-gray-400" />
+                        <ChevronUp className="w-5 h-5 text-white flex-shrink-0" />
                     ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                        <ChevronDown className="w-5 h-5 text-white flex-shrink-0" />
                     )}
                 </button>
 
-                {/* Expandable Content */}
                 <AnimatePresence>
                     {expanded && (
                         <motion.div
@@ -146,60 +143,59 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                         >
-                            <div className="px-4 pb-4 space-y-4 border-t border-white/5 pt-4">
+                            <div className="px-4 pb-4 pt-0 space-y-5 border-t border-white/50">
                                 {/* Invite Code */}
-                                <div className="bg-black/40 rounded-xl p-4">
-                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Your Invite Code</p>
-                                    <div className="flex items-center gap-2">
-                                        <code className="flex-1 text-xl font-mono font-bold text-white bg-white/5 px-4 py-2 rounded-lg">
+                                <div className="pt-4">
+                                    <p className="text-[10px] text-white uppercase tracking-wider mb-2">Your Invite Code</p>
+                                    <div className="flex items-center gap-3">
+                                        <code className="flex-1 text-xl font-mono font-bold text-white py-2.5 truncate min-w-0">
                                             {inviteCode}
                                         </code>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
+                                        <button
+                                            type="button"
                                             onClick={handleCopyCode}
-                                            className="h-10 w-10 hover:bg-white/10"
+                                            className="p-2.5 rounded-xl hover:bg-white/10 transition-colors flex-shrink-0"
                                         >
                                             {copied ? (
-                                                <Check className="w-4 h-4 text-green-400" />
+                                                <Check className="w-5 h-5 text-green-400" />
                                             ) : (
-                                                <Copy className="w-4 h-4 text-gray-400" />
+                                                <img src="/icons/3d/copy_3d.png" className="w-5 h-5 object-contain" alt="Copy" />
                                             )}
-                                        </Button>
+                                        </button>
                                     </div>
                                 </div>
 
-                                {/* Share Buttons */}
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Button
-                                        variant="outline"
+                                {/* Share buttons */}
+                                <div className="flex gap-3">
+                                    <button
+                                        type="button"
                                         onClick={handleCopyLink}
-                                        className="border-white/10 hover:bg-white/10 text-white gap-2"
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.08] hover:bg-white/12 border border-white/10 text-white text-sm font-medium transition-colors"
                                     >
-                                        <Copy className="w-4 h-4" />
+                                        <img src="/icons/3d/copy_3d.png" className="w-5 h-5 object-contain" alt="" />
                                         Copy Link
-                                    </Button>
-                                    <Button
-                                        variant="outline"
+                                    </button>
+                                    <button
+                                        type="button"
                                         onClick={handleShareTwitter}
-                                        className="border-white/10 hover:bg-white/10 text-white gap-2"
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.08] hover:bg-white/12 border border-white/10 text-white text-sm font-medium transition-colors"
                                     >
-                                        <Share2 className="w-4 h-4" />
+                                        <img src="/icons/3d/share_3d.png" className="w-5 h-5 object-contain" alt="" />
                                         Share on X
-                                    </Button>
+                                    </button>
                                 </div>
 
                                 {/* Referrals List */}
                                 {referrals.length > 0 && (
-                                    <div className="space-y-2">
-                                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Your Referrals</p>
-                                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                                    <div className="space-y-3">
+                                        <p className="text-[10px] text-white uppercase tracking-wider">Your Referrals</p>
+                                        <div className="space-y-1 max-h-48 overflow-y-auto">
                                             {referrals.slice(0, 5).map((referral) => (
                                                 <div
                                                     key={referral.id}
-                                                    className="flex items-center gap-3 p-2 bg-white/5 rounded-lg"
+                                                    className="flex items-center gap-3 py-3 border-b border-white/50 last:border-0"
                                                 >
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white text-xs font-bold overflow-hidden flex-shrink-0">
                                                         {referral.avatar_url ? (
                                                             <Image
                                                                 src={referral.avatar_url}
@@ -216,7 +212,7 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                                                         <p className="text-white text-sm font-medium truncate">
                                                             {referral.name || 'Anonymous'}
                                                         </p>
-                                                        <p className="text-gray-500 text-xs">
+                                                        <p className="text-white text-xs">
                                                             Joined {formatDate(referral.created_at)}
                                                         </p>
                                                     </div>
@@ -224,7 +220,7 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                                             ))}
                                         </div>
                                         {referrals.length > 5 && (
-                                            <p className="text-center text-gray-500 text-xs">
+                                            <p className="text-center text-white text-xs">
                                                 +{referrals.length - 5} more
                                             </p>
                                         )}
@@ -243,38 +239,38 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
         <div className="space-y-6">
             {/* Stats Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                    <UserPlus className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+                <div className="liquid-glass-card rounded-2xl p-4 text-center">
+                    <img src="/icons/3d/referral.png" className="w-10 h-10 mx-auto mb-2 object-contain" alt="Referrals" />
                     <p className="text-2xl font-bold text-white">{referralCount}</p>
-                    <p className="text-xs text-gray-400">Total Referrals</p>
+                    <p className="text-xs text-white">Total Referrals</p>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                    <Gift className="w-6 h-6 text-green-400 mx-auto mb-2" />
+                <div className="liquid-glass-card rounded-2xl p-4 text-center">
+                    <img src="/icons/3d/mint.png" className="w-10 h-10 mx-auto mb-2 object-contain" alt="Earned" />
                     <p className="text-2xl font-bold text-white">{referralCount * 100}</p>
-                    <p className="text-xs text-gray-400">LRA Earned</p>
+                    <p className="text-xs text-white">LRA Earned</p>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                <div className="liquid-glass-card rounded-2xl p-4 text-center">
                     <Trophy className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-white">#{Math.max(1, 100 - referralCount)}</p>
-                    <p className="text-xs text-gray-400">Leaderboard</p>
+                    <p className="text-xs text-white">Leaderboard</p>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                <div className="liquid-glass-card rounded-2xl p-4 text-center">
                     <Users className="w-6 h-6 text-blue-400 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-white">5%</p>
-                    <p className="text-xs text-gray-400">Commission Rate</p>
+                    <p className="text-xs text-white">Commission Rate</p>
                 </div>
             </div>
 
             {/* Invite Code Card */}
-            <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 border border-purple-500/30 rounded-2xl p-6">
+            <div className="liquid-glass-card rounded-2xl p-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="text-center md:text-left">
                         <h3 className="text-xl font-bold text-white mb-1">Your Invite Code</h3>
-                        <p className="text-purple-200 text-sm">Share with friends to earn LRA rewards</p>
+                        <p className="text-white text-sm">Share with friends to earn LRA rewards</p>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <code className="text-2xl md:text-3xl font-mono font-bold text-white bg-black/40 px-6 py-3 rounded-xl border border-white/10">
+                        <code className="text-2xl md:text-3xl font-mono font-bold text-white liquid-glass-card px-6 py-3 rounded-xl">
                             {inviteCode}
                         </code>
                         <Button
@@ -297,7 +293,7 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                         onClick={handleShareTwitter}
                         className="bg-black hover:bg-gray-900 text-white gap-2 border border-white/20"
                     >
-                        <Share2 className="w-4 h-4" />
+                        <img src="/icons/3d/share_3d.png" className="w-4 h-4 object-contain" alt="" />
                         Share on X
                     </Button>
                     <Button
@@ -305,31 +301,31 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                         variant="outline"
                         className="border-white/20 hover:bg-white/10 text-white gap-2"
                     >
-                        <Copy className="w-4 h-4" />
+                        <img src="/icons/3d/copy_3d.png" className="w-4 h-4 object-contain" alt="" />
                         Copy Invite Link
                     </Button>
                 </div>
             </div>
 
             {/* Referrals List */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+            <div className="liquid-glass-card rounded-2xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <Users className="w-5 h-5 text-gray-400" />
+                    <img src="/icons/3d/referral.png" className="w-6 h-6 object-contain" alt="Referrals" />
                     Your Referrals ({referralCount})
                 </h3>
 
                 {referrals.length === 0 ? (
                     <div className="text-center py-8">
-                        <UserPlus className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                        <p className="text-gray-400">No referrals yet</p>
-                        <p className="text-gray-500 text-sm mt-1">Share your invite code to get started!</p>
+                        <UserPlus className="w-12 h-12 text-white mx-auto mb-3" />
+                        <p className="text-white">No referrals yet</p>
+                        <p className="text-white text-sm mt-1">Share your invite code to get started!</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
                         {referrals.map((referral) => (
                             <div
                                 key={referral.id}
-                                className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
+                                className="flex items-center gap-4 p-4 liquid-glass-card rounded-xl transition-colors"
                             >
                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold overflow-hidden">
                                     {referral.avatar_url ? (
@@ -346,11 +342,11 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-white font-medium">{referral.name || 'Anonymous User'}</p>
-                                    <p className="text-gray-400 text-sm">Joined {formatDate(referral.created_at)}</p>
+                                    <p className="text-white text-sm">Joined {formatDate(referral.created_at)}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-green-400 font-semibold">+100 LRA</p>
-                                    <p className="text-gray-500 text-xs">Reward earned</p>
+                                    <p className="text-white text-xs">Reward earned</p>
                                 </div>
                             </div>
                         ))}

@@ -57,8 +57,22 @@
 
 /* Base Layer Overrides moved out to avoid processing issues */
 * {
-  border-color: hsl(var(--border) / 1);
   -webkit-tap-highlight-color: transparent;
+}
+*:not(button):not([data-slot="button"]) {
+  border-color: hsl(var(--border) / 1);
+}
+/* 使用 border-white/xx 时强制为白色，覆盖全局深色边框 */
+.border-white\/10 { border-color: rgba(255, 255, 255, 0.1) !important; }
+.border-white\/20 { border-color: rgba(255, 255, 255, 0.2) !important; }
+.border-white\/30 { border-color: rgba(255, 255, 255, 0.3) !important; }
+.border-white\/50 { border-color: rgba(255, 255, 255, 0.5) !important; }
+/* 胶囊/卡片内带 border 的任意元素（如 Balance 图标框）统一白边 */
+.glass-bar [class*="border"]:not([class*="border-b"]):not([class*="border-t"]) {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.liquid-glass-card [class*="border"]:not([class*="border-b"]):not([class*="border-t"]) {
+  border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 body {
@@ -67,26 +81,13 @@ body {
   overscroll-behavior-y: none;
 }
 
-/* Custom Web3 Background Styles */
+/* Custom Background */
 .bg-web3-gradient {
-  background: radial-gradient(circle at 50% 0%, rgba(120, 50, 255, 0.15), rgba(0, 0, 0, 0) 60%),
-    radial-gradient(circle at 85% 30%, rgba(50, 100, 255, 0.1), rgba(0, 0, 0, 0) 50%),
-    radial-gradient(circle at 15% 60%, rgba(255, 50, 150, 0.1), rgba(0, 0, 0, 0) 50%),
-    #050508;
+  background: #050508;
   background-attachment: fixed;
 }
 
-.bg-noise {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 50;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-}
+/* ──────── Background — 见 liquid-mesh-bg.tsx（纯 Tailwind） ──────── */
 
 /* Glassmorphism Utilities */
 .glass-panel {
@@ -95,6 +96,178 @@ body {
 
 .glass-card {
   @apply bg-black/40 backdrop-blur-sm border border-white/5 hover:border-white/20 transition-all duration-300;
+}
+
+/* ──────── Liquid Glass — 完全复刻 3 层结构 ──────── */
+:root {
+  --lg-bg-color: rgba(255, 255, 255, 0.15);
+  --lg-highlight: rgba(255, 255, 255, 0.75);
+  --lg-text: #ffffff;
+}
+
+/* 容器：透明底 + 圆角 + 外阴影，isolation 让负 z-index 伪元素留在内部 */
+.liquid-glass-card {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+  border-radius: 1rem;
+  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 0, 0, 0.05);
+  color: var(--lg-text);
+}
+/* 胶囊形：与 rounded-full 同用时强制整颗 pill */
+.liquid-glass-card.rounded-full {
+  border-radius: 9999px !important;
+}
+
+/* Enter Dashboard 按钮：无缝渐变流动 + hover/active 发光 */
+@keyframes btn-gradient-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+.enter-dashboard-btn .btn-gradient-layer {
+  /* 首尾同色，0% 与 100% 视觉一致，循环无断点 */
+  background: linear-gradient(90deg, #7c3aed 0%, #db2777 25%, #7c3aed 50%, #db2777 75%, #7c3aed 100%);
+  background-size: 200% 100%;
+  animation: btn-gradient-flow 3s linear infinite;
+  animation-play-state: paused;
+  transition: opacity 0.4s ease;
+}
+.enter-dashboard-btn:hover .btn-gradient-layer,
+.enter-dashboard-btn:active .btn-gradient-layer {
+  animation-play-state: running;
+}
+.enter-dashboard-btn {
+  /* Tailwind v4: hover:scale-105 → CSS scale 属性，需过渡 scale 而非 transform */
+  transition:
+    box-shadow 0.4s ease,
+    scale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+.enter-dashboard-btn:hover,
+.enter-dashboard-btn:active {
+  box-shadow: 0 0 28px rgba(124, 58, 237, 0.45), 0 0 56px rgba(219, 39, 119, 0.3);
+}
+
+/* 共用绝对定位层 */
+.liquid-glass-card::before,
+.liquid-glass-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* 第 1 层：镜头折射 + 增饱和 + 提亮（无模糊） */
+.liquid-glass-card::before {
+  z-index: -2;
+  filter: url(#lensFilter) saturate(120%) brightness(1.15);
+}
+
+/* 第 2+3 层合并：半透明白底（overlay）+ 真实渐变描边（Border Gradient） */
+.liquid-glass-card::after {
+  z-index: -1;
+  inset: 0;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+  background-image:
+    linear-gradient(var(--lg-bg-color), var(--lg-bg-color)),
+    linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.4) 100%);
+  box-shadow: none;
+  /* 确保伪元素覆盖整个区域，利用 border-box 撑开边框 */
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: background-image 0.3s ease;
+}
+
+/* Hover 状态：两端高光增强到 80% */
+.liquid-glass-card:hover::after {
+  background-image:
+    linear-gradient(var(--lg-bg-color), var(--lg-bg-color)),
+    linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.8) 100%);
+}
+
+/* ── 选择卡片专用：默认隐藏 → hover 弱玻璃 → 选中强玻璃 ── */
+
+/* ── glass-dormant：默认完全隐藏，hover 弱玻璃 ── */
+.liquid-glass-card.glass-dormant {
+  box-shadow: none !important;
+}
+.liquid-glass-card.glass-dormant::before,
+.liquid-glass-card.glass-dormant::after {
+  opacity: 0 !important;
+  transition: opacity 0.3s ease;
+}
+/* hover：显示弱玻璃（40% 描边） */
+.liquid-glass-card.glass-dormant:hover {
+  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 0, 0, 0.05) !important;
+}
+.liquid-glass-card.glass-dormant:hover::before,
+.liquid-glass-card.glass-dormant:hover::after {
+  opacity: 1 !important;
+}
+.liquid-glass-card.glass-dormant:hover::after {
+  background-image:
+    linear-gradient(var(--lg-bg-color), var(--lg-bg-color)),
+    linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.4) 100%) !important;
+}
+
+/* ── glass-active：选中态 = 强玻璃（80% 描边） ── */
+.liquid-glass-card.glass-active::after {
+  background-image:
+    linear-gradient(var(--lg-bg-color), var(--lg-bg-color)),
+    linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.8) 100%) !important;
+}
+
+/* glass-bar — 用于 fixed/absolute 定位的导航栏/顶栏，不设 position 和 border-radius */
+.glass-bar {
+  isolation: isolate;
+  background: transparent;
+  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 0, 0, 0.05);
+  color: var(--lg-text);
+}
+.glass-bar::before,
+.glass-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.glass-bar::before {
+  z-index: -2;
+  filter: url(#lensFilter) saturate(120%) brightness(1.15);
+}
+.glass-bar::after {
+  z-index: -1;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+  background-image:
+    linear-gradient(var(--lg-bg-color), var(--lg-bg-color)),
+    linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.8) 100%);
+  box-shadow: none;
+  /* 确保伪元素覆盖整个区域，利用 border-box 撑开边框 */
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* 卡片/顶栏内部分割线统一 20% 白色（覆盖 Tailwind 与全局 border-color） */
+.liquid-glass-card [class*="border-b"],
+.liquid-glass-card [class*="border-t"],
+.glass-bar [class*="border-b"],
+.glass-bar [class*="border-t"] {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.liquid-glass-card .h-px[class*="bg-white"],
+.glass-bar .h-px[class*="bg-white"] {
+  background-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Scrollbar Hide */
@@ -110,6 +283,97 @@ body {
 /* Mobile Safe Areas */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 底部菜单栏：与顶栏一致的 12px 偏移 + safe area */
+.bottom-nav-float {
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  left: 0.75rem;
+  right: 0.75rem;
+}
+
+/* ─── 内容边缘渐隐（mask-image，非遮罩层） ─── */
+/* 桌面端：仅顶部渐隐（内容进入 header 区域时淡出） */
+.content-edge-fade {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0)    0px,
+    rgba(0,0,0,0)    10px,
+    rgba(0,0,0,0.10) 20px,
+    rgba(0,0,0,0.15) 30px,
+    rgba(0,0,0,0.20) 40px,
+    rgba(0,0,0,0.25) 50px,
+    rgba(0,0,0,0.35) 60px,
+    rgba(0,0,0,0.55) 70px,
+    rgba(0,0,0,0.75) 80px,
+    rgba(0,0,0,1)    100px,
+    rgba(0,0,0,1)    100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0)    0px,
+    rgba(0,0,0,0)    10px,
+    rgba(0,0,0,0.10) 20px,
+    rgba(0,0,0,0.15) 30px,
+    rgba(0,0,0,0.20) 40px,
+    rgba(0,0,0,0.25) 50px,
+    rgba(0,0,0,0.35) 60px,
+    rgba(0,0,0,0.55) 70px,
+    rgba(0,0,0,0.75) 80px,
+    rgba(0,0,0,1)    100px,
+    rgba(0,0,0,1)    100%
+  );
+}
+/* 手机端：顶部 + 底部都渐隐 */
+@media (max-width: 767px) {
+  .content-edge-fade {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0)    0px,
+      rgba(0,0,0,0)    10px,
+      rgba(0,0,0,0.10) 20px,
+      rgba(0,0,0,0.15) 30px,
+      rgba(0,0,0,0.20) 40px,
+      rgba(0,0,0,0.25) 50px,
+      rgba(0,0,0,0.35) 60px,
+      rgba(0,0,0,0.55) 70px,
+      rgba(0,0,0,0.75) 80px,
+      rgba(0,0,0,1)    100px,
+      rgba(0,0,0,1)    calc(100% - 100px),
+      rgba(0,0,0,0.75) calc(100% - 80px),
+      rgba(0,0,0,0.55) calc(100% - 70px),
+      rgba(0,0,0,0.35) calc(100% - 60px),
+      rgba(0,0,0,0.25) calc(100% - 50px),
+      rgba(0,0,0,0.20) calc(100% - 40px),
+      rgba(0,0,0,0.15) calc(100% - 30px),
+      rgba(0,0,0,0.10) calc(100% - 20px),
+      rgba(0,0,0,0)    calc(100% - 10px),
+      rgba(0,0,0,0)    100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0)    0px,
+      rgba(0,0,0,0)    10px,
+      rgba(0,0,0,0.10) 20px,
+      rgba(0,0,0,0.15) 30px,
+      rgba(0,0,0,0.20) 40px,
+      rgba(0,0,0,0.25) 50px,
+      rgba(0,0,0,0.35) 60px,
+      rgba(0,0,0,0.55) 70px,
+      rgba(0,0,0,0.75) 80px,
+      rgba(0,0,0,1)    100px,
+      rgba(0,0,0,1)    calc(100% - 100px),
+      rgba(0,0,0,0.75) calc(100% - 80px),
+      rgba(0,0,0,0.55) calc(100% - 70px),
+      rgba(0,0,0,0.35) calc(100% - 60px),
+      rgba(0,0,0,0.25) calc(100% - 50px),
+      rgba(0,0,0,0.20) calc(100% - 40px),
+      rgba(0,0,0,0.15) calc(100% - 30px),
+      rgba(0,0,0,0.10) calc(100% - 20px),
+      rgba(0,0,0,0)    calc(100% - 10px),
+      rgba(0,0,0,0)    100%
+    );
+  }
 }
 
 .pt-safe {
@@ -143,3 +407,4 @@ body {
 .font-zodiac {
   font-family: 'MF Zodiac Dings', sans-serif;
 }
+

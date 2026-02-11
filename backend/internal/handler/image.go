@@ -1,15 +1,24 @@
 package handler
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"lauraai-backend/internal/middleware"
+	"lauraai-backend/internal/model"
 	"lauraai-backend/internal/repository"
 	"lauraai-backend/internal/service"
 	"lauraai-backend/pkg/response"
 
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	imageGenMaxRetries = 3                // 图片生成最大重试次数
+	imageGenRetryDelay = 5 * time.Second  // 重试间隔
 )
 
 type ImageHandler struct {
@@ -56,36 +65,103 @@ func (h *ImageHandler) GenerateImage(c *gin.Context) {
 		return
 	}
 
-	// 检查角色是否已经生成过图片
-	// 只要有任何一张图片 URL 存在，就认为已经生成过，不允许重复生成
+	// 检查角色是否已经生成过图片（有清晰图就说明已完成）
 	if character.ClearImageURL != "" || character.FullBlurImageURL != "" || character.HalfBlurImageURL != "" {
 		response.Error(c, 400, "Character image already generated, please do not request again")
 		return
 	}
 
-	// 生成图片（会同时生成3张：清晰、半模糊、完全模糊）
-	ctx := c.Request.Context()
-	_, err = h.imagenService.GenerateImage(ctx, character)
-	if err != nil {
-		response.Error(c, 500, "Failed to generate image: "+err.Error())
+	// 检查是否已经在生成中（防止重复触发）
+	if character.ImageStatus == "generating" {
+		response.Success(c, gin.H{
+			"status":  "generating",
+			"message": "Image generation is already in progress",
+		})
 		return
 	}
 
-	// 获取完整的用户信息用于生成报告
+	// 允许 failed 状态重新触发（用户已付过 Mint 费用，无需再付）
+	// 空状态也允许（首次生成）
+	if character.ImageStatus != "" && character.ImageStatus != "failed" {
+		response.Error(c, 400, "Invalid character state for image generation")
+		return
+	}
+
+	isRetry := character.ImageStatus == "failed"
+	if isRetry {
+		log.Printf("[Image] 角色 %d 重试生图（上次失败）", character.ID)
+	}
+
+	// 标记为生成中
+	character.ImageStatus = "generating"
+	if err := h.characterRepo.Update(character); err != nil {
+		response.Error(c, 500, "Failed to update character status: "+err.Error())
+		return
+	}
+
+	// 获取完整的用户信息（在 goroutine 外获取以保持 gin.Context 安全）
 	fullUser, err := h.userRepo.GetByID(user.ID)
 	if err != nil {
 		log.Printf("[Image] 获取用户信息失败: %v", err)
-		fullUser = user // 使用 context 中的用户信息作为后备
+		fullUser = user
 	}
 
-	// 生成 AI 多语言报告（一次生成三种语言，确保内容一致）
-	// 注意：这里仍然尝试生成，如果失败（如429），则留空，由 UnlockHandler 补生成
-	report, err := h.reportService.GenerateMultiLangReport(ctx, fullUser, character)
+	// 后台异步生成图片+报告，客户端断开不影响
+	go h.doGenerateImageAndReport(character, fullUser)
+
+	// 立即返回
+	msg := "Image generation started, please poll for results"
+	if isRetry {
+		msg = "Retrying image generation, please poll for results"
+	}
+	response.Success(c, gin.H{
+		"status":  "generating",
+		"message": msg,
+	})
+}
+
+// doGenerateImageAndReport 后台执行图片生成和报告生成（含重试）
+func (h *ImageHandler) doGenerateImageAndReport(character *model.Character, user *model.User) {
+	ctx := context.Background() // 脱离请求 context，不会被客户端断开取消
+
+	log.Printf("[Image] 开始后台生成角色 %d 的图片...", character.ID)
+
+	// Step 1: 生成图片（最多重试 imageGenMaxRetries 次）
+	var lastErr error
+	imageGenSuccess := false
+	for attempt := 1; attempt <= imageGenMaxRetries; attempt++ {
+		log.Printf("[Image] 角色 %d 图片生成第 %d/%d 次尝试...", character.ID, attempt, imageGenMaxRetries)
+
+		_, err := h.imagenService.GenerateImage(ctx, character)
+		if err == nil {
+			imageGenSuccess = true
+			break
+		}
+
+		lastErr = err
+		log.Printf("[Image] 角色 %d 第 %d 次图片生成失败: %v", character.ID, attempt, err)
+
+		if attempt < imageGenMaxRetries {
+			log.Printf("[Image] 角色 %d 等待 %v 后重试...", character.ID, imageGenRetryDelay)
+			time.Sleep(imageGenRetryDelay)
+		}
+	}
+
+	if !imageGenSuccess {
+		log.Printf("[Image] 角色 %d 图片生成 %d 次全部失败，最后错误: %v", character.ID, imageGenMaxRetries, lastErr)
+		character.ImageStatus = "failed"
+		character.ImageFailReason = fmt.Sprintf("Failed after %d attempts: %v", imageGenMaxRetries, lastErr)
+		h.characterRepo.Update(character)
+		return
+	}
+
+	log.Printf("[Image] 角色 %d 图片生成成功，开始生成报告...", character.ID)
+
+	// Step 2: 生成 AI 多语言报告（报告失败不影响整体）
+	report, err := h.reportService.GenerateMultiLangReport(ctx, user, character)
 	if err != nil {
-		log.Printf("[Image] 生成报告失败: %v (将在解锁时重试)", err)
-		// 报告生成失败不影响图片生成，继续执行
+		log.Printf("[Image] 后台生成报告失败: %v (将在解锁时重试)", err)
 	} else {
-		// 存储三种语言的 7 项报告内容
 		character.DescriptionEn = report.DescriptionEn
 		character.DescriptionZh = report.DescriptionZh
 		character.DescriptionRu = report.DescriptionRu
@@ -109,19 +185,15 @@ func (h *ImageHandler) GenerateImage(c *gin.Context) {
 		character.WeaknessRu = report.WeaknessRu
 	}
 
-	// 设置 ImageURL 为当前应显示的图片（根据解锁状态）
+	// Step 3: 标记完成
 	character.ImageURL = character.GetDisplayImageURL()
+	character.ImageStatus = "done"
+	character.ImageFailReason = "" // 清空失败原因
 
-	// 更新角色的所有图片字段
 	if err := h.characterRepo.Update(character); err != nil {
-		response.Error(c, 500, "Failed to update character: "+err.Error())
+		log.Printf("[Image] 后台更新角色 %d 失败: %v", character.ID, err)
 		return
 	}
 
-	// 使用安全响应，根据用户语言返回对应的报告
-	locale := middleware.GetLocaleFromContext(c)
-	safeResponse := character.ToSafeResponse(string(locale))
-	
-	// 只返回安全响应，不单独暴露图片URL字段
-	response.Success(c, safeResponse)
+	log.Printf("[Image] 后台生成角色 %d 全部完成！", character.ID)
 }

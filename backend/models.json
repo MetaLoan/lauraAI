@@ -340,7 +340,7 @@
       "thinking": true
     },
     {
-      "name": "models/gemini-2.5-flash-image",
+      "name": "models/gemini-2.5-flash-image-deprecated",
       "version": "2.0",
       "displayName": "Nano Banana",
       "description": "Gemini 2.5 Flash Preview Image",

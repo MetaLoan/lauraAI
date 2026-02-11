@@ -93,14 +93,14 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
   if (error) {
   return (
     <div 
-      className="h-full bg-black flex flex-col items-center justify-center p-6"
+      className="h-full flex flex-col items-center justify-center"
       style={{
         paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
       }}
     >
           <div className="w-full max-w-md text-center px-4">
             <h1 className="text-3xl font-bold mb-4 text-red-500">Generation Failed</h1>
-            <p className="text-lg text-gray-400 max-w-md mx-auto">
+            <p className="text-lg text-white max-w-md mx-auto">
               {error}
             </p>
           </div>
@@ -126,30 +126,30 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
 
   return (
     <div 
-      className="h-full bg-black flex flex-col items-center justify-center p-6 overflow-hidden"
+      className="h-full flex flex-col items-center justify-center overflow-hidden"
       style={{
         paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
       }}
     >
       {/* Header - Simplified */}
-      <div className="w-full max-w-md text-center px-4 mb-8">
+      <div className="w-full text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Creating Your {localizedTitle}</h1>
-            <p className="text-sm text-gray-500 uppercase tracking-widest">AI Generation in Progress</p>
+            <p className="text-sm text-white uppercase tracking-widest">AI Generation in Progress</p>
           </div>
 
       {/* Central Animation Container */}
       <div className="flex-1 flex items-center justify-center relative">
         {/* Orbiting Rings */}
         <div className="relative w-64 h-64">
-          {/* Outer ring */}
+          {/* Outer ring - no stroke */}
           <div 
-            className="absolute inset-0 rounded-full border border-amber-500/30 animate-spin"
+            className="absolute inset-0 rounded-full animate-spin"
             style={{ animationDuration: '8s' }}
           />
           
           {/* Middle ring - tilted */}
           <div 
-            className="absolute inset-4 rounded-full border border-cyan-400/40 animate-spin"
+            className="absolute inset-4 rounded-full animate-spin"
             style={{ 
               animationDuration: '6s', 
               animationDirection: 'reverse',
@@ -159,13 +159,13 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
           
           {/* Inner ring */}
           <div 
-            className="absolute inset-8 rounded-full border border-purple-400/50 animate-spin"
+            className="absolute inset-8 rounded-full animate-spin"
             style={{ animationDuration: '4s' }}
           />
           
           {/* Third ring - different tilt */}
           <div 
-            className="absolute inset-12 rounded-full border border-pink-400/40 animate-spin"
+            className="absolute inset-12 rounded-full animate-spin"
             style={{ 
               animationDuration: '5s', 
               animationDirection: 'reverse',
@@ -229,7 +229,7 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
           </div>
           
           {/* Bottom left data */}
-          <div className="absolute bottom-4 left-4 font-mono text-[10px] text-purple-400/60 animate-pulse">
+          <div className="absolute bottom-4 left-4 font-mono text-[10px] text-white animate-pulse">
             <div>NODE: ACTIVE</div>
             <div>SYNC: {Math.floor(Math.random() * 1000)}ms</div>
           </div>
@@ -243,9 +243,9 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
       </div>
 
       {/* Progress Section */}
-      <div className="w-full max-w-md px-4 mb-4">
+      <div className="w-full mb-4">
         {/* Progress Bar */}
-        <div className="h-1 bg-white/10 rounded-full overflow-hidden mb-4">
+        <div className="h-1 rounded-full overflow-hidden mb-4">
           <div 
             className="h-full bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 transition-all duration-300 ease-out"
             style={{ width: `${Math.min(progress, 95)}%` }}
@@ -257,7 +257,7 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
           <p className="font-mono text-sm text-amber-400 mb-2 animate-pulse min-h-[2.5rem] flex items-center justify-center">
             {calculationSteps[stepIndex]?.text}
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-white">
             {stepIndex + 1} / {calculationSteps.length}
           </p>
         </div>

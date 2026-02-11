@@ -60,7 +60,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark h-full">
-      <body className={`font-sans antialiased bg-web3-gradient text-white h-full overflow-x-hidden`}>
+      <body className={`font-sans antialiased bg-black text-white h-full overflow-x-hidden`}>
+        {/* Liquid Glass SVG lens filter */}
+        <svg xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
+          <defs>
+            <filter id="lensFilter" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+              <feComponentTransfer in="SourceAlpha" result="alpha">
+                <feFuncA type="identity" />
+              </feComponentTransfer>
+              <feGaussianBlur in="alpha" stdDeviation="50" result="blur" />
+              <feDisplacementMap in="SourceGraphic" in2="blur" scale="50" xChannelSelector="A" yChannelSelector="A" />
+            </filter>
+          </defs>
+        </svg>
         <ClientWrapper>
           {children}
         </ClientWrapper>

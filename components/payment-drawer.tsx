@@ -87,7 +87,7 @@ export function PaymentDrawer({
                 <DrawerTitle className="text-2xl font-bold text-center tracking-tight">
                   {t('payment.unlockTitle', { name: characterName })}
                 </DrawerTitle>
-                <DrawerDescription className="text-gray-400 text-center mt-2">
+                <DrawerDescription className="text-white text-center mt-2">
                   {isDiscounted 
                     ? t('payment.discountApplied')
                     : t('payment.chooseMethod', { name: characterName })}
@@ -95,9 +95,9 @@ export function PaymentDrawer({
               </DrawerHeader>
 
               <div className="px-6 py-6 space-y-6">
-                <div className="bg-white/5 rounded-2xl p-5 border border-white/10 flex items-center justify-between">
+                <div className="liquid-glass-card rounded-2xl p-5 flex items-center justify-between">
                   <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-wider text-gray-500 font-medium">{characterName}</p>
+                    <p className="text-xs uppercase tracking-wider text-white font-medium">{characterName}</p>
                     <p className="text-xl font-bold">{characterType}</p>
                   </div>
                   <div className="h-14 w-14 rounded-full bg-white/10 flex items-center justify-center overflow-hidden border border-white/20">
@@ -133,14 +133,14 @@ export function PaymentDrawer({
                     className="w-full h-14 rounded-xl border-white/20 bg-transparent hover:bg-white/5 text-white font-bold text-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                   >
                     <Sparkles className="w-5 h-5 text-yellow-400" />
-                    {isDiscounted && <span className="line-through text-gray-500 text-sm mr-1">0.01</span>}
+                    {isDiscounted && <span className="line-through text-white text-sm mr-1">0.01</span>}
                     {priceTON} BNB
                   </Button>
                 </div>
               </div>
 
               <DrawerFooter className="pb-10 px-6">
-                <p className="text-[10px] text-center text-gray-600 leading-relaxed uppercase tracking-tighter">
+                <p className="text-[10px] text-center text-white leading-relaxed uppercase tracking-tighter">
                   {t('payment.termsAgreement')}
                 </p>
               </DrawerFooter>
@@ -154,7 +154,7 @@ export function PaymentDrawer({
               </div>
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-bold tracking-widest uppercase">{t('payment.processing')}</h3>
-                <p className="text-gray-500 text-sm">{t('payment.validating')}</p>
+                <p className="text-white text-sm">{t('payment.validating')}</p>
               </div>
             </div>
           )}
@@ -164,7 +164,7 @@ export function PaymentDrawer({
               <CheckCircle2 className="w-16 h-16 text-white" />
               <div className="text-center space-y-2">
                 <h3 className="text-2xl font-bold tracking-tight">{t('payment.unlocked')}</h3>
-                <p className="text-gray-500">{t('payment.welcomeMessage', { name: characterName })}</p>
+                <p className="text-white">{t('payment.welcomeMessage', { name: characterName })}</p>
               </div>
             </div>
           )}

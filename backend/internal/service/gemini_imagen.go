@@ -89,20 +89,26 @@ func (s *GeminiImagenService) GenerateImage(ctx context.Context, character *mode
 
 // doGenerateImageWithBlurVersions 生成清晰图片后，创建模糊版本
 func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Context, prompt string, character *model.Character) (string, error) {
+	imgConfig := &genai.GenerateContentConfig{
+		ResponseModalities: []string{"TEXT", "IMAGE"},
+		ImageConfig: &genai.ImageConfig{
+			AspectRatio: "1:1",
+		},
+	}
 	log.Printf("[Imagen] 开始生成图片，提示词: %s", prompt)
 
-	// 使用 gemini-2.5-flash-image 生成清晰图片（带重试逻辑）
+	// 使用 gemini-3-pro-image-preview 生成清晰图片（带重试逻辑）
 	var resp *genai.GenerateContentResponse
 	var err error
 	maxRetries := 3
-	
+
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		resp, err = s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), nil)
+		resp, err = s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), imgConfig)
 		if err == nil {
 			log.Printf("[Imagen] API call successful on attempt %d", attempt)
 			break
 		}
-		
+
 		// 检查是否是可重试的错误（网络错误、EOF、超时等）
 		errStr := err.Error()
 		isRetryable := strings.Contains(errStr, "EOF") ||
@@ -110,11 +116,11 @@ func (s *GeminiImagenService) doGenerateImageWithBlurVersions(ctx context.Contex
 			strings.Contains(errStr, "timeout") ||
 			strings.Contains(errStr, "RESOURCE_EXHAUSTED") ||
 			strings.Contains(errStr, "429")
-		
+
 		if !isRetryable || attempt == maxRetries {
 			return "", fmt.Errorf("Failed to generate image: %v", err)
 		}
-		
+
 		// 指数退避等待
 		waitTime := time.Duration(attempt*attempt) * 2 * time.Second
 		log.Printf("[Imagen] 图片生成失败 (尝试 %d/%d): %v, 等待 %v 后重试...", attempt, maxRetries, err, waitTime)
@@ -264,18 +270,24 @@ func (s *GeminiImagenService) saveImageBytes(data []byte, ext string) (string, e
 }
 
 func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, prompt string) (string, error) {
+	imgConfig := &genai.GenerateContentConfig{
+		ResponseModalities: []string{"TEXT", "IMAGE"},
+		ImageConfig: &genai.ImageConfig{
+			AspectRatio: "1:1",
+		},
+	}
 	log.Printf("[Imagen] 开始生成图片，提示词: %s", prompt)
 
-	// 使用 gemini-2.5-flash-image，带重试逻辑
+	// 使用 gemini-3-pro-image-preview，带重试逻辑
 	var resp *genai.GenerateContentResponse
 	var err error
 	maxRetries := 3
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		resp, err = s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), nil)
+		resp, err = s.client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(prompt), imgConfig)
 		if err == nil {
 			break
 		}
-		
+
 		// 检查是否是可重试的错误
 		errStr := err.Error()
 		isRetryable := strings.Contains(errStr, "EOF") ||
@@ -283,11 +295,11 @@ func (s *GeminiImagenService) doGenerateImageWithPrompt(ctx context.Context, pro
 			strings.Contains(errStr, "timeout") ||
 			strings.Contains(errStr, "RESOURCE_EXHAUSTED") ||
 			strings.Contains(errStr, "429")
-		
+
 		if !isRetryable || attempt == maxRetries {
 			return "", fmt.Errorf("Failed to generate image: %v", err)
 		}
-		
+
 		waitTime := time.Duration(attempt*attempt) * 2 * time.Second
 		log.Printf("[Imagen] 图片生成失败 (尝试 %d/%d): %v, 等待 %v 后重试...", attempt, maxRetries, err, waitTime)
 		time.Sleep(waitTime)

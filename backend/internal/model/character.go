@@ -86,6 +86,10 @@ type Character struct {
 	UnlockHelperID *uint64      `gorm:"index" json:"unlock_helper_id,omitempty"`
 	ShareCode      string       `gorm:"type:varchar(20);uniqueIndex" json:"share_code"`
 
+	// 图片生成状态: "" (空=未开始), "generating", "done", "failed"
+	ImageStatus    string `gorm:"type:varchar(20);default:''" json:"image_status"`
+	ImageFailReason string `gorm:"type:text;default:''" json:"image_fail_reason,omitempty"` // 失败原因
+
 	// Marketplace 相关
 	IsListed       bool       `gorm:"default:false" json:"is_listed"`
 	ListPrice      float64    `gorm:"default:0" json:"list_price"` // Price in BNB
@@ -286,6 +290,7 @@ func (c *Character) ToSafeResponse(locale string) map[string]interface{} {
 		"astro_sign":    c.AstroSign,
 		"unlock_status": c.UnlockStatus,
 		"share_code":    c.ShareCode,
+		"image_status":  c.ImageStatus,
 		"created_at":    c.CreatedAt,
 		"updated_at":    c.UpdatedAt,
 	}

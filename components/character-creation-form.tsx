@@ -74,7 +74,7 @@ export default function CharacterCreationForm({
       <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
         <div className="loading-spinner mb-6" />
         <h1 className="text-title-md font-bold text-center mb-4">Creating {characterName}...</h1>
-        <p className="text-body-md text-gray-400 text-center max-w-sm">
+        <p className="text-body-md text-white text-center max-w-sm">
           Crafting your perfect {characterName} with personalized traits and generating AI portrait.
         </p>
       </div>
@@ -86,7 +86,7 @@ export default function CharacterCreationForm({
       <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-6">
         <AlertCircle className="w-16 h-16 text-red-500 mb-6" />
         <h1 className="text-title-md font-bold text-center mb-4 text-red-500">Creation Failed</h1>
-        <p className="text-body-md text-gray-400 text-center max-w-sm mb-8">{error}</p>
+        <p className="text-body-md text-white text-center max-w-sm mb-8">{error}</p>
         <div className="flex gap-4">
           <Button
             onClick={() => setError(null)}
@@ -110,7 +110,7 @@ export default function CharacterCreationForm({
   return (
     <div className="fixed inset-0 bg-black/95 z-50 overflow-y-auto flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-4 px-6 py-4 sticky top-0 bg-black/50 backdrop-blur-sm">
+      <div className="flex items-center gap-4 px-6 py-4 sticky top-0 glass-bar rounded-none">
         <button
           onClick={onBack}
           className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
@@ -165,7 +165,7 @@ export default function CharacterCreationForm({
       </div>
 
       {/* Footer */}
-      <div className="sticky bottom-0 px-6 py-4 bg-black/50 backdrop-blur-sm border-t border-white/10">
+      <div className="sticky bottom-0 px-6 py-4 glass-bar rounded-none">
         <Button
           onClick={handleComplete}
           disabled={!gender || !ethnicity}

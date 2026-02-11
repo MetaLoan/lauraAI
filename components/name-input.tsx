@@ -26,14 +26,14 @@ export default function NameInput({
 
   return (
     <div
-      className="h-full bg-web3-gradient flex flex-col items-center p-8 relative overflow-hidden"
+      className="h-full flex flex-col items-center p-8 relative overflow-hidden"
     >
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md space-y-12 relative z-10">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2">
             {t('title')}
           </h1>
-          <p className="text-purple-300/60 font-mono text-xs uppercase tracking-[0.2em]">
+          <p className="text-white font-mono text-xs uppercase tracking-[0.2em]">
             Sovereign Identity Registration
           </p>
         </div>

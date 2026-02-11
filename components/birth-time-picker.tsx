@@ -68,7 +68,7 @@ export default function BirthTimePicker({
                         className={`text-center py-3 transition-all ${
                           selected
                             ? 'text-white font-bold text-title-md'
-                            : 'text-gray-500 text-body-lg'
+                            : 'text-white text-body-lg'
                         }`}
                       >
                         {option}
@@ -92,11 +92,11 @@ export default function BirthTimePicker({
         >
           {tCommon('continue')}
         </Button>
-        <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-sm">
+        <button onClick={onNext} className="w-full text-white hover:text-white text-sm">
           {t('unknown')}
         </button>
 
-        <p className="text-gray-500 text-xs text-center px-2">
+        <p className="text-white text-xs text-center px-2">
           {t('hint')}
         </p>
       </div>

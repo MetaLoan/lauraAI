@@ -236,7 +236,7 @@ export default function Dashboard({
               <Plus className="w-10 h-10 text-white" />
             </div>
           </div>
-          <p className="text-xs font-medium text-center text-white/60">{localizedTitle}</p>
+          <p className="text-xs font-medium text-center text-white">{localizedTitle}</p>
         </button>
       )
     }

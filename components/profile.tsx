@@ -187,7 +187,7 @@ export default function Profile({
     <div className="h-full bg-black text-white pb-8">
       {/* Header */}
       <div 
-        className="px-6 pb-4 border-b border-white/10"
+        className="px-6 pb-4 border-b border-white/50"
         style={{
           paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
         }}
@@ -199,7 +199,7 @@ export default function Profile({
       {/* Content */}
       <div className="px-6 pt-6 space-y-6">
         {/* Birth Info Card */}
-        <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+        <div className="liquid-glass-card rounded-2xl p-6">
           <h3 className="text-title-md font-bold mb-6">{t('profile.birthInfo')}</h3>
           
           <div className="space-y-6">
@@ -215,7 +215,7 @@ export default function Profile({
             </div>
 
             {/* Divider */}
-            <div className="h-px bg-white/10" />
+            <div className="h-px bg-white/50" />
 
             {/* Birth Place */}
             <div className="flex items-center justify-between">
@@ -229,7 +229,7 @@ export default function Profile({
             </div>
 
             {/* Divider */}
-            <div className="h-px bg-white/10" />
+            <div className="h-px bg-white/50" />
 
             {/* Birth Time */}
             <div className="flex items-center justify-between">
@@ -245,19 +245,19 @@ export default function Profile({
         </div>
 
         {/* My Friends Card */}
-        <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+        <div className="liquid-glass-card rounded-2xl p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-title-md font-bold flex items-center gap-2">
               <Users className="w-5 h-5" />
               {t('profile.myFriends')}
             </h3>
-            <span className="text-sm text-gray-400">{referrals.length} {t('profile.invited')}</span>
+            <span className="text-sm text-white">{referrals.length} {t('profile.invited')}</span>
           </div>
 
           {/* Invite Code Section */}
           {inviteCode && (
-            <div className="bg-white/5 rounded-xl p-4 mb-4">
-              <p className="text-xs text-gray-400 mb-2">{t('profile.yourInviteCode')}</p>
+            <div className="liquid-glass-card rounded-xl p-4 mb-4">
+              <p className="text-xs text-white mb-2">{t('profile.yourInviteCode')}</p>
               <div className="flex items-center justify-between">
                 <span className="text-lg font-mono font-bold tracking-wider">{inviteCode}</span>
                 <div className="flex gap-2">
@@ -282,11 +282,11 @@ export default function Profile({
 
           {/* Referrals List */}
           {referralsLoading ? (
-            <div className="py-6 text-center text-gray-400">{t('profile.loading')}</div>
+            <div className="py-6 text-center text-white">{t('profile.loading')}</div>
           ) : referrals.length > 0 ? (
             <div className="space-y-3">
               {referrals.map((referral) => (
-                <div key={referral.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                <div key={referral.id} className="flex items-center gap-3 p-3 liquid-glass-card rounded-xl">
                   <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
                     {referral.avatar_url ? (
                       <img src={referral.avatar_url} alt={referral.name} className="w-full h-full object-cover" />
@@ -296,7 +296,7 @@ export default function Profile({
                   </div>
                   <div className="flex-1">
                     <p className="font-medium">{referral.name || 'Anonymous'}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-white">
                       {t('profile.joined')} {new Date(referral.created_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -305,7 +305,7 @@ export default function Profile({
             </div>
           ) : (
             <div className="py-6 text-center">
-              <p className="text-gray-400 mb-3">{t('profile.noFriendsYet')}</p>
+              <p className="text-white mb-3">{t('profile.noFriendsYet')}</p>
               <button
                 onClick={handleShareInviteLink}
                 className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-sm font-medium flex items-center gap-2 mx-auto"
@@ -327,7 +327,7 @@ export default function Profile({
             <Trash2 className="w-5 h-5" />
             {isDeleting ? t('profile.deleting') : t('profile.deleteAccount')}
           </button>
-          <p className="text-center text-caption text-white/40 mt-3 px-4">
+          <p className="text-center text-caption text-white mt-3 px-4">
             {t('profile.deleteWarning')}
           </p>
         </div>

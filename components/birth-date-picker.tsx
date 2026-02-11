@@ -83,7 +83,7 @@ export default function BirthDatePicker({
         </h1>
 
         <div className="text-center">
-          <p className="text-gray-400 text-body-sm mb-2">{displayDate}</p>
+          <p className="text-white text-body-sm mb-2">{displayDate}</p>
           <p className="text-5xl sm:text-6xl font-bold">{displayDay}</p>
         </div>
 
@@ -107,7 +107,7 @@ export default function BirthDatePicker({
                         className={`text-center py-2 transition-all ${
                           selected
                             ? 'text-white font-semibold text-body-lg'
-                            : 'text-gray-500 text-body-sm'
+                            : 'text-white text-body-sm'
                         }`}
                       >
                         {option}
@@ -128,7 +128,7 @@ export default function BirthDatePicker({
         >
           {tCommon('continue')}
         </Button>
-        <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-body-sm">
+        <button onClick={onNext} className="w-full text-white hover:text-white text-body-sm">
           {tCommon('skip') || 'Skip'}
         </button>
       </div>

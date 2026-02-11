@@ -24,7 +24,7 @@ export default function ReportLoading() {
   }, [loadingTexts.length])
 
   return (
-    <div className="w-full bg-white/5 border border-white/10 rounded-xl p-8 flex flex-col items-center justify-center min-h-[200px]">
+    <div className="w-full liquid-glass-card rounded-xl p-8 flex flex-col items-center justify-center min-h-[200px]">
       <div className="relative mb-6">
         <motion.div
           animate={{ rotate: 360 }}

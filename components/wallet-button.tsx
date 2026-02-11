@@ -56,7 +56,7 @@ export function WalletButton({ className, showBalance = true }: WalletButtonProp
     return (
       <Button
         onClick={() => open()}
-        className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium ${className}`}
+        className={`liquid-glass-card text-white font-medium hover:brightness-110 ${className}`}
       >
         <Wallet className="w-4 h-4 mr-2" />
         Connect Wallet
@@ -69,7 +69,8 @@ export function WalletButton({ className, showBalance = true }: WalletButtonProp
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className={`border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-white ${className}`}
+          size="default"
+          className={`bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-full !pt-2.5 !pr-2.5 !pb-2.5 !pl-4 ${className}`}
         >
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -80,11 +81,11 @@ export function WalletButton({ className, showBalance = true }: WalletButtonProp
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-56 bg-black/90 border-white/10 backdrop-blur-xl"
+        className="w-56 liquid-glass-card border-0 rounded-2xl"
+        style={{ backgroundColor: 'rgba(112, 61, 91, 0.6)' }}
       >
-        <div className="px-3 py-2">
-          <p className="text-xs text-white/50">Connected to</p>
-          <p className="text-sm font-medium text-white">{getNetworkName()}</p>
+        <div className="px-3 py-2 whitespace-nowrap">
+          <p className="text-sm text-white">Connected to {getNetworkName()}</p>
         </div>
         <DropdownMenuSeparator className="bg-white/10" />
         
@@ -149,7 +150,7 @@ export function ConnectButton({ className }: { className?: string }) {
   return (
     <Button
       onClick={() => open()}
-      className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium ${className}`}
+      className={`liquid-glass-card text-white font-medium hover:brightness-110 ${className}`}
     >
       <Wallet className="w-4 h-4 mr-2" />
       Connect Wallet

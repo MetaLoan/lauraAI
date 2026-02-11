@@ -51,7 +51,7 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
 
   return (
     <div
-      className="h-full bg-web3-gradient flex flex-col items-center justify-center p-6 sm:p-8 relative overflow-hidden"
+      className="h-full flex flex-col items-center justify-center p-6 sm:p-8 relative overflow-hidden"
     >
       {/* Background Decorative Element */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-purple-500/5 blur-[120px] rounded-full pointer-events-none" />
@@ -61,7 +61,7 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-400">
             {t(slides[currentSlide].titleKey)}
           </h1>
-          <p className="text-sm text-purple-300/70 font-mono tracking-widest uppercase">
+          <p className="text-sm text-white font-mono tracking-widest uppercase">
             {t(slides[currentSlide].descriptionKey)}
           </p>
         </div>
@@ -71,7 +71,7 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all opacity-50" />
           <div className="absolute -inset-[2px] bg-gradient-to-br from-purple-500/30 via-white/10 to-blue-500/30 rounded-3xl" />
 
-          <div className="relative h-full w-full bg-black/60 rounded-[22px] overflow-hidden border border-white/10">
+          <div className="relative h-full w-full liquid-glass-card rounded-[22px]">
             <Image
               src={getFullImageUrl(slides[currentSlide].image || "/placeholder.svg")}
               alt={t(slides[currentSlide].titleKey)}
@@ -81,7 +81,7 @@ export default function ResultsCard({ onNext, onBack }: { onNext: () => void; on
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
             {/* Data Overlays */}
-            <div className="absolute top-4 left-4 font-mono text-[10px] text-purple-400 flex flex-col gap-1">
+            <div className="absolute top-4 left-4 font-mono text-[10px] text-white flex flex-col gap-1">
               <div className="flex items-center gap-1.5"><div className="w-1 h-1 bg-purple-400 rounded-full animate-pulse" /> SCANNING...</div>
               <div>COORD: 34.0522 N</div>
             </div>

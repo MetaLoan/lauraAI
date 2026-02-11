@@ -48,19 +48,19 @@ export function SoulmateGrid() {
     if (loading) {
         return (
             <div className="flex justify-center py-10">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-white" />
             </div>
         );
     }
 
     if (characters.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-16 bg-white/5 border border-white/10 rounded-2xl">
+            <div className="flex flex-col items-center justify-center py-16 liquid-glass-card rounded-2xl">
                 <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
-                    <Plus className="w-8 h-8 text-gray-400" />
+                    <Plus className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">No Soulmates Found</h3>
-                <p className="text-gray-400 mb-6 text-center max-w-sm">
+                <p className="text-white mb-6 text-center max-w-sm">
                     You haven't minted any AI soulmates yet. Create one to start your journey.
                 </p>
                 <Link href="/create">
@@ -77,7 +77,7 @@ export function SoulmateGrid() {
             {characters.map((char) => (
                 <div
                     key={char.id}
-                    className="group relative bg-black/40 border border-white/10 rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all duration-300"
+                    className="group relative liquid-glass-card rounded-2xl overflow-hidden transition-all duration-300"
                 >
                     {/* Image */}
                     <div className="aspect-[3/4] relative w-full overflow-hidden bg-gray-900">
@@ -90,7 +90,7 @@ export function SoulmateGrid() {
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-                                <span className="text-white/20 text-4xl font-bold">{char.title.charAt(0)}</span>
+                                <span className="text-white text-4xl font-bold">{char.title.charAt(0)}</span>
                             </div>
                         )}
 
@@ -126,11 +126,11 @@ export function SoulmateGrid() {
             ))}
 
             {/* Add New Card */}
-            <Link href="/create" className="group flex flex-col items-center justify-center aspect-[3/4] bg-white/5 border border-white/10 border-dashed rounded-2xl hover:bg-white/10 hover:border-purple-500/50 transition-all cursor-pointer">
+            <Link href="/create" className="group flex flex-col items-center justify-center aspect-[3/4] liquid-glass-card rounded-2xl transition-all cursor-pointer">
                 <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Plus className="w-8 h-8 text-white/50 group-hover:text-white" />
+                    <Plus className="w-8 h-8 text-white group-hover:text-white" />
                 </div>
-                <span className="text-gray-400 font-medium group-hover:text-white transition-colors">Mint New Soulmate</span>
+                <span className="text-white font-medium group-hover:text-white transition-colors">Mint New Soulmate</span>
             </Link>
         </div>
     );

@@ -27,7 +27,7 @@ export function LanguageSwitcher() {
         <Button
           variant="ghost"
           size="sm"
-          className="flex items-center gap-2 text-gray-400 hover:text-white"
+          className="flex items-center gap-2 text-white hover:text-white"
         >
           <Globe className="w-4 h-4" />
           <span className="text-sm">{localeNames[locale]}</span>
@@ -41,7 +41,7 @@ export function LanguageSwitcher() {
             className={`cursor-pointer ${
               locale === loc
                 ? 'bg-gray-800 text-white'
-                : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                : 'text-white hover:text-white hover:bg-gray-800'
             }`}
           >
             {localeNames[loc]}
@@ -70,7 +70,7 @@ export function LanguageSwitcherCompact() {
         <Button
           variant="ghost"
           size="icon"
-          className="text-gray-400 hover:text-white"
+          className="text-white hover:text-white"
         >
           <Globe className="w-5 h-5" />
         </Button>
@@ -83,7 +83,7 @@ export function LanguageSwitcherCompact() {
             className={`cursor-pointer ${
               locale === loc
                 ? 'bg-gray-800 text-white'
-                : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                : 'text-white hover:text-white hover:bg-gray-800'
             }`}
           >
             {localeNames[loc]}

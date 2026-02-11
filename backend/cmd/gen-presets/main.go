@@ -187,7 +187,15 @@ func generateAndSave(ctx context.Context, client *genai.Client, prompt string, o
 	// Add portrait aspect ratio instruction
 	fullPrompt := prompt + "\n\nIMPORTANT: Generate this as a vertical 3:4 aspect ratio portrait. The subject should be centered in frame."
 
-	resp, err := client.Models.GenerateContent(ctx, "gemini-2.5-flash-image", genai.Text(fullPrompt), nil)
+	// Use GenerateContentConfig for image generation
+	imgConfig := &genai.GenerateContentConfig{
+		ResponseModalities: []string{"TEXT", "IMAGE"},
+		ImageConfig: &genai.ImageConfig{
+			AspectRatio: "3:4",
+		},
+	}
+
+	resp, err := client.Models.GenerateContent(ctx, "gemini-3-pro-image-preview", genai.Text(fullPrompt), imgConfig)
 	if err != nil {
 		return fmt.Errorf("API call failed: %v", err)
 	}

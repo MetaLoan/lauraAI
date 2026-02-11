@@ -77,7 +77,7 @@ export default function Welcome({
           <h1 className="text-title-xl text-balance">{t('title')}</h1>
           <h2 className="text-title-xl text-balance">{t('subtitle')}</h2>
         </div>
-        <p className="text-body-lg text-gray-300 text-balance px-4">
+        <p className="text-body-lg text-white text-balance px-4">
           {t('description')}
         </p>
       </div>
@@ -96,14 +96,14 @@ export default function Welcome({
         >
           {isChecking ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin text-white" />
               {tCommon('checking')}
             </>
           ) : (
             tCommon('continue')
           )}
         </Button>
-        <p className="text-center text-gray-500 text-caption mt-4">
+        <p className="text-center text-white text-caption mt-4">
           {t('terms')}
         </p>
       </div>

@@ -191,7 +191,10 @@ func (h *ChatHandler) GetDailyLimit(c *gin.Context) {
 	})
 }
 
-// GetAllDailyLimits returns per-character daily usage for all characters
+// LRA per user message (for cumulative earnings display)
+const LRAPerMessage = 5
+
+// GetAllDailyLimits returns per-character daily usage and cumulative earnings for all user characters
 func (h *ChatHandler) GetAllDailyLimits(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
 	if !exists {
@@ -199,29 +202,46 @@ func (h *ChatHandler) GetAllDailyLimits(c *gin.Context) {
 		return
 	}
 
-	usages, err := h.messageRepo.CountAllCharacterMessagesToday(user.ID)
+	chars, err := h.characterRepo.GetByUserID(user.ID)
 	if err != nil {
-		response.Error(c, 500, "Failed to check daily limits")
+		response.Error(c, 500, "Failed to load characters")
 		return
 	}
 
-	// Build a map: character_id -> {used, limit, remaining}
-	limits := make([]gin.H, 0, len(usages))
+	usages, _ := h.messageRepo.CountAllCharacterMessagesToday(user.ID)
+	totals, _ := h.messageRepo.CountAllCharacterMessagesTotal(user.ID)
+	todayByChar := make(map[uint64]int64)
 	for _, u := range usages {
-		remaining := DailyMessageLimit - int(u.Used)
+		todayByChar[u.CharacterID] = u.Used
+	}
+	totalByChar := make(map[uint64]int64)
+	for _, t := range totals {
+		totalByChar[t.CharacterID] = t.TotalSent
+	}
+
+	// One entry per user character: used, limit, remaining, total_sent, earned_lra
+	limits := make([]gin.H, 0, len(chars))
+	for _, ch := range chars {
+		used := todayByChar[ch.ID]
+		remaining := DailyMessageLimit - int(used)
 		if remaining < 0 {
 			remaining = 0
 		}
+		totalSent := totalByChar[ch.ID]
+		earnedLra := totalSent * LRAPerMessage
 		limits = append(limits, gin.H{
-			"character_id": u.CharacterID,
-			"used":         u.Used,
+			"character_id": ch.ID,
+			"used":         used,
 			"limit":        DailyMessageLimit,
 			"remaining":    remaining,
+			"total_sent":   totalSent,
+			"earned_lra":   earnedLra,
 		})
 	}
 
 	response.Success(c, gin.H{
 		"per_character_limit": DailyMessageLimit,
+		"lra_per_message":     LRAPerMessage,
 		"characters":          limits,
 	})
 }

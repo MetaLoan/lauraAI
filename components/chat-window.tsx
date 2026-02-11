@@ -187,7 +187,7 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
     <div className="fixed inset-0 bg-black z-[9999] flex flex-col overflow-hidden">
       {/* Header */}
       <div 
-        className="flex items-center justify-between px-4 pb-4 border-b border-white/10"
+        className="flex items-center justify-between px-4 pb-4 border-b border-white/50"
         style={{
           paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
         }}
@@ -203,13 +203,13 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900">
-                  <span className="text-white/20 text-xs font-bold">{localizedTitle.charAt(0)}</span>
+                  <span className="text-white text-xs font-bold">{localizedTitle.charAt(0)}</span>
                 </div>
               )}
             </div>
             <div>
               <p className="text-body-sm font-semibold">{localizedTitle}</p>
-              <p className="text-caption text-gray-400">Online</p>
+              <p className="text-caption text-white">Online</p>
             </div>
           </div>
         </div>
@@ -217,7 +217,7 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
           {messages.length === 0 && (
-            <div className="text-center text-gray-500 py-8">
+            <div className="text-center text-white py-8">
               {messagesLoaded ? t('noMessages') : t('loading')}
             </div>
           )}
@@ -241,7 +241,7 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
 
         {/* Input */}
         <div 
-          className="border-t border-white/10 p-4"
+          className="border-t border-white/50 p-4"
           style={{
             paddingBottom: 'max(16px, var(--tg-safe-area-bottom, 0px))'
           }}

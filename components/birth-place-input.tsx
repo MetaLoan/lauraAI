@@ -97,7 +97,7 @@ export default function BirthPlaceInput({
                   <p className="text-white text-body-sm font-medium truncate">
                     {place.display_name.split(',')[0]}
                   </p>
-                  <p className="text-gray-400 text-caption truncate">
+                  <p className="text-white text-caption truncate">
                     {place.display_name.split(',').slice(1).join(',').trim()}
                   </p>
                 </button>
@@ -115,10 +115,10 @@ export default function BirthPlaceInput({
         >
           {tCommon('continue')}
         </Button>
-        <button onClick={onNext} className="w-full text-gray-400 hover:text-gray-200 text-body-sm">
+        <button onClick={onNext} className="w-full text-white hover:text-white text-body-sm">
           {tCommon('skip')}
         </button>
-        <p className="text-gray-500 text-caption text-center px-2">
+        <p className="text-white text-caption text-center px-2">
           {t('hint')}
         </p>
       </div>

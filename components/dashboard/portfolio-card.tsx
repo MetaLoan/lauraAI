@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useBalance, useChainId } from 'wagmi';
-import { Loader2, Sparkles, RefreshCcw } from 'lucide-react';
+import { Loader2, RefreshCcw } from 'lucide-react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/api';
 
@@ -28,7 +29,7 @@ export function PortfolioRefreshButton({ onRefresh }: { onRefresh?: () => void }
             type="button"
             variant="outline"
             size="sm"
-            className="border-white/20 text-gray-300 hover:bg-white/10 h-9"
+            className="rounded-full border-white/20 text-white hover:bg-white/10 h-9 px-5"
             onClick={handleRefresh}
             disabled={isRefreshing}
         >
@@ -57,9 +58,9 @@ export function PortfolioCard() {
 
     if (!isConnected) {
         return (
-            <div className="rounded-2xl bg-gradient-to-br from-purple-900/50 to-blue-900/50 border border-white/10 p-6 text-center">
+            <div className="rounded-2xl liquid-glass-card p-6 text-center">
                 <h3 className="text-xl font-bold text-white mb-2">Connect Wallet</h3>
-                <p className="text-white/60 mb-4">Connect your wallet to view your assets and soulmates.</p>
+                <p className="text-white mb-4">Connect your wallet to view your assets and soulmates.</p>
             </div>
         );
     }
@@ -70,18 +71,18 @@ export function PortfolioCard() {
         <>
             <div className="grid grid-cols-1 gap-4">
                 {/* LRA Balance */}
-                <div className="rounded-2xl bg-gradient-to-br from-purple-900/40 to-pink-900/40 border border-purple-500/30 p-6 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                        <Sparkles className="w-16 h-16 text-purple-400" />
+                <div className="rounded-2xl liquid-glass-card p-6 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-80">
+                        <Image src="/icons/3d/lra_balance.png" alt="" width={64} height={64} className="w-16 h-16 object-contain" />
                     </div>
-                    <h3 className="text-purple-200 text-sm font-medium mb-1">LRA Balance</h3>
+                    <h3 className="text-white text-sm font-medium mb-1">LRA Balance</h3>
                     <div className="text-2xl font-bold text-white flex items-end gap-2">
                         {profile ? (
                             <span>{Math.floor(lraBalance).toLocaleString()}</span>
                         ) : (
-                            <Loader2 className="w-6 h-6 animate-spin" />
+                            <Loader2 className="w-6 h-6 animate-spin text-white" />
                         )}
-                        <span className="text-sm font-normal text-purple-200 mb-1">LRA</span>
+                        <span className="text-sm font-normal text-white mb-1">LRA</span>
                     </div>
                 </div>
             </div>

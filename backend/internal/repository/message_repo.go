@@ -73,3 +73,20 @@ func (r *MessageRepository) CountAllCharacterMessagesToday(userID uint64) ([]Cha
 		Scan(&results).Error
 	return results, err
 }
+
+// CharacterTotalUsage holds per-character total (all-time) user message count
+type CharacterTotalUsage struct {
+	CharacterID uint64 `json:"character_id"`
+	TotalSent   int64  `json:"total_sent"`
+}
+
+// CountAllCharacterMessagesTotal returns all-time user-sent message counts grouped by character
+func (r *MessageRepository) CountAllCharacterMessagesTotal(userID uint64) ([]CharacterTotalUsage, error) {
+	var results []CharacterTotalUsage
+	err := DB.Model(&model.Message{}).
+		Select("character_id, COUNT(*) as total_sent").
+		Where("user_id = ? AND sender_type = ?", userID, model.SenderTypeUser).
+		Group("character_id").
+		Scan(&results).Error
+	return results, err
+}

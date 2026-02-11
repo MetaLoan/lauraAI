@@ -76,7 +76,7 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pb-4 border-b border-white/10">
+      <div className="flex items-center justify-between px-4 pb-4 border-b border-white/50">
         <div className="flex items-center gap-3">
           <MessageSquare className="w-6 h-6 text-white" />
           <h1 className="text-title-md font-bold">{t('title')}</h1>
@@ -90,7 +90,7 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
             <div className="loading-spinner" />
           </div>
         ) : characters.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-white/40">
+          <div className="flex flex-col items-center justify-center py-20 text-white">
             <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
             <p>{t('noHistory')}</p>
           </div>
@@ -112,18 +112,18 @@ export default function HistoryPage({ onClose, onSelectCharacter }: HistoryPageP
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <MessageSquare className="w-6 h-6 text-white/20" />
+                      <MessageSquare className="w-6 h-6 text-white" />
                     </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="font-bold truncate">{char.title}</h3>
-                    <span className="text-caption text-white/40">{char.last_message_time}</span>
+                    <span className="text-caption text-white">{char.last_message_time}</span>
                   </div>
-                  <p className="text-body-sm text-white/60 truncate">{char.last_message || t('noMessages')}</p>
+                  <p className="text-body-sm text-white truncate">{char.last_message || t('noMessages')}</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-white/20" />
+                <ChevronRight className="w-5 h-5 text-white" />
               </button>
             ))}
           </div>

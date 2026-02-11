@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Share2, Loader2, MessageSquare, ExternalLink } from 'lucide-react'
+import { ChevronDown, Loader2, ExternalLink } from 'lucide-react'
 import { getFullImageUrl, cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
 import { apiClient } from '@/lib/api'
@@ -255,9 +255,9 @@ export default function SoulmateDetailPage({
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       {/* Scrollable Content */}
-      <div className="flex-1 px-6 pb-8 space-y-8 overflow-y-auto scrollbar-hide">
+      <div className="flex-1 min-h-0 px-6 pb-6 space-y-8 overflow-y-auto scrollbar-hide">
         {/* Portrait Card */}
         <div
           className="flex flex-col items-center space-y-4"
@@ -280,12 +280,27 @@ export default function SoulmateDetailPage({
             </div>
           </div>
 
-          {/* 直接出结果，已移除邀请好友助力与解锁状态角标 */}
+          {/* 头像下方：2 个圆形玻璃态按钮，跟随滚动 */}
+          <div className="flex items-center justify-center gap-4 pt-2">
+            <Button
+              onClick={onNext}
+              className="liquid-glass-card rounded-full w-14 h-14 p-0 flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform"
+              title={t('startChat')}
+            >
+              <img src="/icons/3d/message_chat.png" className="w-7 h-7 object-contain" alt="" />
+            </Button>
+            <ShareButton
+              title={`Meet my ${rawTitle}!`}
+              text={`I just created a unique AI ${rawTitle} with ${targetScore}% compatibility on LauraAI! #LauraAI #BSC #Web3AI`}
+              size="icon"
+              className="liquid-glass-card rounded-full w-14 h-14 p-0 border-0 text-white hover:scale-105 active:scale-95 transition-transform [&>img]:w-7 [&>img]:h-7 [&>img]:object-contain"
+            />
+          </div>
         </div>
 
         {/* Divider - 只在非 Mini Me 时显示 */}
         {!isMiniMe && (
-          <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
         )}
 
         {/* Compatibility Score - 只在非 Mini Me 时显示 */}
@@ -296,7 +311,7 @@ export default function SoulmateDetailPage({
             {/* Progress Bar */}
             <div className="mb-4 h-2 rounded-full bg-white/10 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-amber-400 to-amber-600"
+                className="h-full bg-white"
                 style={{ width: `${progressWidth}%` }}
               />
             </div>
@@ -308,7 +323,7 @@ export default function SoulmateDetailPage({
               {isDescriptionVisible ? (
                 isReportLoading ? (
                   isTimeout ? (
-                    <div className="w-full bg-white/5 border border-white/10 rounded-xl p-8 flex flex-col items-center justify-center min-h-[200px] space-y-4">
+                    <div className="w-full liquid-glass-card rounded-xl p-8 flex flex-col items-center justify-center min-h-[200px] space-y-4">
                       <p className="text-center text-red-400 font-medium text-lg">
                         {t('loading.timeout')}
                       </p>
@@ -324,12 +339,12 @@ export default function SoulmateDetailPage({
                     <ReportLoading />
                   )
                 ) : (
-                  <p className="text-center text-body-sm text-gray-300 leading-relaxed mb-8">
+                  <p className="text-center text-body-sm text-white leading-relaxed mb-8">
                     {description || t('noDescription')}
                   </p>
                 )
               ) : (
-                <p className="text-center text-body-sm text-gray-500">
+                <p className="text-center text-body-sm text-white">
                   {t('noDescription')}
                 </p>
               )}
@@ -343,7 +358,7 @@ export default function SoulmateDetailPage({
             {/* Career - 事业运势 */}
             <button
               onClick={() => toggleSection('career')}
-              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
+              className="w-full liquid-glass-card rounded-lg p-4 transition-all text-left"
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('career')}</h4>
@@ -353,7 +368,7 @@ export default function SoulmateDetailPage({
                 />
               </div>
               {expandedSection === 'career' && (
-                <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
+                <p className="mt-4 text-body-sm text-white leading-relaxed">
                   {character?.career || t('careerDesc')}
                 </p>
               )}
@@ -362,7 +377,7 @@ export default function SoulmateDetailPage({
             {/* Personality - 性格特点 */}
             <button
               onClick={() => toggleSection('personality')}
-              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
+              className="w-full liquid-glass-card rounded-lg p-4 transition-all text-left"
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('personality')}</h4>
@@ -372,7 +387,7 @@ export default function SoulmateDetailPage({
                 />
               </div>
               {expandedSection === 'personality' && (
-                <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
+                <p className="mt-4 text-body-sm text-white leading-relaxed">
                   {character?.personality || t('personalityDesc')}
                 </p>
               )}
@@ -381,7 +396,7 @@ export default function SoulmateDetailPage({
             {/* Meeting Time - 相遇时机 */}
             <button
               onClick={() => toggleSection('meetingTime')}
-              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
+              className="w-full liquid-glass-card rounded-lg p-4 transition-all text-left"
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('meetingTime')}</h4>
@@ -391,7 +406,7 @@ export default function SoulmateDetailPage({
                 />
               </div>
               {expandedSection === 'meetingTime' && (
-                <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
+                <p className="mt-4 text-body-sm text-white leading-relaxed">
                   {character?.meeting_time || t('meetingTimeDesc')}
                 </p>
               )}
@@ -400,7 +415,7 @@ export default function SoulmateDetailPage({
             {/* Distance - 距离预测 */}
             <button
               onClick={() => toggleSection('distance')}
-              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
+              className="w-full liquid-glass-card rounded-lg p-4 transition-all text-left"
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('distance')}</h4>
@@ -410,7 +425,7 @@ export default function SoulmateDetailPage({
                 />
               </div>
               {expandedSection === 'distance' && (
-                <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
+                <p className="mt-4 text-body-sm text-white leading-relaxed">
                   {character?.distance || t('distanceDesc')}
                 </p>
               )}
@@ -419,7 +434,7 @@ export default function SoulmateDetailPage({
             {/* Strength - 缘分优势 */}
             <button
               onClick={() => toggleSection('strength')}
-              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
+              className="w-full liquid-glass-card rounded-lg p-4 transition-all text-left"
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('strength')}</h4>
@@ -429,7 +444,7 @@ export default function SoulmateDetailPage({
                 />
               </div>
               {expandedSection === 'strength' && (
-                <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
+                <p className="mt-4 text-body-sm text-white leading-relaxed">
                   {character?.strength || t('strengthDesc')}
                 </p>
               )}
@@ -438,7 +453,7 @@ export default function SoulmateDetailPage({
             {/* Challenge - 成长机遇 */}
             <button
               onClick={() => toggleSection('challenge')}
-              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 transition-all text-left"
+              className="w-full liquid-glass-card rounded-lg p-4 transition-all text-left"
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-title-md font-bold">{t('challenge')}</h4>
@@ -448,7 +463,7 @@ export default function SoulmateDetailPage({
                 />
               </div>
               {expandedSection === 'challenge' && (
-                <p className="mt-4 text-body-sm text-gray-300 leading-relaxed">
+                <p className="mt-4 text-body-sm text-white leading-relaxed">
                   {character?.weakness || t('challengeDesc')}
                 </p>
               )}
@@ -456,29 +471,6 @@ export default function SoulmateDetailPage({
           </div>
         )}
 
-        {/* Bottom spacer for fixed button (increased to prevent content being hidden) */}
-        <div className="h-40" />
-      </div>
-
-      {/* Footer Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-gradient-to-t from-[#0B0218]/95 via-[#0B0218]/90 to-transparent backdrop-blur-sm z-50">
-        <div className="max-w-md mx-auto space-y-3">
-          {/* Primary: Start Chat */}
-          <Button
-            onClick={onNext}
-            className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold text-base rounded-xl shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2.5 transition-all"
-          >
-            <MessageSquare className="w-5 h-5" />
-            {t('startChat')}
-          </Button>
-          
-          {/* Share */}
-          <ShareButton
-            title={`Meet my ${rawTitle}!`}
-            text={`I just created a unique AI ${rawTitle} with ${targetScore}% compatibility on LauraAI! #LauraAI #BSC #Web3AI`}
-            className="w-full h-11 bg-white/10 hover:bg-white/15 border border-white/20 text-white font-semibold text-sm rounded-xl shadow-md shadow-black/10 transition-all backdrop-blur-sm flex items-center justify-center gap-2"
-          />
-        </div>
       </div>
     </div>
   )

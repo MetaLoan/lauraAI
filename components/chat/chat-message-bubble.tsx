@@ -64,7 +64,7 @@ export function ChatMessage({ message, isLast, onAction }: ChatMessageProps) {
                         "px-5 py-3.5 rounded-2xl text-sm md:text-base shadow-sm leading-relaxed whitespace-pre-wrap break-words",
                         isUser
                             ? "bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-br-sm"
-                            : "bg-white/10 text-gray-100 rounded-bl-sm border border-white/5 backdrop-blur-sm"
+                            : "liquid-glass-card text-white rounded-bl-sm"
                     )}
                 >
                     {/* Text Content */}
@@ -80,7 +80,7 @@ export function ChatMessage({ message, isLast, onAction }: ChatMessageProps) {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5 }}
-                            className="mt-4 p-4 rounded-xl bg-black/40 border border-white/10 overflow-hidden relative group/card"
+                            className="mt-4 p-4 rounded-xl liquid-glass-card overflow-hidden relative group/card"
                         >
                             <div className="absolute top-0 right-0 p-3 opacity-10 group-hover/card:opacity-20 transition-opacity">
                                 {message.insight.type === 'yield' && <Zap className="w-12 h-12 text-yellow-400" />}
@@ -97,13 +97,13 @@ export function ChatMessage({ message, isLast, onAction }: ChatMessageProps) {
                                 )}>
                                     {message.insight.type}
                                 </span>
-                                <span className="text-xs font-semibold text-white/90">{message.insight.title}</span>
+                                <span className="text-xs font-semibold text-white">{message.insight.title}</span>
                             </div>
 
                             <div className="flex items-end justify-between">
                                 <div>
                                     <div className="text-xl font-bold text-white leading-none">{message.insight.value}</div>
-                                    <div className="text-[10px] text-gray-400 mt-1 uppercase tracking-tight">{message.insight.label}</div>
+                                    <div className="text-[10px] text-white mt-1 uppercase tracking-tight">{message.insight.label}</div>
                                 </div>
                                 {onAction && (
                                     <Button
@@ -122,7 +122,7 @@ export function ChatMessage({ message, isLast, onAction }: ChatMessageProps) {
                     {/* Timestamp & Actions Row */}
                     <div className={cn(
                         "flex items-center gap-2 mt-1.5 opacity-60 text-[10px] select-none",
-                        isUser ? "justify-end text-purple-100" : "justify-start text-gray-400"
+                        isUser ? "justify-end text-white" : "justify-start text-white"
                     )}>
                         <span>
                             {new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }).format(new Date(message.timestamp))}
@@ -134,7 +134,7 @@ export function ChatMessage({ message, isLast, onAction }: ChatMessageProps) {
                 <button
                     onClick={handleCopy}
                     className={cn(
-                        "absolute top-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full bg-black/40 text-white/80 hover:bg-black/60",
+                        "absolute top-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full bg-black/40 text-white hover:bg-black/60",
                         isUser ? "-left-10" : "-right-10"
                     )}
                     title="Copy message"
@@ -149,7 +149,7 @@ export function ChatMessage({ message, isLast, onAction }: ChatMessageProps) {
 export function TypingIndicator() {
     return (
         <div className="flex justify-start w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-white/10 border border-white/5 px-4 py-3 rounded-2xl rounded-bl-sm flex items-center gap-1.5 min-w-[60px]">
+            <div className="liquid-glass-card px-4 py-3 rounded-2xl rounded-bl-sm flex items-center gap-1.5 min-w-[60px]">
                 <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
                 <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
                 <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" />

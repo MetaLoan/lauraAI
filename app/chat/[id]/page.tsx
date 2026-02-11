@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Send, ArrowLeft, Loader2, Sparkles, MessageSquarePlus, Wallet } from 'lucide-react';
+import { Send, ArrowLeft, Loader2, Sparkles, MessageSquarePlus } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/api';
@@ -244,7 +244,7 @@ export default function ChatPage() {
         return (
             <AppLayout>
                 <div className="flex items-center justify-center h-full">
-                    <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                    <Loader2 className="w-8 h-8 animate-spin text-white" />
                 </div>
             </AppLayout>
         );
@@ -252,15 +252,15 @@ export default function ChatPage() {
 
     return (
         <AppLayout>
-            <div className="flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-80px)] max-w-4xl mx-auto w-full bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative">
+            <div className="flex flex-col h-[calc(100vh-188px)] md:h-[calc(100vh-144px)] max-w-4xl mx-auto w-full liquid-glass-card rounded-2xl overflow-hidden relative">
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5 backdrop-blur-sm z-10 sticky top-0">
-                    <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')} className="hover:bg-white/10 text-white/70 hover:text-white rounded-full">
+                <div className="flex items-center justify-between px-4 py-3 glass-bar rounded-none z-10 flex-shrink-0">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')} className="hover:bg-white/10 text-white hover:text-white rounded-full flex-shrink-0">
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
-                        <div className="relative w-10 h-10 rounded-full overflow-hidden border border-purple-500/30">
+                        <div className="relative w-10 h-10 rounded-full overflow-hidden border border-purple-500/30 flex-shrink-0">
                             {character?.image_url || character?.image ? (
                                 <Image
                                     src={getFullImageUrl(character?.image_url || character?.image || '')}
@@ -274,38 +274,31 @@ export default function ChatPage() {
                                 </div>
                             )}
                         </div>
-                        <div>
-                            <h2 className="font-semibold text-base leading-tight text-white/90">{character?.title || 'AI Soulmate'}</h2>
+                        <div className="min-w-0">
+                            <h2 className="font-semibold text-base leading-tight text-white truncate">{character?.title || 'AI Soulmate'}</h2>
                             <div className="flex items-center gap-1.5 text-[10px] text-green-400 font-medium tracking-wide uppercase">
-                                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]" />
+                                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)] flex-shrink-0" />
                                 Online
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 px-3 py-1 bg-purple-500/10 rounded-full border border-purple-500/20 shadow-inner">
-                        <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                        <span className="text-[10px] font-semibold text-purple-300 uppercase tracking-widest">Level 1 Bond</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20 shadow-inner ml-2">
-                        <Wallet className="w-3.5 h-3.5 text-green-400" />
-                        <span className="text-[10px] font-semibold text-green-300 uppercase tracking-widest">{Math.floor(lraBalance)} LRA</span>
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full border shadow-inner ml-2 ${isLimitReached ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
-                        <span className={`text-[10px] font-semibold uppercase tracking-widest ${isLimitReached ? 'text-red-400' : 'text-gray-400'}`}>{dailyRemaining}/{dailyLimit} msgs</span>
+                    <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                        <span className="text-[10px] font-medium text-white whitespace-nowrap">{Math.floor(lraBalance)} LRA Earned</span>
+                        <span className={`text-[10px] font-semibold uppercase tracking-widest ${isLimitReached ? 'text-red-400' : 'text-white'}`}>{dailyRemaining}/{dailyLimit} msgs</span>
                     </div>
                 </div>
 
                 {/* Chat Area */}
-                <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 scroll-smooth scrollbar-thin scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20 scrollbar-track-transparent">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-6 scroll-smooth scrollbar-thin scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20 scrollbar-track-transparent">
                     {messages.length === 0 && messagesLoaded && (
-                        <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 px-8 animate-in fade-in zoom-in duration-500">
+                        <div className="flex flex-col items-center justify-center h-full text-center text-white px-8 animate-in fade-in zoom-in duration-500">
                             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
-                                <MessageSquarePlus className="w-8 h-8 text-white/20" />
+                                <MessageSquarePlus className="w-8 h-8 text-white" />
                             </div>
-                            <p className="text-lg font-medium text-white/80">Start a conversation</p>
-                            <p className="text-sm mt-1 text-white/40">Your soulmate is waiting to connect with you.</p>
-                            <div className="mt-8 text-xs px-3 py-1 bg-purple-500/10 text-purple-300 rounded-full border border-purple-500/20">
+                            <p className="text-lg font-medium text-white">Start a conversation</p>
+                            <p className="text-sm mt-1 text-white">Your soulmate is waiting to connect with you.</p>
+                            <div className="mt-8 text-xs px-3 py-1 bg-purple-500/10 text-white rounded-full border border-purple-500/20">
                                 Earn +5 LRA per Message
                             </div>
                         </div>
@@ -332,24 +325,23 @@ export default function ChatPage() {
                     <div ref={messagesEndRef} className="h-4 w-full" />
                 </div>
 
-                {/* Input Area */}
-                <div className="px-4 pb-4 pt-2 bg-gradient-to-t from-black via-black/80 to-transparent sticky bottom-0 z-20">
+                {/* Input Area - 无渐变，不遮挡内容 */}
+                <div className="px-4 pb-4 pt-2 flex-shrink-0 z-20">
                     {isLimitReached ? (
                         <div className="text-center py-4 px-6 bg-red-500/10 border border-red-500/20 rounded-2xl">
                             <p className="text-red-300 font-medium text-sm">Daily message limit reached ({dailyLimit}/{dailyLimit})</p>
-                            <p className="text-gray-500 text-xs mt-1">Come back tomorrow for more conversations!</p>
+                            <p className="text-white text-xs mt-1">Come back tomorrow for more conversations!</p>
                         </div>
                     ) : (
-                    <div className="relative group p-1 rounded-[28px] bg-gradient-to-r from-white/10 via-white/5 to-white/10 p-[1px]">
-                        {/* Gradient Border Content Wrapper */}
-                        <div className="flex gap-2 bg-black/80 backdrop-blur-xl rounded-[26px] p-1.5 pl-4 items-center shadow-lg border border-white/5">
+                    <div className="relative group p-1 rounded-[28px]">
+                        <div className="flex gap-2 liquid-glass-card rounded-[26px] p-1.5 pl-4 items-center">
                             <input
                                 type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                                 placeholder="Type a message..."
-                                className="flex-1 bg-transparent text-white/90 placeholder:text-white/30 text-sm focus:outline-none min-h-[44px]"
+                                className="flex-1 bg-transparent text-white placeholder:text-white text-sm focus:outline-none min-h-[44px]"
                                 disabled={isSending || isStreaming}
                                 autoFocus
                             />
@@ -358,13 +350,13 @@ export default function ChatPage() {
                                 size="icon"
                                 className={`rounded-full w-10 h-10 transition-all duration-300 ${inputValue.trim()
                                     ? 'bg-white text-black hover:bg-white/90 hover:scale-105 shadow-[0_0_15px_rgba(255,255,255,0.3)]'
-                                    : 'bg-white/10 text-white/30 hover:bg-white/20'
+                                    : 'bg-white/10 text-white hover:bg-white/20'
                                     }`}
                                 onClick={handleSendMessage}
                                 disabled={!inputValue.trim() || isSending || isStreaming}
                             >
                                 {isSending || isStreaming ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <Loader2 className="w-4 h-4 animate-spin text-white" />
                                 ) : (
                                     <Send className="w-4 h-4 ml-0.5" />
                                 )}
@@ -372,12 +364,6 @@ export default function ChatPage() {
                         </div>
                     </div>
                     )}
-
-                    <div className="text-center mt-2 opacity-60 hover:opacity-100 transition-opacity">
-                        <span className="text-[10px] text-gray-500 font-medium tracking-wide uppercase">
-                            +5 LRA / message · {dailyRemaining} left today
-                        </span>
-                    </div>
 
                     {/* Floating Earn Animation */}
                     <AnimatePresence>

@@ -30,7 +30,7 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
     try {
       // 1. 检查文件类型并进行初步处理
       let processingFile = file
-      
+
       // 处理 iOS 特有的 HEIC 格式
       if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic') {
         setUploadStatus(t('converting'))
@@ -40,7 +40,7 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
           toType: 'image/jpeg',
           quality: 0.8
         })
-        
+
         // heic2any 可能返回数组或单个 blob
         const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob
         processingFile = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), {
@@ -60,11 +60,11 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
       }
 
       const compressedFile = await imageCompression(processingFile, options)
-      
+
       // 检查压缩后的文件大小
       console.log('Original size:', file.size / 1024 / 1024, 'MB')
       console.log('Processed size:', compressedFile.size / 1024 / 1024, 'MB')
-      
+
       // 3. 直接上传并生成 Mini Me（无需预付费，和其他角色一样后置付费解锁）
       setUploadStatus(t('analyzing'))
       const result = await apiClient.generateMiniMe(compressedFile)
@@ -96,10 +96,10 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
         accept="image/*"
         onChange={handleFileSelect}
       />
-      
+
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto px-6 scrollbar-hide">
-        <div 
+        <div
           className="flex flex-col items-center justify-center min-h-full pb-8"
           style={{
             paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px))'
@@ -114,23 +114,23 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
           </h2>
 
           {/* Description */}
-          <p className="text-body-md text-gray-400 text-center max-w-sm mb-8">
+          <p className="text-body-md text-white text-center max-w-sm mb-8">
             {t('uploadHint')}
           </p>
 
           {/* Phone Illustration */}
           <div className="relative mb-8">
-            <div className="w-40 h-64 bg-gradient-to-b from-white/10 to-white/5 rounded-3xl border-2 border-white/20 flex items-center justify-center p-2">
+            <div className="w-40 h-64 liquid-glass-card rounded-3xl flex items-center justify-center p-2">
               <div className="w-full h-full rounded-2xl bg-gradient-to-b from-gray-400 to-gray-600 flex items-center justify-center overflow-hidden">
                 {isUploading ? (
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="w-10 h-10 animate-spin text-white" />
-                    <span className="text-xs text-white/70 px-4 text-center">
+                    <span className="text-xs text-white px-4 text-center">
                       {uploadStatus || t('analyzing')}
                     </span>
                   </div>
                 ) : (
-                  <div className="text-7xl">👤</div>
+                  <img src="/icons/3d/profile.png" className="w-20 h-20 object-contain opacity-50" alt="Profile" />
                 )}
               </div>
             </div>
