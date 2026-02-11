@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
-import { useTranslations, useI18n } from '@/components/i18n-provider'
 
 interface DrawingLoadingProps {
   onBack?: () => void
@@ -11,35 +10,16 @@ interface DrawingLoadingProps {
   characterTitle?: string
 }
 
-// 多语言步骤映射
+// Calculation steps (English only for consistency)
 const getCalculationSteps = (locale: string) => {
-  const steps: Record<string, Array<{ text: string; duration: number }>> = {
-    en: [
-      { text: "Initializing quantum astrology engine...", duration: 2000 },
-      { text: "Analyzing birth chart coordinates...", duration: 2500 },
-      { text: "Retrieving planetary data from NASA JPL...", duration: 3000 },
-      { text: "Calculating compatibility vectors...", duration: 2500 },
-      { text: "Synthesizing facial features...", duration: 3000 },
-      { text: "Rendering high-resolution portrait...", duration: 4000 },
-    ],
-    zh: [
-      { text: "Initializing quantum astro engine...", duration: 2000 },
-      { text: "Analyzing chart coordinates...", duration: 2500 },
-      { text: "Fetching planetary data from NASA JPL...", duration: 3000 },
-      { text: "Computing compatibility vectors...", duration: 2500 },
-      { text: "Synthesizing facial features...", duration: 3000 },
-      { text: "Rendering HD portrait...", duration: 4000 },
-    ],
-    ru: [
-      { text: "Инициализация квантового астрологического движка...", duration: 2000 },
-      { text: "Анализ координат натальной карты...", duration: 2500 },
-      { text: "Получение планетарных данных от NASA JPL...", duration: 3000 },
-      { text: "Расчёт векторов совместимости...", duration: 2500 },
-      { text: "Синтез черт лица...", duration: 3000 },
-      { text: "Рендеринг портрета высокого разрешения...", duration: 4000 },
-    ],
-  }
-  return steps[locale] || steps.en
+  return [
+    { text: "Initializing quantum astrology engine...", duration: 2000 },
+    { text: "Analyzing birth chart coordinates...", duration: 2500 },
+    { text: "Retrieving planetary data from NASA JPL...", duration: 3000 },
+    { text: "Calculating compatibility vectors...", duration: 2500 },
+    { text: "Synthesizing facial features...", duration: 3000 },
+    { text: "Rendering high-resolution portrait...", duration: 4000 },
+  ]
 }
 
 // Random coordinates for the data overlay effect
@@ -58,34 +38,11 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
   const [progress, setProgress] = useState(0)
   const [dataOverlay, setDataOverlay] = useState({ coords: '', binary: '' })
   
-  const { t } = useTranslations('loading')
-  const { t: tCommon } = useTranslations('common')
-  const { t: tErrors } = useTranslations('errors')
-  const { t: tCharacters } = useTranslations('characters')
-  const { locale } = useI18n()
+  // Always use English calculation steps
+  const calculationSteps = useMemo(() => getCalculationSteps('en'), [])
 
-  const calculationSteps = useMemo(() => getCalculationSteps(locale), [locale])
-
-  // 获取本地化的角色名称
-  const getLocalizedCharacterTitle = () => {
-    const characterTypeToKey: Record<string, string> = {
-      'Soulmate': 'soulmate',
-      'Mini Me': 'miniMe',
-      'Future Husband': 'futureHusband',
-      'Future Baby': 'futureBaby',
-      'Future Wife': 'futureWife',
-      'Boyfriend': 'boyfriend',
-      'Best Friend': 'bestFriend',
-      'Girlfriend': 'girlfriend',
-      'Mysterious Stranger': 'mysteriousStranger',
-      'Wise Mentor': 'wiseMentor',
-      'Dream Guide': 'dreamGuide',
-    }
-    const key = characterTypeToKey[characterTitle]
-    return key ? tCharacters(key) : characterTitle
-  }
-
-  const localizedTitle = getLocalizedCharacterTitle()
+  // Use the character title directly (already in English from create page)
+  const localizedTitle = characterTitle
 
   // Step progression logic
   useEffect(() => {
@@ -142,8 +99,8 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
       }}
     >
           <div className="w-full max-w-md text-center px-4">
-            <h1 className="text-title-lg mb-4 text-red-500 text-balance flex-shrink-0">{tErrors('generationFailed')}</h1>
-            <p className="text-body-lg text-gray-400 max-w-md mx-auto">
+            <h1 className="text-3xl font-bold mb-4 text-red-500">Generation Failed</h1>
+            <p className="text-lg text-gray-400 max-w-md mx-auto">
               {error}
             </p>
           </div>
@@ -159,7 +116,7 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
                 className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 rounded-full font-semibold transition-colors"
               >
                 <RefreshCw className="w-5 h-5" />
-                {tCommon('retry')}
+                Retry
               </button>
             )}
           </div>
@@ -174,12 +131,10 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
         paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
       }}
     >
-      {/* Header */}
+      {/* Header - Simplified */}
       <div className="w-full max-w-md text-center px-4 mb-8">
-            <h1 className="text-title-lg mb-4 text-balance flex-shrink-0">{t('drawing', { character: localizedTitle })}</h1>
-            <p className="text-body-lg text-gray-400 max-w-md mx-auto">
-              {t('generating')}
-            </p>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Creating Your {localizedTitle}</h1>
+            <p className="text-sm text-gray-500 uppercase tracking-widest">AI Generation in Progress</p>
           </div>
 
       {/* Central Animation Container */}
@@ -308,13 +263,6 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
         </div>
       </div>
 
-      {/* Warning */}
-          <div className="w-full mb-8 flex items-center justify-center gap-2 text-body-sm text-gray-400">
-            <div className="w-5 h-5 rounded-full border border-yellow-600 flex-shrink-0 flex items-center justify-center">
-              <span className="text-xs">⚠</span>
-            </div>
-        <p>{t('pleaseWait')}</p>
-          </div>
     </div>
   )
 }

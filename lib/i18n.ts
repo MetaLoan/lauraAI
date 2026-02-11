@@ -13,15 +13,9 @@ export const localeNames: Record<Locale, string> = {
 };
 
 // Map browser language code to app locale
+// FIXED: Always return English to ensure consistent English UI
 export function mapBrowserLocale(browserLang: string | undefined): Locale {
-  if (!browserLang) return defaultLocale;
-  
-  const lang = browserLang.toLowerCase();
-  
-  if (lang.startsWith('zh')) return 'zh';
-  if (lang.startsWith('ru')) return 'ru';
-  
-  return 'en';
+  return 'en'; // Force English for all users
 }
 
 // 验证语言是否支持
