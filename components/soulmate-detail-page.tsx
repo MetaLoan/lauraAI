@@ -126,8 +126,13 @@ export default function SoulmateDetailPage({
     if (!address || !character?.id) return
     setIsMinting(true)
     try {
-      // Build NFT metadata URI pointing to our backend
-      const metadataURI = `${apiClient.baseURL}/nft/metadata/${character.id}`
+      // Build NFT metadata URI with full HTTPS URL (required by NFT standards)
+      const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+        ? 'http://localhost:8081'
+        : 'https://lauraai-backend.fly.dev'
+      const metadataURI = `${baseUrl}/api/nft/metadata/${character.id}`
+      
+      console.log('Minting NFT with metadata URI:', metadataURI)
       
       await writeContractAsync({
         address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
@@ -491,42 +496,48 @@ export default function SoulmateDetailPage({
         <div className="h-32" />
       </div>
 
-      {/* Footer Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-transparent z-50">
-        <div className="max-w-md mx-auto space-y-2">
-          <div className="flex gap-3">
+      {/* Footer Buttons - Redesigned 3-button layout */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-gradient-to-t from-[#0B0218]/95 via-[#0B0218]/90 to-transparent backdrop-blur-sm z-50">
+        <div className="max-w-md mx-auto space-y-3">
+          {/* Primary: Start Chat */}
+          <Button
+            onClick={onNext}
+            className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold text-base rounded-xl shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2.5 transition-all"
+          >
+            <MessageSquare className="w-5 h-5" />
+            {t('startChat')}
+          </Button>
+          
+          {/* Secondary Actions Row */}
+          <div className="flex gap-2.5">
+            {/* Mint NFT */}
             <Button
-              onClick={onNext}
-              className="btn-primary flex-1 flex items-center justify-center gap-2"
+              onClick={handleMintNFT}
+              disabled={isMinting || mintSuccess || !address}
+              className={cn(
+                "flex-1 h-11 flex items-center justify-center gap-2 font-semibold text-sm rounded-xl transition-all shadow-md",
+                mintSuccess
+                  ? "bg-green-600 hover:bg-green-700 text-white shadow-green-500/20"
+                  : "bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-amber-500/20",
+                (isMinting || !address) && "opacity-60 cursor-not-allowed"
+              )}
             >
-              <MessageSquare className="w-5 h-5" />
-              {t('startChat')}
+              {isMinting ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Minting...</>
+              ) : mintSuccess ? (
+                <>✓ Minted</>
+              ) : (
+                <><Gem className="w-4 h-4" /> Mint NFT</>
+              )}
             </Button>
+            
+            {/* Share */}
             <ShareButton
               title={`Meet my ${rawTitle}!`}
-              text={`I just minted a unique AI ${rawTitle} with ${targetScore}% compatibility on LauraAI! #LauraAI #BSC #Web3AI`}
-              className="flex-1 h-11"
+              text={`I just created a unique AI ${rawTitle} with ${targetScore}% compatibility on LauraAI! #LauraAI #BSC #Web3AI`}
+              className="flex-1 h-11 bg-white/10 hover:bg-white/15 border border-white/20 text-white font-semibold text-sm rounded-xl shadow-md shadow-black/10 transition-all backdrop-blur-sm flex items-center justify-center gap-2"
             />
           </div>
-          {/* Mint as NFT */}
-          <Button
-            onClick={handleMintNFT}
-            disabled={isMinting || mintSuccess || !address}
-            className={cn(
-              "w-full h-11 flex items-center justify-center gap-2 font-bold text-sm transition-all",
-              mintSuccess
-                ? "bg-green-600 hover:bg-green-700 text-white"
-                : "bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
-            )}
-          >
-            {isMinting ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Minting NFT...</>
-            ) : mintSuccess ? (
-              <>Minted Successfully!</>
-            ) : (
-              <><Gem className="w-4 h-4" /> Mint as NFT</>
-            )}
-          </Button>
         </div>
       </div>
     </div>

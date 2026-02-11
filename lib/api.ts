@@ -17,32 +17,8 @@ const REQUEST_TIMEOUT = 15000
 const LOCALE_STORAGE_KEY = 'laura-ai-locale'
 
 // 获取当前语言（用于 API 请求）
+// FIXED: Always return 'en' to ensure consistent English UI and API responses
 function getCurrentLocaleForApi(): string {
-  if (typeof window === 'undefined') return 'en'
-
-  // 1. 优先使用 localStorage 中保存的语言偏好
-  try {
-    if (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function') {
-      const savedLocale = localStorage.getItem(LOCALE_STORAGE_KEY)
-      if (savedLocale && ['en', 'zh', 'ru'].includes(savedLocale)) {
-        return savedLocale
-      }
-    }
-  } catch {
-    // localStorage 不可用
-  }
-
-  // 2. 尝试使用浏览器语言
-  if (typeof navigator !== 'undefined') {
-    const browserLang = navigator.language || (navigator as any).userLanguage
-    if (browserLang) {
-      const lang = browserLang.toLowerCase()
-      if (lang.startsWith('zh')) return 'zh'
-      if (lang.startsWith('ru')) return 'ru'
-    }
-  }
-
-  // 3. 默认英语
   return 'en'
 }
 
