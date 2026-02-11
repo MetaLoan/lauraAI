@@ -12,22 +12,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getFullImageUrl } from '@/lib/utils';
 import SoulmateDetailPage from '@/components/soulmate-detail-page';
 
-// Character type labels
-const TYPE_LABELS: Record<string, string> = {
-    soulmate: 'Soulmate',
-    girlfriend: 'AI Girlfriend',
-    boyfriend: 'AI Boyfriend',
-    best_friend: 'Best Friend',
-    future_wife: 'Future Wife',
-    future_husband: 'Future Husband',
-    future_baby: 'Future Baby',
-    companion: 'Companion',
-    wise_mentor: 'Wise Mentor',
-    dream_guide: 'Dream Guide',
-    mysterious_stranger: 'Mysterious Stranger',
-    mini_me: 'Mini Me',
-};
-
 interface Character {
     id: string;
     title: string;
@@ -164,11 +148,6 @@ export default function MySoulmatePage() {
 
                                             {/* Gradient Overlay */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-
-                                            {/* Type Badge - Top Right with enhanced visibility */}
-                                            <div className="absolute top-3 right-3 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-purple-600/90 to-pink-600/90 backdrop-blur-md border border-white/30 text-white shadow-lg shadow-purple-500/50">
-                                                {TYPE_LABELS[char.type] || char.type}
-                                            </div>
 
                                             {/* Content Overlay */}
                                             <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
