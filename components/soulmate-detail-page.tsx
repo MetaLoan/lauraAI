@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Share2, Loader2, MessageSquare, ExternalLink, Gem } from 'lucide-react'
+import { ChevronDown, Share2, Loader2, MessageSquare, ExternalLink, Gem, Star } from 'lucide-react'
 import { getFullImageUrl, cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
 import { apiClient } from '@/lib/api'
@@ -305,7 +305,8 @@ export default function SoulmateDetailPage({
           <div className="w-full max-w-[280px] flex items-center justify-between px-2 flex-shrink-0">
             <h2 className="text-title-lg font-bold">{title}</h2>
             {!isMiniMe && targetScore && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 backdrop-blur-sm">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/90 to-orange-500/90 border border-amber-400/50 backdrop-blur-sm shadow-lg shadow-amber-500/30">
+                <Star className="w-4 h-4 text-yellow-300 fill-yellow-300" />
                 <span className="text-xl font-bold text-white">{score}%</span>
               </div>
             )}
