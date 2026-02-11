@@ -170,17 +170,18 @@ export default function MySoulmatePage() {
                                                 {TYPE_LABELS[char.type] || char.type}
                                             </div>
 
-                                            {/* Compatibility */}
-                                            {char.compatibility && (
-                                                <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
-                                                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                                    <span className="text-[10px] font-bold text-white">{char.compatibility}%</span>
-                                                </div>
-                                            )}
-
                                             {/* Content Overlay */}
                                             <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
-                                                <h3 className="text-lg font-bold text-white mb-1 truncate">{char.title}</h3>
+                                                {/* Title row: title left, percentage right */}
+                                                <div className="flex items-center justify-between gap-2 mb-1">
+                                                    <h3 className="text-lg font-bold text-white truncate min-w-0">{char.title}</h3>
+                                                    {char.compatibility != null && (
+                                                        <span className="flex items-center gap-1 flex-shrink-0 text-sm font-bold text-white">
+                                                            <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                                                            {char.compatibility}%
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 {char.astro_sign && (
                                                     <p className="text-xs text-purple-300/80 mb-3">{char.astro_sign}</p>
                                                 )}
