@@ -15,6 +15,11 @@ import imageCompression from 'browser-image-compression';
 import { parseUnits } from 'viem';
 import { getAssetPath } from '@/lib/utils';
 import {
+    confirmWithRecovery,
+    flushPendingMintConfirms,
+    getPendingMintConfirm,
+} from '@/lib/mint-confirm-recovery';
+import {
     LAURA_AI_SOULMATE_ABI,
     LAURA_AI_SOULMATE_ADDRESS,
     LAURA_AI_TOKEN_ABI,
@@ -128,6 +133,14 @@ export default function CreateMiniMePage() {
         return () => { cancelled = true; };
     }, [isConnected]);
 
+    // Recover pending mint confirmations from previous interrupted sessions.
+    useEffect(() => {
+        if (!isConnected) return;
+        flushPendingMintConfirms((orderId, txHash) => apiClient.confirmMintOrder(orderId, txHash)).catch(() => {
+            // ignore background recovery errors
+        });
+    }, [isConnected]);
+
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !address) return;
@@ -186,6 +199,31 @@ export default function CreateMiniMePage() {
                 token_amount_wei: mintPrice.toString(),
             })
 
+            const orderId = String(mintOrderResult.order?.id || '');
+            if (!mintOrderResult?.already_paid && orderId) {
+                // If previous payment tx exists locally for this pending order,
+                // confirm it first to avoid duplicate on-chain payment.
+                const pendingConfirm = getPendingMintConfirm(orderId);
+                if (pendingConfirm?.txHash) {
+                    const recovered = await confirmWithRecovery(
+                        orderId,
+                        pendingConfirm.txHash,
+                        (id, hash) => apiClient.confirmMintOrder(id, hash),
+                        2
+                    );
+                    if (recovered) {
+                        setMintStep('generating');
+                        const charId = character.id.toString();
+                        setGeneratingCharacterId(charId);
+                        apiClient.generateImage(charId).catch((err: any) => {
+                            console.warn('Generate image request sent:', err);
+                        });
+                        startPolling(charId);
+                        return;
+                    }
+                }
+            }
+
             if (!mintOrderResult?.already_paid) {
                 // 3a. Approve FF token spending (1 FF)
                 await writeContractAsync({
@@ -204,7 +242,14 @@ export default function CreateMiniMePage() {
                 });
 
                 // 3c. Confirm mint order
-                await apiClient.confirmMintOrder(String(mintOrderResult.order?.id), txHash as string);
+                const confirmed = await confirmWithRecovery(
+                    String(mintOrderResult.order?.id),
+                    txHash as string,
+                    (id, hash) => apiClient.confirmMintOrder(id, hash)
+                );
+                if (!confirmed) {
+                    throw new Error('Payment sent on-chain. Confirmation is pending and will auto-retry.');
+                }
             }
 
             // 4. Trigger image generation

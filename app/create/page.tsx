@@ -12,6 +12,11 @@ import { useAccount, useWriteContract } from 'wagmi';
 import { parseUnits } from 'viem';
 import Image from 'next/image';
 import { getAssetPath, getFullImageUrl } from '@/lib/utils';
+import {
+    confirmWithRecovery,
+    flushPendingMintConfirms,
+    getPendingMintConfirm,
+} from '@/lib/mint-confirm-recovery';
 import SoulmateDetailPage from '@/components/soulmate-detail-page';
 import DrawingLoading from '@/components/drawing-loading';
 import {
@@ -253,6 +258,14 @@ export default function CreatePage() {
         loadProfile();
     }, []);
 
+    // Recover pending mint confirmations from previous interrupted sessions.
+    useEffect(() => {
+        if (!isConnected) return;
+        flushPendingMintConfirms((orderId, txHash) => apiClient.confirmMintOrder(orderId, txHash)).catch(() => {
+            // ignore background recovery errors
+        });
+    }, [isConnected]);
+
     // ============ 保存用户资料 ============
     const [isSavingProfile, setIsSavingProfile] = useState(false);
 
@@ -376,6 +389,31 @@ export default function CreatePage() {
                 token_amount_wei: mintPrice.toString(),
             })
 
+            const orderId = String(mintOrderResult.order?.id || '');
+            if (!mintOrderResult?.already_paid && orderId) {
+                // If previous payment tx exists locally for this pending order,
+                // confirm it first to avoid duplicate on-chain payment.
+                const pendingConfirm = getPendingMintConfirm(orderId);
+                if (pendingConfirm?.txHash) {
+                    const recovered = await confirmWithRecovery(
+                        orderId,
+                        pendingConfirm.txHash,
+                        (id, hash) => apiClient.confirmMintOrder(id, hash),
+                        2
+                    );
+                    if (recovered) {
+                        setMintStep('generating');
+                        const charId = character.id.toString();
+                        setGeneratingCharacterId(charId);
+                        apiClient.generateImage(charId).catch((err: any) => {
+                            console.warn('Generate image request sent (continues in background):', err);
+                        });
+                        startPolling(charId);
+                        return;
+                    }
+                }
+            }
+
             // already paid: skip chain payment and continue generation
             if (mintOrderResult?.already_paid) {
                 setMintStep('generating');
@@ -413,7 +451,14 @@ export default function CreatePage() {
             });
 
             // Step 3c: Confirm order with on-chain tx hash
-            await apiClient.confirmMintOrder(String(mintOrderResult.order?.id), txHash as string)
+            const confirmed = await confirmWithRecovery(
+                String(mintOrderResult.order?.id),
+                txHash as string,
+                (id, hash) => apiClient.confirmMintOrder(id, hash)
+            );
+            if (!confirmed) {
+                throw new Error('Payment sent on-chain. Confirmation is pending and will auto-retry.');
+            }
 
             // Step 4: Mint succeeded → 触发后台生图（后端异步，客户端关闭不影响）
             setMintStep('generating');
