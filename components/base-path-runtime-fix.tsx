@@ -31,32 +31,31 @@ export function BasePathRuntimeFix() {
     };
 
     patchAll();
+    requestAnimationFrame(() => patchAll());
 
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.target instanceof Element) {
-          patchElement(mutation.target);
-          return;
-        }
+    const onRouteLikeChange = () => patchAll();
+    window.addEventListener('popstate', onRouteLikeChange);
+    window.addEventListener('hashchange', onRouteLikeChange);
 
-        mutation.addedNodes.forEach((node) => {
-          if (!(node instanceof Element)) return;
-          patchElement(node);
-          node.querySelectorAll?.('[src], [href], [poster]').forEach((el) => patchElement(el));
-        });
-      });
-    });
+    const originalPushState = history.pushState.bind(history);
+    const originalReplaceState = history.replaceState.bind(history);
 
-    observer.observe(document.documentElement, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['src', 'href', 'poster'],
-    });
+    history.pushState = function pushStateWrapper(...args) {
+      originalPushState(...args);
+      onRouteLikeChange();
+    };
+    history.replaceState = function replaceStateWrapper(...args) {
+      originalReplaceState(...args);
+      onRouteLikeChange();
+    };
 
-    return () => observer.disconnect();
+    return () => {
+      window.removeEventListener('popstate', onRouteLikeChange);
+      window.removeEventListener('hashchange', onRouteLikeChange);
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
+    };
   }, []);
 
   return null;
 }
-

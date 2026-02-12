@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 type OrbConfig = {
   sizeVmax: number;
@@ -13,6 +13,12 @@ const ORBS: OrbConfig[] = [
   { sizeVmax: 52, color: 'rgba(168, 85, 247, 1)', blurPx: 130, opacity: 0.5 }, // purple
   { sizeVmax: 46, color: 'rgba(250, 204, 21, 1)', blurPx: 120, opacity: 0.4 }, // yellow
   { sizeVmax: 50, color: 'rgba(59, 130, 246, 1)', blurPx: 130, opacity: 0.46 },  // blue
+];
+
+const ORBS_SAFARI: OrbConfig[] = [
+  { sizeVmax: 44, color: 'rgba(168, 85, 247, 1)', blurPx: 76, opacity: 0.34 },
+  { sizeVmax: 40, color: 'rgba(250, 204, 21, 1)', blurPx: 70, opacity: 0.28 },
+  { sizeVmax: 42, color: 'rgba(59, 130, 246, 1)', blurPx: 76, opacity: 0.32 },
 ];
 
 type OrbState = {
@@ -31,12 +37,21 @@ function rand(min: number, max: number) {
 export function AmbientOrbsBg() {
   const containerRef = useRef<HTMLDivElement>(null);
   const orbRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [isSafari, setIsSafari] = useState(false);
+
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    const safari = /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS/i.test(ua);
+    setIsSafari(safari);
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+    const orbConfig = isSafari ? ORBS_SAFARI : ORBS;
 
     let raf = 0;
+    let lastFrameTs = 0;
     let width = container.clientWidth;
     let height = container.clientHeight;
 
@@ -46,7 +61,7 @@ export function AmbientOrbsBg() {
       y: rand(-size * 0.25, height - size * 0.75),
     });
 
-    const states: OrbState[] = ORBS.map((orb) => {
+    const states: OrbState[] = orbConfig.map((orb) => {
       const size = (Math.min(width, height) * orb.sizeVmax) / 100;
       const start = getRandomPos(size);
       const target = getRandomPos(size);
@@ -64,11 +79,17 @@ export function AmbientOrbsBg() {
       width = container.clientWidth;
       height = container.clientHeight;
       states.forEach((s, i) => {
-        s.size = (Math.min(width, height) * ORBS[i].sizeVmax) / 100;
+        s.size = (Math.min(width, height) * orbConfig[i].sizeVmax) / 100;
       });
     };
 
     const tick = (now: number) => {
+      if (isSafari && now - lastFrameTs < 33) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      lastFrameTs = now;
+
       for (let i = 0; i < states.length; i++) {
         const s = states[i];
         const el = orbRefs.current[i];
@@ -82,8 +103,8 @@ export function AmbientOrbsBg() {
         }
 
         // very slow lerp movement
-        s.x += (s.tx - s.x) * 0.0035;
-        s.y += (s.ty - s.y) * 0.0035;
+        s.x += (s.tx - s.x) * (isSafari ? 0.0022 : 0.0035);
+        s.y += (s.ty - s.y) * (isSafari ? 0.0022 : 0.0035);
 
         el.style.width = `${s.size}px`;
         el.style.height = `${s.size}px`;
@@ -102,7 +123,7 @@ export function AmbientOrbsBg() {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [isSafari]);
 
   return (
     <div
@@ -110,13 +131,13 @@ export function AmbientOrbsBg() {
       className="absolute inset-0 overflow-hidden pointer-events-none z-0"
       aria-hidden
     >
-      {ORBS.map((orb, i) => (
+      {(isSafari ? ORBS_SAFARI : ORBS).map((orb, i) => (
         <div
           key={i}
           ref={(el) => {
             orbRefs.current[i] = el;
           }}
-          className="absolute rounded-full will-change-transform mix-blend-screen"
+          className={`absolute rounded-full will-change-transform ${isSafari ? '' : 'mix-blend-screen'}`}
           style={{
             left: 0,
             top: 0,

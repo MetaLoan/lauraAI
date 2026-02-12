@@ -283,6 +283,44 @@ body {
   scrollbar-width: none;
 }
 
+/* Safari performance fallback: disable heavy SVG distortion and reduce blur workload */
+@supports (-webkit-touch-callout: none) {
+  .liquid-glass-card::before,
+  .glass-bar::before {
+    filter: none !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
+    opacity: 0.7;
+  }
+
+  .liquid-glass-card::after,
+  .glass-bar::after {
+    -webkit-mask: none !important;
+    mask: none !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)) !important;
+  }
+
+  .liquid-glass-card,
+  .glass-bar {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+
+  .backdrop-blur-md {
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+
+  .backdrop-blur-xl {
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+  }
+}
+
 /* Mobile Safe Areas */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
@@ -410,4 +448,3 @@ body {
 .font-zodiac {
   font-family: 'MF Zodiac Dings', sans-serif;
 }
-
