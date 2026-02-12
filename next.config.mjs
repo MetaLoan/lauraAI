@@ -2,10 +2,17 @@
 // Only enable static export when explicitly requested.
 // This app contains dynamic routes like /chat/[id] that are incompatible with output: 'export'.
 const isGitHubPages = process.env.NEXT_OUTPUT_EXPORT === 'true'
-// GitHub Pages basePath：与仓库名一致（Actions 中 GITHUB_REPOSITORY 如 MetaLoan/lauradesktop → /lauradesktop）
-const basePath = isGitHubPages
-  ? (process.env.GITHUB_REPOSITORY ? '/' + process.env.GITHUB_REPOSITORY.split('/')[1] : '/lauraAI')
-  : ''
+const normalizeBasePath = (input = '') => {
+  if (!input) return ''
+  const prefixed = input.startsWith('/') ? input : `/${input}`
+  return prefixed.replace(/\/+$/, '')
+}
+const explicitBasePath = normalizeBasePath(process.env.NEXT_BASE_PATH || process.env.NEXT_PUBLIC_BASE_PATH || '')
+const repoBasePath = normalizeBasePath(
+  process.env.GITHUB_REPOSITORY ? process.env.GITHUB_REPOSITORY.split('/')[1] : ''
+)
+// GitHub Pages basePath: explicit env takes precedence, then repository name.
+const basePath = isGitHubPages ? (explicitBasePath || repoBasePath) : ''
 
 const nextConfig = {
   // GitHub Pages 需静态导出生成 out 目录

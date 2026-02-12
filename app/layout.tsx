@@ -6,6 +6,8 @@ import { BasePathRuntimeFix } from '@/components/base-path-runtime-fix'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const assetBasePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+const withBasePath = (path: string) => `${assetBasePath}${path.startsWith('/') ? path : `/${path}`}`;
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -18,7 +20,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: 'LauraAI | Sovereign Intelligence',
   description: 'The first Intent-based AI Asset Management. Deepen your bond, automate your wealth.',
-  manifest: '/manifest.json',
+  manifest: withBasePath('/manifest.json'),
   metadataBase: new URL('https://laura-ai.com'),
   openGraph: {
     title: 'LauraAI: The Sovereign AI Protocol',
@@ -49,8 +51,8 @@ export const metadata: Metadata = {
     title: 'LauraAI',
   },
   icons: {
-    icon: '/logolaura.png',
-    apple: '/logolaura.png',
+    icon: withBasePath('/logolaura.png'),
+    apple: withBasePath('/logolaura.png'),
   },
 }
 
