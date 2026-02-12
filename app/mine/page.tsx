@@ -275,7 +275,7 @@ export default function MinePage() {
                                 <button
                                     type="button"
                                     onClick={() => router.push(`/chat/${char.id}`)}
-                                    className="w-full flex items-center gap-3 p-3 liquid-glass-card rounded-2xl transition-all duration-300 group text-left"
+                                    className="relative w-full flex items-center gap-3 p-3 liquid-glass-card rounded-2xl transition-all duration-300 group text-left"
                                 >
                                     {/* Avatar */}
                                     <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border border-white/10">
@@ -308,12 +308,16 @@ export default function MinePage() {
                                         </div>
                                     </div>
 
-                                    {/* Right Meta */}
-                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                    {/* Center LRA Capsule */}
+                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10">
                                         <div className="flex items-center gap-2 px-3 py-1 bg-transparent rounded-full border border-white/25">
                                             <Wallet className="w-3.5 h-3.5 text-white" />
                                             <span className="text-[10px] font-semibold text-white uppercase tracking-widest">{char.earnedLra} LRA</span>
                                         </div>
+                                    </div>
+
+                                    {/* Right Meta */}
+                                    <div className="flex items-center gap-3 flex-shrink-0 ml-auto">
                                         <ChevronRight className="w-5 h-5 text-white group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0" />
                                     </div>
                                 </button>
