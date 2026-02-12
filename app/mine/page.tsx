@@ -188,22 +188,6 @@ export default function MinePage() {
         loadData(true);
     };
 
-    // Format relative time
-    const formatTime = (date?: Date) => {
-        if (!date) return '';
-        const now = new Date();
-        const diff = now.getTime() - date.getTime();
-        const minutes = Math.floor(diff / 60000);
-        const hours = Math.floor(diff / 3600000);
-        const days = Math.floor(diff / 86400000);
-
-        if (minutes < 1) return 'Just now';
-        if (minutes < 60) return `${minutes}m ago`;
-        if (hours < 24) return `${hours}h ago`;
-        if (days < 7) return `${days}d ago`;
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    };
-
     if (!isConnected) {
         return (
             <AppLayout>
@@ -311,26 +295,17 @@ export default function MinePage() {
 
                                     {/* Info */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="text-base font-bold text-white truncate">
-                                                {char.title}
-                                            </h3>
-                                            <span className="text-xs text-white/80 flex-shrink-0 ml-2">
-                                                {formatTime(char.lastMessageTime)}
-                                            </span>
-                                        </div>
+                                        <h3 className="text-base font-bold text-white truncate">
+                                            {char.title}
+                                        </h3>
                                     </div>
 
-                                    {/* 累积收益 - 与聊天页头部 LRA 徽章同款样式 */}
-                                    <div className="flex-1 flex justify-center items-center flex-shrink-0 min-w-0">
+                                    {/* Right Meta */}
+                                    <div className="flex items-center gap-3 flex-shrink-0">
                                         <div className="flex items-center gap-2 px-3 py-1 bg-transparent rounded-full border border-white/25">
                                             <Wallet className="w-3.5 h-3.5 text-white" />
                                             <span className="text-[10px] font-semibold text-white uppercase tracking-widest">{char.earnedLra} LRA</span>
                                         </div>
-                                    </div>
-
-                                    {/* Per-character remaining */}
-                                    <div className="flex flex-col items-center flex-shrink-0 ml-1">
                                         <div className={`min-w-[36px] h-9 px-2 rounded-full flex items-center justify-center text-sm font-bold ${char.dailyRemaining > 3
                                             ? 'bg-green-500/20 text-green-400 border border-green-500/30'
                                             : char.dailyRemaining > 0
@@ -339,10 +314,8 @@ export default function MinePage() {
                                             }`}>
                                             {char.dailyRemaining}/{char.dailyLimit}
                                         </div>
+                                        <ChevronRight className="w-5 h-5 text-white group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0" />
                                     </div>
-
-                                    {/* Arrow */}
-                                    <ChevronRight className="w-5 h-5 text-white group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0" />
                                 </button>
                                 )}
                             </motion.div>
