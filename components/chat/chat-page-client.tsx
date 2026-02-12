@@ -292,7 +292,7 @@ export default function ChatPageClient({ characterId }: { characterId: string })
                 </div>
 
                 {/* Chat Area */}
-                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-6 scroll-smooth scrollbar-thin scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20 scrollbar-track-transparent">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-6 scroll-smooth scrollbar-hide">
                     {messages.length === 0 && messagesLoaded && (
                         <div className="flex flex-col items-center justify-center h-full text-center text-white px-8 animate-in fade-in zoom-in duration-500">
                             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">

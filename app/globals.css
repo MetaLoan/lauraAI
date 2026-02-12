@@ -283,6 +283,12 @@ body {
   scrollbar-width: none;
 }
 
+/* 强制隐藏默认滚动条（保留滚动能力） */
+*::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+}
+
 /* Safari performance fallback: disable heavy SVG distortion and reduce blur workload */
 @supports (-webkit-touch-callout: none) {
   .liquid-glass-card::before,
