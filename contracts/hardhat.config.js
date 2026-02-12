@@ -24,6 +24,11 @@ export default {
             chainId: 56,
             accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
         },
+        ethmainnet: {
+            url: process.env.ETH_MAINNET_RPC_URL || "",
+            chainId: 1,
+            accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+        },
     },
     etherscan: {
         apiKey: process.env.BSCSCAN_API_KEY,
