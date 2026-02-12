@@ -5,39 +5,33 @@
 ### 1. 启用 GitHub Pages
 
 1. 访问仓库设置：`Settings > Pages`
-2. 在 "Source" 部分选择：
-   - **Source**: `GitHub Actions`
+2. 在 "Source" 部分选择：**Source**: `GitHub Actions`
 3. 保存设置
 
-### 2. 配置环境变量（可选）
+### 2. 后端与 RPC（fly.io）
 
-**默认配置：** workflow 已配置默认使用 ngrok API 地址：`https://nathalie-clothlike-urgently.ngrok-free.dev/api`
+**构建时已写死为 fly.io，无需配置 Secrets：**
 
-如果需要更改后端 API 地址：
+- **后端 API**：`https://lauraai-backend.fly.dev/api`
+- **RPC**：`https://lauraai-rpc.fly.dev`
 
-1. 访问 `Settings > Secrets and variables > Actions`
-2. 添加 secret：
-   - `NEXT_PUBLIC_API_URL`: 后端 API 地址（例如：`https://your-backend.com/api`）
-3. 如果设置了 secret，会优先使用 secret 中的值
+部署出的前端会固定请求上述后端，保证与 fly.io 一致。
 
 ### 3. 触发部署
 
-- **自动部署**: 推送到 `main` 分支会自动触发部署
-- **手动部署**: 在 Actions 页面选择 "部署到 GitHub Pages" workflow，点击 "Run workflow"
+- **自动部署**：推送到 `main` 或 `DESKTOP-BSC` 分支会触发部署
+- **手动部署**：在 Actions 页选择「部署到 GitHub Pages」，点击 "Run workflow"
 
 ### 4. 访问网站
 
-部署完成后，网站将在以下地址可用：
-- `https://metaloan.github.io/lauraAI/`
-- 或查看 Actions 页面中的部署 URL
+- **lauraAI 仓库**：`https://metaloan.github.io/lauraAI/`
+- **lauradesktop 仓库**：`https://metaloan.github.io/lauradesktop/`
 
-**重要：** 如果您的 GitHub Pages URL 路径不同（例如 `/lauraAl/`），需要修改 `next.config.mjs` 中的 `basePath` 值以匹配实际路径。
+`basePath` 会根据当前仓库名自动设置（如 `MetaLoan/lauradesktop` → `/lauradesktop`）。
 
 ## 注意事项
 
-1. **静态网站**: GitHub Pages 只支持静态网站，Next.js 会自动导出为静态文件
-2. **basePath**: 如果使用自定义域名，需要修改 `next.config.mjs` 中的 `basePath` 和 `assetPrefix`
-3. **部署时间**: 首次部署可能需要几分钟时间
-4. **环境变量**: 确保所有必要的环境变量都已配置
-5. **API 地址**: 后端 API 需要支持 CORS，允许前端域名访问
-6. **构建输出**: 构建后的文件在 `out` 目录中
+1. **静态导出**：Pages 构建时使用 `output: 'export'`，产物在 `out` 目录
+2. **API / RPC**：生产环境固定使用 fly.io 后端与 RPC，无需在仓库里配置 Secrets
+3. **CORS**：后端需允许前端域名（如 `*.github.io`）访问
+4. **部署时间**：首次部署约需数分钟

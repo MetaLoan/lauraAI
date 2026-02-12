@@ -1,9 +1,13 @@
 /** @type {import('next').NextConfig} */
 const isGitHubPages = process.env.GITHUB_PAGES === 'true'
-// GitHub Pages basePath 必须与仓库名完全一致（区分大小写）
-const basePath = isGitHubPages ? '/lauraAI' : ''
+// GitHub Pages basePath：与仓库名一致（Actions 中 GITHUB_REPOSITORY 如 MetaLoan/lauradesktop → /lauradesktop）
+const basePath = isGitHubPages
+  ? (process.env.GITHUB_REPOSITORY ? '/' + process.env.GITHUB_REPOSITORY.split('/')[1] : '/lauraAI')
+  : ''
 
 const nextConfig = {
+  // GitHub Pages 需静态导出生成 out 目录
+  ...(isGitHubPages && { output: 'export' }),
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -32,8 +36,6 @@ const nextConfig = {
       'recharts',
     ],
   },
-  // GitHub Pages 部署配置
-  // output: 'export', // Removed for dynamic routing support in Web3 App pivot
   basePath: basePath,
   assetPrefix: basePath,
   trailingSlash: true,
@@ -42,10 +44,12 @@ const nextConfig = {
     // API URL 由 .env.local 或环境变量控制，生产环境默认使用 fly.dev
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api',
   },
-  // 仅代理本地 Hardhat；云端 RPC 由 app/cloud-rpc/route.ts 处理，避免 rewrite 的 TLS 不稳定
-  async rewrites() {
-    return [{ source: '/hardhat-rpc', destination: 'http://127.0.0.1:8545' }]
-  },
+  // 静态导出时不能用 rewrites；仅非 Pages 时代理本地 Hardhat
+  ...(!isGitHubPages && {
+    async rewrites() {
+      return [{ source: '/hardhat-rpc', destination: 'http://127.0.0.1:8545' }]
+    },
+  }),
 }
 
 export default nextConfig

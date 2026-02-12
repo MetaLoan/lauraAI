@@ -2,7 +2,7 @@ name: 部署到 GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, DESKTOP-BSC ]
   workflow_dispatch:
 
 # 设置 GITHUB_TOKEN 权限
@@ -41,7 +41,9 @@ jobs:
       - name: 构建项目
         run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api' }}
+          # 前端部署固定使用 fly.io 后端，不依赖 secrets
+          NEXT_PUBLIC_API_URL: 'https://lauraai-backend.fly.dev/api'
+          NEXT_PUBLIC_RPC_URL: 'https://lauraai-rpc.fly.dev'
           GITHUB_PAGES: 'true'
       
       - name: 检查构建输出
