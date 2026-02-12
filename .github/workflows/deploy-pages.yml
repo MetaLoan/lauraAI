@@ -44,7 +44,7 @@ jobs:
           # 前端部署固定使用 fly.io 后端，不依赖 secrets
           NEXT_PUBLIC_API_URL: 'https://lauraai-backend.fly.dev/api'
           NEXT_PUBLIC_RPC_URL: 'https://lauraai-rpc.fly.dev'
-          GITHUB_PAGES: 'true'
+          NEXT_OUTPUT_EXPORT: 'true'
       
       - name: 检查构建输出
         run: |
