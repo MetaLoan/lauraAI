@@ -3,7 +3,14 @@ function getApiBaseUrl(): string {
   const envApi = process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api'
   if (typeof window !== 'undefined') {
     const host = window.location.hostname
-    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8081/api'
+    if (host === 'localhost' || host === '127.0.0.1') {
+      // 默认优先走远端 API，避免本地后端版本落后导致路由缺失。
+      // 如需强制本地联调，设置 NEXT_PUBLIC_FORCE_LOCAL_API=true。
+      if (process.env.NEXT_PUBLIC_FORCE_LOCAL_API === 'true') {
+        return 'http://localhost:8081/api'
+      }
+      return envApi
+    }
     return envApi
   }
   return envApi
