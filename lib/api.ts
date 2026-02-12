@@ -12,6 +12,7 @@ const API_BASE_URL = getApiBaseUrl()
 
 // 请求超时时间（毫秒）
 const REQUEST_TIMEOUT = 15000
+const STORAGE_KEY_TOKEN = 'auth_token'
 
 // localStorage key for storing user's language preference
 const LOCALE_STORAGE_KEY = 'laura-ai-locale'
@@ -47,21 +48,12 @@ class ApiClient {
     this.baseURL = baseURL
   }
 
-  // Get wallet auth headers from sessionStorage (set by useWalletAuth hook)
-  private getWalletAuthHeaders(): Record<string, string> {
+  private getAuthHeaders(): Record<string, string> {
     if (typeof window === 'undefined') return {}
     try {
-      const address = sessionStorage.getItem('wallet_address') || ''
-      const signature = sessionStorage.getItem('wallet_signature') || ''
+      const token = sessionStorage.getItem(STORAGE_KEY_TOKEN) || ''
       const headers: Record<string, string> = {}
-      if (address) headers['X-Wallet-Address'] = address
-      if (signature) headers['X-Wallet-Signature'] = signature
-
-      // Check for invite code in URL
-      const urlParams = new URLSearchParams(window.location.search)
-      const inviterCode = urlParams.get('invite') || ''
-      if (inviterCode) headers['X-Inviter-Code'] = inviterCode
-
+      if (token) headers['Authorization'] = `Bearer ${token}`
       return headers
     } catch {
       return {}
@@ -85,9 +77,7 @@ class ApiClient {
       headers['Accept-Language'] = locale
     }
 
-    // Add wallet auth headers
-    const walletHeaders = this.getWalletAuthHeaders()
-    Object.assign(headers, walletHeaders)
+    Object.assign(headers, this.getAuthHeaders())
 
     // Timeout control
     const controller = new AbortController()
@@ -105,7 +95,7 @@ class ApiClient {
 
       if (data.code !== 0) {
         const msg = data.message || 'Request failed'
-        const hint = msg.includes('Missing wallet authentication')
+        const hint = msg.includes('Missing or invalid authorization token')
           ? ' Please connect your wallet first.'
           : ''
         throw new ApiError(msg + hint, data.error_code)
@@ -119,6 +109,35 @@ class ApiClient {
       }
       throw error
     }
+  }
+
+  async authGetNonce(walletAddress: string): Promise<{
+    wallet_address: string
+    nonce: string
+    message: string
+    expires_at: number
+  }> {
+    return this.request('/auth/nonce', {
+      method: 'POST',
+      body: JSON.stringify({ wallet_address: walletAddress }),
+    })
+  }
+
+  async authVerify(payload: {
+    wallet_address: string
+    nonce: string
+    signature: string
+    inviter_code?: string
+  }): Promise<{
+    access_token: string
+    token_type: string
+    expires_at: number
+    user: any
+  }> {
+    return this.request('/auth/verify', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
   }
 
   // 用户
@@ -173,7 +192,7 @@ class ApiClient {
 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      ...this.getWalletAuthHeaders(),
+      ...this.getAuthHeaders(),
     }
 
     const response = await fetch(url, {
@@ -207,7 +226,7 @@ class ApiClient {
 
     const url = `${this.baseURL}/minime/generate`
     const headers: HeadersInit = {
-      ...this.getWalletAuthHeaders(),
+      ...this.getAuthHeaders(),
     }
 
     // Upload and generation may take a long time

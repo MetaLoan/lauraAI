@@ -153,13 +153,11 @@ export default function ChatPageClient({ characterId }: { characterId: string })
         try {
             const url = `${apiClient.baseURL}/characters/${characterId}/chat`;
 
-            const walletAddress = sessionStorage.getItem('wallet_address') || '';
-            const walletSignature = sessionStorage.getItem('wallet_signature') || '';
+            const authToken = sessionStorage.getItem('auth_token') || '';
 
             const headers: HeadersInit = {
                 'Content-Type': 'application/json',
-                ...(walletAddress ? { 'X-Wallet-Address': walletAddress } : {}),
-                ...(walletSignature ? { 'X-Wallet-Signature': walletSignature } : {}),
+                ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
             };
 
             const response = await fetch(url, {

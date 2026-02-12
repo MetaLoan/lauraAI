@@ -107,15 +107,12 @@ export default function ChatWindow({ characterId, characterTitle = 'Soulmate', c
         throw new Error('角色 ID 为空')
       }
       
-      // Get wallet auth from sessionStorage
-      const walletAddress = sessionStorage.getItem('wallet_address') || ''
-      const walletSignature = sessionStorage.getItem('wallet_signature') || ''
+      const authToken = sessionStorage.getItem('auth_token') || ''
       
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
         'Accept-Language': locale,
-        ...(walletAddress ? { 'X-Wallet-Address': walletAddress } : {}),
-        ...(walletSignature ? { 'X-Wallet-Signature': walletSignature } : {}),
+        ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {}),
       }
 
       const response = await fetch(url, {

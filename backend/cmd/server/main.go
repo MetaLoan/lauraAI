@@ -99,8 +99,12 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// 调试端点：修复空share_code的记录
+	// 调试端点：修复空share_code的记录（仅开发模式）
 	r.POST("/debug/fix-share-codes", func(c *gin.Context) {
+		if !config.AppConfig.DevMode {
+			c.JSON(404, gin.H{"error": "Not found"})
+			return
+		}
 		if c.GetHeader("X-Debug-Key") != "lauraai-clear-2026" {
 			c.JSON(403, gin.H{"error": "Forbidden"})
 			return
@@ -114,8 +118,12 @@ func main() {
 		c.JSON(200, gin.H{"message": "Fixed", "rows_affected": result.RowsAffected})
 	})
 
-	// 调试端点：清除指定角色的聊天消息（用于清除污染的历史记录）
+	// 调试端点：清除指定角色的聊天消息（仅开发模式）
 	r.DELETE("/debug/characters/:id/messages", func(c *gin.Context) {
+		if !config.AppConfig.DevMode {
+			c.JSON(404, gin.H{"error": "Not found"})
+			return
+		}
 		if c.GetHeader("X-Debug-Key") != "lauraai-clear-2026" {
 			c.JSON(403, gin.H{"error": "Forbidden"})
 			return
@@ -129,8 +137,12 @@ func main() {
 		c.JSON(200, gin.H{"message": "Deleted", "rows_affected": result.RowsAffected})
 	})
 
-	// 调试端点：清空所有数据（用于测试）
+	// 调试端点：清空所有数据（仅开发模式）
 	r.POST("/debug/clear-all-data", func(c *gin.Context) {
+		if !config.AppConfig.DevMode {
+			c.JSON(404, gin.H{"error": "Not found"})
+			return
+		}
 		if c.GetHeader("X-Debug-Key") != "lauraai-clear-2026" {
 			c.JSON(403, gin.H{"error": "Forbidden"})
 			return
@@ -201,6 +213,11 @@ func main() {
 	// Public routes
 	api := r.Group("/api")
 	{
+		// Wallet auth challenge/verify (public endpoints)
+		authHandler := handler.NewAuthHandler()
+		api.POST("/auth/nonce", authHandler.GetNonce)
+		api.POST("/auth/verify", authHandler.Verify)
+
 		// Share link public endpoint (no auth required)
 		unlockHandler := handler.NewUnlockHandler(reportService)
 		api.GET("/share/:code", unlockHandler.GetShareInfo)

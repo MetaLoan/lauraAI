@@ -3,22 +3,26 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Port           string
-	GeminiAPIKey   string
-	DeepSeekAPIKey string // Text chat uses DeepSeek, fallback to Gemini
-	PostgresDSN    string
-	DevMode        bool
-	WebAppMode     bool   // dApp mode: use default test wallet when no wallet headers provided
-	BaseURL        string
-	UploadsDir     string
-	AdminSecret    string // Secret for /api/admin/clear-all-data (X-Admin-Key header)
-	TGELive        bool   // true when LRA token is live with liquidity; before that pool/TVL/APY endpoints return empty
-	ChainRPCURL    string // EVM RPC endpoint used by backend market/deFi helpers
+	Port                     string
+	GeminiAPIKey             string
+	DeepSeekAPIKey           string // Text chat uses DeepSeek, fallback to Gemini
+	PostgresDSN              string
+	DevMode                  bool
+	WebAppMode               bool // dApp mode: use default test wallet when no wallet headers provided
+	BaseURL                  string
+	UploadsDir               string
+	AdminSecret              string // Secret for /api/admin/clear-all-data (X-Admin-Key header)
+	TGELive                  bool   // true when LRA token is live with liquidity; before that pool/TVL/APY endpoints return empty
+	ChainRPCURL              string // EVM RPC endpoint used by backend market/deFi helpers
+	AuthTokenSecret          string // HMAC secret for auth bearer token
+	AuthTokenTTLMinutes      int    // Bearer token TTL in minutes
+	AllowLegacySignatureAuth bool   // temporary rollback switch for legacy X-Wallet-* auth
 }
 
 var AppConfig *Config
@@ -34,17 +38,20 @@ func LoadConfig() {
 	}
 
 	AppConfig = &Config{
-		Port:           getEnv("PORT", "8080"),
-		GeminiAPIKey:   getEnv("GEMINI_API_KEY", ""),
-		DeepSeekAPIKey: getEnv("DEEPSEEK_API_KEY", ""),
-		PostgresDSN:    dbDSN,
-		DevMode:        getEnv("DEV_MODE", "false") == "true",
-		WebAppMode:     getEnv("WEB_APP_MODE", "true") == "true", // Default true: dApp mode uses test wallet when no wallet headers
-		BaseURL:        getEnv("BASE_URL", "https://lauraai-backend.fly.dev"),
-		UploadsDir:     getEnv("UPLOADS_DIR", "./uploads"),
-		AdminSecret:    getEnv("ADMIN_SECRET", ""),
-		TGELive:        getEnv("TGE_LIVE", "false") == "true",
-		ChainRPCURL:    getEnv("CHAIN_RPC_URL", "https://eth.llamarpc.com"),
+		Port:                     getEnv("PORT", "8080"),
+		GeminiAPIKey:             getEnv("GEMINI_API_KEY", ""),
+		DeepSeekAPIKey:           getEnv("DEEPSEEK_API_KEY", ""),
+		PostgresDSN:              dbDSN,
+		DevMode:                  getEnv("DEV_MODE", "false") == "true",
+		WebAppMode:               getEnv("WEB_APP_MODE", "false") == "true", // Default false for production safety
+		BaseURL:                  getEnv("BASE_URL", "https://lauraai-backend.fly.dev"),
+		UploadsDir:               getEnv("UPLOADS_DIR", "./uploads"),
+		AdminSecret:              getEnv("ADMIN_SECRET", ""),
+		TGELive:                  getEnv("TGE_LIVE", "false") == "true",
+		ChainRPCURL:              getEnv("CHAIN_RPC_URL", "https://eth.llamarpc.com"),
+		AuthTokenSecret:          getEnv("AUTH_TOKEN_SECRET", ""),
+		AuthTokenTTLMinutes:      getEnvInt("AUTH_TOKEN_TTL_MINUTES", 120),
+		AllowLegacySignatureAuth: getEnv("ALLOW_LEGACY_SIGNATURE_AUTH", "false") == "true",
 	}
 
 	if AppConfig.GeminiAPIKey == "" {
@@ -55,6 +62,9 @@ func LoadConfig() {
 	}
 	if AppConfig.WebAppMode {
 		log.Println("WebApp mode enabled: requests without wallet headers will use default test wallet")
+	}
+	if AppConfig.AllowLegacySignatureAuth {
+		log.Println("Legacy X-Wallet-* signature auth fallback is ENABLED")
 	}
 	if AppConfig.DeepSeekAPIKey != "" {
 		log.Println("DEEPSEEK_API_KEY configured, text chat will prefer DeepSeek")
@@ -67,4 +77,16 @@ func getEnv(key, defaultValue string) string {
 		return defaultValue
 	}
 	return value
+}
+
+func getEnvInt(key string, defaultValue int) int {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return defaultValue
+	}
+	return parsed
 }
