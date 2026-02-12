@@ -46,9 +46,7 @@ jobs:
           NEXT_PUBLIC_RPC_URL: 'https://data-seed-prebsc-1-s1.bnbchain.org:8545'
           # WalletConnect project id is required for mobile wallet deep-link flow.
           NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: '8131eee5b7cc58c87d6fb7e651722132'
-          # Explicit base path for MetaLoan/lauradesktop Pages site.
-          NEXT_BASE_PATH: '/lauradesktop'
-          NEXT_PUBLIC_BASE_PATH: '/lauradesktop'
+          # basePath 由 next.config.mjs 根据 GITHUB_REPOSITORY 自动推导
           NEXT_OUTPUT_EXPORT: 'true'
       
       - name: 检查构建输出
