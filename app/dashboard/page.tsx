@@ -173,12 +173,9 @@ export default function DashboardPage() {
                                     <img src="/minime.jpg" className="w-full h-full object-cover rounded-2xl border border-white/20" alt="" />
                                 </div>
                                 <div className="relative z-30 pr-20 md:pr-24">
-                                    <div className="flex items-center gap-4 mb-3">
-                                        <img src="/icons/3d/profile.png" className="w-12 h-12 object-contain flex-shrink-0 group-hover:scale-110 transition-transform" alt="Mini Me" />
-                                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                            Create Mini Me
-                                            <ArrowRight className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                                        </h3>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-lg font-bold text-white">Create Mini Me</h3>
+                                        <ArrowRight className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                     </div>
                                     <p className="text-white text-sm leading-relaxed mb-4">Upload your photo and get an AI avatar version of yourself</p>
                                     <div className="flex items-center gap-2 text-white text-xs font-medium">
@@ -194,12 +191,9 @@ export default function DashboardPage() {
                                     <img src="/presets/soulmate.jpg" className="w-full h-full object-cover rounded-2xl border border-white/20" alt="" />
                                 </div>
                                 <div className="relative z-30 pr-20 md:pr-24">
-                                    <div className="flex items-center gap-4 mb-3">
-                                        <img src="/icons/3d/mint.png" className="w-12 h-12 object-contain flex-shrink-0 group-hover:scale-110 transition-transform" alt="Mint Soulmate" />
-                                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                            Mint Soulmate
-                                            <ArrowRight className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                                        </h3>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-lg font-bold text-white">Mint Soulmate</h3>
+                                        <ArrowRight className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                     </div>
                                     <p className="text-white text-sm leading-relaxed mb-4">Create your unique AI companion based on your profile</p>
                                     <div className="flex items-center gap-2 text-white text-xs font-medium">
