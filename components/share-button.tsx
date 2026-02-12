@@ -1,11 +1,10 @@
 'use client';
 
-import React, { MouseEvent, useState } from 'react';
+import React, { MouseEvent, useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { createPortal } from 'react-dom';
 
 interface ShareButtonProps {
     title?: string;
@@ -26,6 +25,22 @@ export function ShareButton({
 }: ShareButtonProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [copied, setCopied] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleClickOutside = (event: globalThis.MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen]);
 
     const handleShareClick = (event: MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
@@ -46,7 +61,7 @@ export function ShareButton({
     };
 
     return (
-        <div className="relative">
+        <div className="relative" ref={wrapperRef}>
             <Button
                 variant={variant}
                 size={size}
@@ -60,67 +75,41 @@ export function ShareButton({
 
             <AnimatePresence>
                 {isOpen && (
-                    typeof window !== 'undefined' ? createPortal(
-                        <>
-                            {/* Oversized blur layer (+20%) to avoid edge leakage */}
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setIsOpen(false)}
-                                className="fixed -inset-[20%] bg-black/30 backdrop-blur-xl z-[1200]"
-                            />
+                    <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                        transition={{ duration: 0.18, ease: 'easeOut' }}
+                        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 w-[280px] liquid-glass-card rounded-2xl p-4"
+                    >
+                        <h3 className="text-base font-bold text-white mb-1">Share LauraAI</h3>
+                        <p className="text-white/90 text-xs mb-3">Spread the word and invite others.</p>
 
-                            {/* Strict viewport-centered modal */}
-                            <div className="fixed inset-0 z-[1201] flex items-center justify-center p-4 pointer-events-none">
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                    onClick={(event) => event.stopPropagation()}
-                                    className="w-[90%] max-w-sm liquid-glass-card rounded-3xl p-6 pointer-events-auto"
-                                >
-                                    <h3 className="text-xl font-bold text-white mb-2">Share LauraAI</h3>
-                                    <p className="text-white text-sm mb-6">Spread the word and invite others to the AI sovereign revolution.</p>
+                        <div className="space-y-2">
+                            <Button
+                                type="button"
+                                onClick={shareToTwitter}
+                                className="w-full bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white font-bold h-10 rounded-xl gap-2"
+                            >
+                                <img src="/icons/3d/share_3d.png" className="w-4 h-4 object-contain" alt="" />
+                                Share on Twitter
+                            </Button>
 
-                                    <div className="space-y-3">
-                                        <Button
-                                            type="button"
-                                            onClick={shareToTwitter}
-                                            className="w-full bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white font-bold h-12 rounded-xl gap-3"
-                                        >
-                                            <img src="/icons/3d/share_3d.png" className="w-5 h-5 object-contain" alt="" />
-                                            Share on Twitter
-                                        </Button>
-
-                                        <Button
-                                            variant="outline"
-                                            type="button"
-                                            onClick={handleCopy}
-                                            className="w-full bg-white/5 border border-white/20 hover:bg-white/10 text-white h-12 rounded-xl gap-3"
-                                        >
-                                            {copied ? (
-                                                <Check className="w-5 h-5 text-green-400" />
-                                            ) : (
-                                                <img src="/icons/3d/copy_3d.png" className="w-5 h-5 object-contain" alt="" />
-                                            )}
-                                            {copied ? "Copied!" : "Copy Link"}
-                                        </Button>
-                                    </div>
-
-                                    <Button
-                                        variant="ghost"
-                                        type="button"
-                                        onClick={() => setIsOpen(false)}
-                                        className="w-full mt-4 text-white hover:text-white"
-                                    >
-                                        Close
-                                    </Button>
-                                </motion.div>
-                            </div>
-                        </>,
-                        document.body
-                    ) : null
+                            <Button
+                                variant="outline"
+                                type="button"
+                                onClick={handleCopy}
+                                className="w-full bg-white/5 border border-white/20 hover:bg-white/10 text-white h-10 rounded-xl gap-2"
+                            >
+                                {copied ? (
+                                    <Check className="w-4 h-4 text-green-400" />
+                                ) : (
+                                    <img src="/icons/3d/copy_3d.png" className="w-4 h-4 object-contain" alt="" />
+                                )}
+                                {copied ? "Copied!" : "Copy Link"}
+                            </Button>
+                        </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>
