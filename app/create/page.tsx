@@ -40,6 +40,30 @@ interface PresetType {
 }
 
 type MintUiState = 'new' | 'minting' | 'retry_mint' | 'generating' | 'retry_generation' | 'done';
+type MintStep = 'idle' | 'awaiting_approve' | 'awaiting_mint' | 'mint_verifying' | 'generating' | 'done';
+
+function isWalletMintStep(step: MintStep): boolean {
+    return step === 'awaiting_approve' || step === 'awaiting_mint' || step === 'mint_verifying';
+}
+
+function getMintStageContent(step: MintStep): { title: string; desc: string } {
+    if (step === 'awaiting_approve') {
+        return {
+            title: 'Approve FF Spending',
+            desc: 'Please confirm token approve in your wallet.',
+        };
+    }
+    if (step === 'awaiting_mint') {
+        return {
+            title: 'Confirm Mint Transaction',
+            desc: 'Please confirm the safeMint transaction in your wallet.',
+        };
+    }
+    return {
+        title: 'Verifying On-chain Payment',
+        desc: 'Transaction sent. Waiting for chain confirmation and backend verification.',
+    };
+}
 
 function getCardUiState(existingChar: any, hasImage: boolean): MintUiState {
     const backendState = String(existingChar?.mint_ui_state || '').toLowerCase();
@@ -240,7 +264,7 @@ export default function CreatePage() {
     const mintPrice = parseUnits(MINT_PRICE_FF, MINT_PRICE_FF_DECIMALS);
 
     // Mint state
-    const [mintStep, setMintStep] = useState<'idle' | 'minting' | 'generating' | 'done'>('idle');
+    const [mintStep, setMintStep] = useState<MintStep>('idle');
 
     // 步骤状态
     const [currentStep, setCurrentStep] = useState<StepType>('preset');
@@ -395,7 +419,7 @@ export default function CreatePage() {
                             setMintRetryMode(false);
                             apiClient.generateImage(String(found.id)).catch(() => { });
                         } else {
-                            setMintStep('minting');
+                            setMintStep('mint_verifying');
                             setMintRetryMode(String(probe?.order?.status || '').toLowerCase() === 'failed');
                         }
                     } catch {
@@ -445,7 +469,7 @@ export default function CreatePage() {
         if (!generatingCharacterId || !address) return;
         setMintRetryMode(false);
         setGenerationError(null);
-        setMintStep('minting');
+        setMintStep('awaiting_approve');
         try {
             const mintOrderResult = await apiClient.createMintOrder({
                 character_id: Number(generatingCharacterId),
@@ -468,6 +492,7 @@ export default function CreatePage() {
                     functionName: 'approve',
                     args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
                 });
+                setMintStep('awaiting_mint');
 
                 const txHash = await writeContractAsync({
                     address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
@@ -475,6 +500,7 @@ export default function CreatePage() {
                     functionName: 'safeMint',
                     args: [address, metadataURI],
                 });
+                setMintStep('mint_verifying');
 
                 const confirmed = await confirmWithRecovery(
                     String(mintOrderResult.order?.id),
@@ -491,7 +517,7 @@ export default function CreatePage() {
             startPolling(generatingCharacterId);
         } catch (error: any) {
             setGenerationError(error?.shortMessage || error?.message || 'Mint retry failed');
-            setMintStep('minting');
+            setMintStep('mint_verifying');
             setMintRetryMode(true);
         }
     };
@@ -523,7 +549,7 @@ export default function CreatePage() {
         const uiState = getCardUiState(target, !!(target.image_url || target.clear_image_url));
         setGenerationFailed(uiState === 'retry_generation');
         setMintRetryMode(uiState === 'retry_mint');
-        setMintStep(uiState === 'generating' || uiState === 'retry_generation' ? 'generating' : 'minting');
+        setMintStep(uiState === 'generating' || uiState === 'retry_generation' ? 'generating' : 'mint_verifying');
         startPolling(String(target.id));
     }, [isConnected, isLoadingProfile, searchParams, existingCharacters, startPolling]);
 
@@ -534,7 +560,7 @@ export default function CreatePage() {
         setGenerationError(null);
         setMintRetryMode(false);
         setCurrentStep('generating');
-        setMintStep('minting');
+        setMintStep('awaiting_approve');
 
         try {
             // Step 1: Create character in backend (get character ID)
@@ -609,6 +635,7 @@ export default function CreatePage() {
                 functionName: 'approve',
                 args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
             });
+            setMintStep('awaiting_mint');
 
             // Step 3b: Mint NFT (contract charges FF via transferFrom)
             const txHash = await writeContractAsync({
@@ -617,6 +644,7 @@ export default function CreatePage() {
                 functionName: 'safeMint',
                 args: [address, metadataURI],
             });
+            setMintStep('mint_verifying');
 
             // Step 3c: Confirm order with on-chain tx hash
             const confirmed = await confirmWithRecovery(
@@ -1127,15 +1155,15 @@ export default function CreatePage() {
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="min-h-[600px]"
                         >
-                            {mintStep === 'minting' ? (
+                            {isWalletMintStep(mintStep) ? (
                                 /* ===== 阶段 1：等待钱包确认 ===== */
                                 <div className="flex flex-col items-center justify-center py-20 space-y-6">
                                     <div className="w-20 h-20 rounded-2xl flex items-center justify-center">
                                         <Image src={getAssetPath('/icons/3d/gem_3d.png')} alt="" width={40} height={40} className="w-10 h-10 object-contain animate-pulse" />
                                     </div>
-                                    <h2 className="text-2xl font-bold text-white">Confirm in Wallet</h2>
+                                    <h2 className="text-2xl font-bold text-white">{getMintStageContent(mintStep).title}</h2>
                                     <p className="text-white text-center max-w-sm">
-                                        Please confirm FF approve and mint transactions in your wallet.
+                                        {getMintStageContent(mintStep).desc}
                                         <span className="block mt-1 text-amber-400 font-medium">Fee: {MINT_PRICE_FF} FF</span>
                                     </p>
                                     <Loader2 className="w-8 h-8 animate-spin text-white" />
