@@ -23,6 +23,7 @@ yarn-error.log*
 
 # env files
 .env*
+docs/.env.mainet
 
 # vercel
 .vercel
