@@ -1038,6 +1038,7 @@ export default function CreatePage() {
                                     router.push(`/chat/${selectedCharacterForDetail.id}`);
                                 }}
                                 onBack={() => setSelectedCharacterForDetail(null)}
+                                showMiniMeBackButton={false}
                                 onCharacterUpdate={(updated) => {
                                     setSelectedCharacterForDetail(updated);
                                     setExistingCharacters((prev) =>

@@ -389,6 +389,7 @@ export default function DashboardPage() {
                                     router.push(`/chat/${selectedCharacter.id}`);
                                 }}
                                 onBack={() => setSelectedCharacter(null)}
+                                showMiniMeBackButton={false}
                                 onCharacterUpdate={(updated) => {
                                     setSelectedCharacter(updated);
                                     fetchCharacters();
