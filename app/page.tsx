@@ -72,6 +72,16 @@ export default function LandingPage() {
             </motion.div>
         </div>
       </div>
+
+      {/* Footer Legal Links */}
+      <footer className="relative z-10 pb-6 px-4 sm:px-6">
+        <div className="mx-auto max-w-3xl flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-white/75">
+          <Link href="/terms-of-use" className="hover:text-white transition-colors">Terms of Use</Link>
+          <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+          <Link href="/cookie-policy" className="hover:text-white transition-colors">Cookie Policy</Link>
+          <Link href="/disclaimer" className="hover:text-white transition-colors">Disclaimer</Link>
+        </div>
+      </footer>
     </div>
   )
 }
