@@ -44,6 +44,9 @@ jobs:
           # 前端部署固定使用 fly.io 后端，不依赖 secrets
           NEXT_PUBLIC_API_URL: 'https://lauraai-backend.fly.dev/api'
           NEXT_PUBLIC_RPC_URL: 'https://eth.llamarpc.com'
+          NEXT_PUBLIC_LAURA_AI_SOULMATE_ADDRESS: '0x9c2D6F27EC4F8438964Bb2e6540b4c8C735796DE'
+          NEXT_PUBLIC_LAURA_AI_MARKETPLACE_ADDRESS: '0x798FA4D90E77C57dc9Bb390ACFe58b09dad9110e'
+          NEXT_PUBLIC_LAURA_AI_STAKING_ADDRESS: '0xF089354e049990cceE4916A9D7B0f8eE96277d70'
           # WalletConnect project id is required for mobile wallet deep-link flow.
           NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: '8131eee5b7cc58c87d6fb7e651722132'
           # basePath 由 next.config.mjs 根据 GITHUB_REPOSITORY 自动推导
