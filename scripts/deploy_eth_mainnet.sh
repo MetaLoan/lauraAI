@@ -76,7 +76,11 @@ popd >/dev/null
 extract_addr() {
   local label="$1"
   local file="$2"
-  grep -E "${label}" "$file" | tail -n1 | awk '{print $NF}'
+  local line
+  line="$(grep -E "${label}" "$file" | tail -n1 || true)"
+  if [[ -n "$line" ]]; then
+    awk '{print $NF}' <<<"$line"
+  fi
 }
 
 TOKEN_ADDR="$(extract_addr "LauraAIToken deployed to:" "$DEPLOY_LOG")"
