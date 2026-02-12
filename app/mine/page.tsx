@@ -62,12 +62,13 @@ export default function MinePage() {
             // Parse per-character limits into a map: characterId -> {used, remaining, limit}
             const limitsData = limitsRes?.data || limitsRes || {};
             const perCharLimit = limitsData.per_character_limit || 10;
-            const charLimits: Record<string, { used: number; remaining: number }> = {};
+            const charLimits: Record<string, { used: number; remaining: number; earned_lra: number }> = {};
             if (Array.isArray(limitsData.characters)) {
                 for (const cl of limitsData.characters) {
                     charLimits[String(cl.character_id)] = {
                         used: cl.used || 0,
                         remaining: cl.remaining ?? (perCharLimit - (cl.used || 0)),
+                        earned_lra: Number(cl.earned_lra) || 0,
                     };
                 }
             }
