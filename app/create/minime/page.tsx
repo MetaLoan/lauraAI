@@ -122,6 +122,29 @@ export default function CreateMiniMePage() {
         return () => { if (pollRef.current) clearInterval(pollRef.current); };
     }, []);
 
+    // 与普通角色逻辑一致：若已存在已生成的 Mini Me，直接进入结果页
+    useEffect(() => {
+        if (!isConnected) return;
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const chars = await apiClient.getCharacters() as any[];
+                const existingMiniMe = chars?.find((c: any) => c.type === 'mini_me' && (c.image_url || c.clear_image_url));
+                if (!cancelled && existingMiniMe) {
+                    setCharacterData({ ...existingMiniMe, id: existingMiniMe.id?.toString?.() ?? String(existingMiniMe.id) });
+                    setStep('result');
+                    setMintStep('idle');
+                    setGenerationError(null);
+                }
+            } catch {
+                // ignore preload errors
+            }
+        })();
+
+        return () => { cancelled = true; };
+    }, [isConnected]);
+
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !address) return;
@@ -193,6 +216,21 @@ export default function CreateMiniMePage() {
 
         } catch (err: any) {
             console.error('Mini Me creation failed:', err);
+            if (typeof err?.message === 'string' && err.message.includes('already have a Mini Me')) {
+                try {
+                    const chars = await apiClient.getCharacters() as any[];
+                    const existingMiniMe = chars?.find((c: any) => c.type === 'mini_me' && (c.image_url || c.clear_image_url));
+                    if (existingMiniMe) {
+                        setCharacterData({ ...existingMiniMe, id: existingMiniMe.id?.toString?.() ?? String(existingMiniMe.id) });
+                        setStep('result');
+                        setMintStep('idle');
+                        setGenerationError(null);
+                        return;
+                    }
+                } catch {
+                    // fallback to default error handling
+                }
+            }
             const msg = err?.shortMessage || err?.message || 'Failed to create Mini Me. Please try again.';
             setGenerationError(msg);
             setStep('intro');

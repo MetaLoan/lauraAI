@@ -37,6 +37,20 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 		return
 	}
 
+	// 与普通角色保持一致：已存在且已生成图片的 Mini Me 不允许重复创建
+	existing, _ := h.characterRepo.GetByUserIDAndType(user.ID, model.CharacterTypeMiniMe)
+	if existing != nil && existing.ImageURL != "" {
+		response.Error(c, 409, "You already have a Mini Me. Each type can only be created once.")
+		return
+	}
+
+	// 若仅有未完成记录（无图），删除后允许重试创建
+	if existing != nil {
+		if err := h.characterRepo.DeleteByUserIDAndType(user.ID, model.CharacterTypeMiniMe); err != nil {
+			log.Printf("[MiniMe] 删除旧未完成角色忽略错误: %v", err)
+		}
+	}
+
 	// 1. 获取上传的文件
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
@@ -69,13 +83,7 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 
 	log.Printf("[MiniMe] 用户 %d 图片分析完成: %s", user.ID, description)
 
-	// 3. 删除之前的 mini_me 角色（每个用户只能有一个）
-	if err := h.characterRepo.DeleteByUserIDAndType(user.ID, model.CharacterTypeMiniMe); err != nil {
-		// 忽略删除错误，继续创建
-		log.Printf("[MiniMe] 删除旧角色忽略错误: %v", err)
-	}
-
-	// 4. 创建 Character 记录（image_status 为空，等前端 Mint 后再调 generate-image）
+	// 3. 创建 Character 记录（image_status 为空，等前端 Mint 后再调 generate-image）
 	character := &model.Character{
 		UserID:        user.ID,
 		Type:          model.CharacterTypeMiniMe,
