@@ -12,6 +12,7 @@ import { useAccount, useWriteContract } from 'wagmi';
 import { parseUnits } from 'viem';
 import Image from 'next/image';
 import { getAssetPath, getFullImageUrl } from '@/lib/utils';
+import { toMintUserMessage } from '@/lib/mint-error';
 import {
     confirmWithRecovery,
     flushPendingMintConfirms,
@@ -516,7 +517,7 @@ export default function CreatePage() {
             apiClient.generateImage(generatingCharacterId).catch(() => { });
             startPolling(generatingCharacterId);
         } catch (error: any) {
-            setGenerationError(error?.shortMessage || error?.message || 'Mint retry failed');
+            setGenerationError(toMintUserMessage(error));
             setMintStep('mint_verifying');
             setMintRetryMode(true);
         }
@@ -671,8 +672,7 @@ export default function CreatePage() {
 
         } catch (error: any) {
             console.error('Failed to create character:', error);
-            const msg = error?.shortMessage || error?.message || 'Creation failed. Please try again.';
-            setGenerationError(msg);
+            setGenerationError(toMintUserMessage(error));
             setCurrentStep('ethnicity'); // Go back
             setIsGenerating(false);
             setMintStep('idle');

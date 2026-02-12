@@ -14,6 +14,7 @@ import { apiClient } from '@/lib/api';
 import imageCompression from 'browser-image-compression';
 import { parseUnits } from 'viem';
 import { getAssetPath } from '@/lib/utils';
+import { toMintUserMessage } from '@/lib/mint-error';
 import {
     confirmWithRecovery,
     flushPendingMintConfirms,
@@ -236,7 +237,7 @@ export default function CreateMiniMePage() {
             apiClient.generateImage(generatingCharacterId).catch(() => { });
             startPolling(generatingCharacterId);
         } catch (error: any) {
-            setGenerationError(error?.shortMessage || error?.message || 'Mint retry failed');
+            setGenerationError(toMintUserMessage(error));
             setMintStep('mint_verifying');
             setMintRetryMode(true);
         }
@@ -437,8 +438,7 @@ export default function CreateMiniMePage() {
                     // fallback to default error handling
                 }
             }
-            const msg = err?.shortMessage || err?.message || 'Failed to create Mini Me. Please try again.';
-            setGenerationError(msg);
+            setGenerationError(toMintUserMessage(err));
             setStep('intro');
             setMintStep('idle');
             setMintRetryMode(false);
