@@ -186,6 +186,55 @@ func hasMintStarted(order *model.MintOrder) bool {
 	return order.TxHash != nil && strings.TrimSpace(*order.TxHash) != ""
 }
 
+func computeMintUIState(char model.Character, order *model.MintOrder) string {
+	if hasAnyImage(char) && char.ImageStatus == "done" {
+		return "done"
+	}
+
+	imageStatus := strings.ToLower(strings.TrimSpace(char.ImageStatus))
+	orderStatus := ""
+	hasTx := false
+	if order != nil {
+		orderStatus = strings.ToLower(string(order.Status))
+		hasTx = order.TxHash != nil && strings.TrimSpace(*order.TxHash) != ""
+	}
+
+	if imageStatus == "failed" {
+		if orderStatus == string(model.MintOrderStatusConfirmed) {
+			return "retry_generation"
+		}
+		if orderStatus == string(model.MintOrderStatusFailed) {
+			return "retry_mint"
+		}
+		if hasTx || orderStatus == string(model.MintOrderStatusVerifying) || orderStatus == string(model.MintOrderStatusPending) {
+			return "minting"
+		}
+		return "retry_generation"
+	}
+
+	if imageStatus == "generating" {
+		return "generating"
+	}
+
+	switch orderStatus {
+	case string(model.MintOrderStatusConfirmed):
+		if imageStatus == "" {
+			return "generating"
+		}
+		return "done"
+	case string(model.MintOrderStatusFailed):
+		return "retry_mint"
+	case string(model.MintOrderStatusPending), string(model.MintOrderStatusVerifying):
+		return "minting"
+	default:
+		if hasTx {
+			return "minting"
+		}
+	}
+
+	return "new"
+}
+
 // List 获取用户的所有角色
 func (h *CharacterHandler) List(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
@@ -222,6 +271,9 @@ func (h *CharacterHandler) List(c *gin.Context) {
 		if latestOrder != nil {
 			safeResponse["mint_order_status"] = string(latestOrder.Status)
 		}
+		safeResponse["mint_ui_state"] = computeMintUIState(char, latestOrder)
+		safeResponse["mint_paid"] = latestOrder != nil && latestOrder.Status == model.MintOrderStatusConfirmed
+		safeResponse["mint_has_tx"] = latestOrder != nil && latestOrder.TxHash != nil && strings.TrimSpace(*latestOrder.TxHash) != ""
 		// 记录返回的图片URL（包括原始值和规范化后的值）
 		if len(safeCharacters) < 3 { // 只记录前3个，避免日志过多
 			log.Printf("[Character] 返回角色图片URL - ID: %d, type: %s, unlock_status: %d", char.ID, char.Type, char.UnlockStatus)
@@ -274,20 +326,31 @@ func (h *CharacterHandler) GetByID(c *gin.Context) {
 			_ = h.characterRepo.Update(character)
 		}
 		locale := middleware.GetLocaleFromContext(c)
-		resp := character.ToSafeResponse(string(locale))
-		if latestOrder != nil {
-			resp["mint_order_status"] = string(latestOrder.Status)
+			resp := character.ToSafeResponse(string(locale))
+			if latestOrder != nil {
+				resp["mint_order_status"] = string(latestOrder.Status)
+			}
+			resp["mint_ui_state"] = computeMintUIState(*character, latestOrder)
+			resp["mint_paid"] = latestOrder != nil && latestOrder.Status == model.MintOrderStatusConfirmed
+			resp["mint_has_tx"] = latestOrder != nil && latestOrder.TxHash != nil && strings.TrimSpace(*latestOrder.TxHash) != ""
+			response.Success(c, resp)
+			return
 		}
-		response.Success(c, resp)
-		return
-	}
 
 	if ensureCharacterMetaDefaults(character, user) {
 		_ = h.characterRepo.Update(character)
 	}
 
 	locale := middleware.GetLocaleFromContext(c)
-	response.Success(c, character.ToSafeResponse(string(locale)))
+	resp := character.ToSafeResponse(string(locale))
+	latestOrder, _ := h.mintOrderRepo.GetLatestByCharacter(user.ID, character.ID)
+	if latestOrder != nil {
+		resp["mint_order_status"] = string(latestOrder.Status)
+	}
+	resp["mint_ui_state"] = computeMintUIState(*character, latestOrder)
+	resp["mint_paid"] = latestOrder != nil && latestOrder.Status == model.MintOrderStatusConfirmed
+	resp["mint_has_tx"] = latestOrder != nil && latestOrder.TxHash != nil && strings.TrimSpace(*latestOrder.TxHash) != ""
+	response.Success(c, resp)
 }
 
 // CleanupEmpty 清理没有图片的角色

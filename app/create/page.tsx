@@ -39,6 +39,63 @@ interface PresetType {
     presetImage?: string;
 }
 
+type MintUiState = 'new' | 'minting' | 'retry_mint' | 'generating' | 'retry_generation' | 'done';
+
+function getCardUiState(existingChar: any, hasImage: boolean): MintUiState {
+    const backendState = String(existingChar?.mint_ui_state || '').toLowerCase();
+    if (backendState === 'minting' || backendState === 'retry_mint' || backendState === 'generating' || backendState === 'retry_generation' || backendState === 'done') {
+        return backendState as MintUiState;
+    }
+    if (!existingChar) return 'new';
+    if (hasImage) return 'done';
+    const mintOrderStatus = String(existingChar?.mint_order_status || '').toLowerCase();
+    if (existingChar?.image_status === 'failed') return 'retry_generation';
+    if (mintOrderStatus === 'failed') return 'retry_mint';
+    if (mintOrderStatus === 'confirmed') return 'generating';
+    return 'minting';
+}
+
+function getCardStatusMeta(state: MintUiState): { label: string; helper: string; badgeClass: string } {
+    switch (state) {
+        case 'retry_mint':
+            return {
+                label: 'Retry Mint',
+                helper: 'Paid flow interrupted, tap to continue mint verification',
+                badgeClass: 'bg-amber-600/95 shadow-amber-500/40',
+            };
+        case 'retry_generation':
+            return {
+                label: 'Retry Generate',
+                helper: 'Payment confirmed, image failed. Tap to regenerate.',
+                badgeClass: 'bg-orange-600/95 shadow-orange-500/40',
+            };
+        case 'generating':
+            return {
+                label: 'Generating',
+                helper: 'Mint confirmed, AI image is rendering',
+                badgeClass: 'bg-indigo-600/95 shadow-indigo-500/40',
+            };
+        case 'minting':
+            return {
+                label: 'Minting',
+                helper: 'Chain confirmation in progress, tap to resume',
+                badgeClass: 'bg-blue-600/95 shadow-blue-500/40',
+            };
+        case 'done':
+            return {
+                label: 'Created',
+                helper: 'Open character details',
+                badgeClass: 'bg-green-600/95 shadow-green-500/40',
+            };
+        default:
+            return {
+                label: '',
+                helper: '',
+                badgeClass: '',
+            };
+    }
+}
+
 const PRESET_ICON_STYLE = "w-10 h-10 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)]";
 
 const PRESET_TYPES: PresetType[] = [
@@ -463,11 +520,10 @@ export default function CreatePage() {
         setGenerationError(null);
         setCurrentStep('generating');
         setGeneratingCharacterId(String(target.id));
-        const failed = target.image_status === 'failed';
-        const mintFailed = String(target.mint_order_status || '').toLowerCase() === 'failed';
-        setGenerationFailed(failed);
-        setMintRetryMode(mintFailed && !failed);
-        setMintStep(failed ? 'generating' : 'minting');
+        const uiState = getCardUiState(target, !!(target.image_url || target.clear_image_url));
+        setGenerationFailed(uiState === 'retry_generation');
+        setMintRetryMode(uiState === 'retry_mint');
+        setMintStep(uiState === 'generating' || uiState === 'retry_generation' ? 'generating' : 'minting');
         startPolling(String(target.id));
     }, [isConnected, isLoadingProfile, searchParams, existingCharacters, startPolling]);
 
@@ -817,11 +873,8 @@ export default function CreatePage() {
                                     const isCreated = existingTypes.includes(preset.type);
                                     const existingChar = existingCharacters.find((c: any) => c.type === preset.type);
                                     const hasImage = !!(existingChar && (existingChar.image_url || existingChar.clear_image_url));
-                                    const mintOrderStatus = String(existingChar?.mint_order_status || '').toLowerCase();
-                                    const isGenerationFailed = !!(existingChar && !hasImage && existingChar.image_status === 'failed');
-                                    const isMintFailed = !!(existingChar && !hasImage && mintOrderStatus === 'failed');
-                                    const isPaidFailed = isGenerationFailed || isMintFailed;
-                                    const isMintingInProgress = !!(existingChar && !hasImage && !isPaidFailed);
+                                    const uiState = getCardUiState(existingChar, hasImage);
+                                    const statusMeta = getCardStatusMeta(uiState);
                                     return (
                                         <motion.div
                                             key={preset.type}
@@ -889,21 +942,16 @@ export default function CreatePage() {
                                             {isCreated && (
                                                 <>
                                                     <div
-                                                        className={`absolute top-3 right-3 z-20 px-3 py-2 rounded-xl backdrop-blur-md text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 shadow-lg ${isPaidFailed
-                                                            ? 'bg-amber-600/95 shadow-amber-500/40'
-                                                            : isMintingInProgress
-                                                                ? 'bg-blue-600/95 shadow-blue-500/40'
-                                                                : 'bg-green-600/95 shadow-green-500/40'
-                                                            }`}
+                                                        className={`absolute top-3 right-3 z-20 px-3 py-2 rounded-xl backdrop-blur-md text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 shadow-lg ${statusMeta.badgeClass}`}
                                                     >
-                                                        {isPaidFailed ? (
+                                                        {uiState === 'retry_mint' || uiState === 'retry_generation' ? (
                                                             <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                                                        ) : isMintingInProgress ? (
+                                                        ) : uiState === 'minting' || uiState === 'generating' ? (
                                                             <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin" />
                                                         ) : (
                                                             <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                                                         )}
-                                                        {isPaidFailed ? 'Retry' : isMintingInProgress ? 'Minting' : 'Created'}
+                                                        {statusMeta.label}
                                                     </div>
                                                     <div className="absolute inset-0 z-15" />
                                                 </>
@@ -921,7 +969,9 @@ export default function CreatePage() {
                                                     {preset.label}
                                                     <ChevronRight className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                                 </h3>
-                                                <p className="text-[11px] text-white leading-relaxed line-clamp-2">{preset.description}</p>
+                                                <p className="text-[11px] text-white leading-relaxed line-clamp-2">
+                                                    {isCreated ? statusMeta.helper : preset.description}
+                                                </p>
                                             </div>
                                         </motion.div>
                                     );

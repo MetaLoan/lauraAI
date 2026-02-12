@@ -30,6 +30,21 @@ import {
 
 type Step = 'intro' | 'generating' | 'result';
 type MintStep = 'idle' | 'minting' | 'generating' | 'done';
+type MintUiState = 'new' | 'minting' | 'retry_mint' | 'generating' | 'retry_generation' | 'done';
+
+function getMiniMeUiState(character: any): MintUiState {
+    const backendState = String(character?.mint_ui_state || '').toLowerCase();
+    if (backendState === 'minting' || backendState === 'retry_mint' || backendState === 'generating' || backendState === 'retry_generation' || backendState === 'done') {
+        return backendState as MintUiState;
+    }
+    const hasImage = !!(character?.image_url || character?.clear_image_url);
+    if (hasImage) return 'done';
+    if (character?.image_status === 'failed') return 'retry_generation';
+    const orderStatus = String(character?.mint_order_status || '').toLowerCase();
+    if (orderStatus === 'failed') return 'retry_mint';
+    if (orderStatus === 'confirmed') return 'generating';
+    return 'minting';
+}
 
 export default function CreateMiniMePage() {
     const router = useRouter();
@@ -58,6 +73,7 @@ export default function CreateMiniMePage() {
         try {
             const chars = await apiClient.getCharacters() as any[];
             const found = chars?.find((c: any) => String(c.id) === charId);
+            const uiState = getMiniMeUiState(found);
             if (found && found.image_status === 'done' && found.image_url) {
                 // 生成完成
                 if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
@@ -70,9 +86,20 @@ export default function CreateMiniMePage() {
                 // 生成失败
                 if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
                 setGenerationFailed(true);
-                setMintRetryMode(false);
-                setMintStep('generating');
+                setMintRetryMode(uiState === 'retry_mint');
+                setMintStep(uiState === 'retry_mint' ? 'minting' : 'generating');
             } else if (found && (found.image_status === '' || !found.image_status)) {
+                if (uiState === 'retry_mint') {
+                    setMintStep('minting');
+                    setMintRetryMode(true);
+                    return;
+                }
+                if (uiState === 'generating') {
+                    setMintStep('generating');
+                    setMintRetryMode(false);
+                    apiClient.generateImage(String(found.id)).catch(() => { });
+                    return;
+                }
                 const now = Date.now();
                 if (now - lastResumeProbeAtRef.current > 10000) {
                     lastResumeProbeAtRef.current = now;
@@ -206,12 +233,13 @@ export default function CreateMiniMePage() {
                 const chars = await apiClient.getCharacters() as any[];
                 const existingMiniMe = chars?.find((c: any) => c.type === 'mini_me');
                 if (!cancelled && shouldResume && existingMiniMe && !(existingMiniMe.image_url || existingMiniMe.clear_image_url)) {
+                    const uiState = getMiniMeUiState(existingMiniMe);
                     const charId = String(existingMiniMe.id);
                     setStep('generating');
-                    setMintStep(existingMiniMe.image_status === 'failed' ? 'generating' : 'minting');
+                    setMintStep(uiState === 'generating' || uiState === 'retry_generation' ? 'generating' : 'minting');
                     setGeneratingCharacterId(charId);
-                    setGenerationFailed(existingMiniMe.image_status === 'failed');
-                    setMintRetryMode(String(existingMiniMe.mint_order_status || '').toLowerCase() === 'failed' && existingMiniMe.image_status !== 'failed');
+                    setGenerationFailed(uiState === 'retry_generation');
+                    setMintRetryMode(uiState === 'retry_mint');
                     setGenerationError(null);
                     startPolling(charId);
                     return;
