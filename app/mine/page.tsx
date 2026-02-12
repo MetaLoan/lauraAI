@@ -298,6 +298,14 @@ export default function MinePage() {
                                         <h3 className="text-base font-bold text-white truncate">
                                             {char.title}
                                         </h3>
+                                        <div className={`mt-1 inline-flex items-center h-7 px-2.5 rounded-full text-xs font-bold ${char.dailyRemaining > 3
+                                            ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                                            : char.dailyRemaining > 0
+                                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                                : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                                            }`}>
+                                            {char.dailyRemaining}/{char.dailyLimit}
+                                        </div>
                                     </div>
 
                                     {/* Right Meta */}
@@ -305,14 +313,6 @@ export default function MinePage() {
                                         <div className="flex items-center gap-2 px-3 py-1 bg-transparent rounded-full border border-white/25">
                                             <Wallet className="w-3.5 h-3.5 text-white" />
                                             <span className="text-[10px] font-semibold text-white uppercase tracking-widest">{char.earnedLra} LRA</span>
-                                        </div>
-                                        <div className={`min-w-[36px] h-9 px-2 rounded-full flex items-center justify-center text-sm font-bold ${char.dailyRemaining > 3
-                                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                            : char.dailyRemaining > 0
-                                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                                : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                                            }`}>
-                                            {char.dailyRemaining}/{char.dailyLimit}
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-white group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0" />
                                     </div>
