@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { ClientWrapper } from '@/components/client-wrapper'
+import { BasePathRuntimeFix } from '@/components/base-path-runtime-fix'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -73,6 +74,7 @@ export default function RootLayout({
             </filter>
           </defs>
         </svg>
+        <BasePathRuntimeFix />
         <ClientWrapper>
           {children}
         </ClientWrapper>
