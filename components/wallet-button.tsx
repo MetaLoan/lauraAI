@@ -23,6 +23,7 @@ export function WalletButton({ className, showBalance = true }: WalletButtonProp
   const { address, isConnected, status } = useAppKitAccount();
   const { caipNetwork } = useAppKitNetwork();
   const [copied, setCopied] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleCopy = async () => {
     if (address) {
@@ -65,7 +66,11 @@ export function WalletButton({ className, showBalance = true }: WalletButtonProp
   }
 
   return (
-    <DropdownMenu>
+    <>
+      {menuOpen && (
+        <div className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md pointer-events-none" />
+      )}
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
@@ -81,7 +86,7 @@ export function WalletButton({ className, showBalance = true }: WalletButtonProp
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-56 liquid-glass-card border-0 rounded-2xl"
+        className="w-56 liquid-glass-card border-0 rounded-2xl z-[70]"
         style={{ backgroundColor: 'rgba(112, 61, 91, 0.6)' }}
       >
         <div className="px-3 py-2 whitespace-nowrap">
@@ -134,7 +139,8 @@ export function WalletButton({ className, showBalance = true }: WalletButtonProp
           Disconnect
         </DropdownMenuItem>
       </DropdownMenuContent>
-    </DropdownMenu>
+      </DropdownMenu>
+    </>
   );
 }
 
