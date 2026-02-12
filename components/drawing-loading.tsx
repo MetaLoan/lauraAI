@@ -144,9 +144,9 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
           <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(255,175,80,0.26)_0%,rgba(168,85,247,0.12)_38%,rgba(59,130,246,0.04)_66%,transparent_72%)]" />
 
           {/* Rings */}
-          <div className="absolute inset-2 rounded-full border border-white/28 animate-spin" style={{ animationDuration: '16s' }} />
+          <div className="absolute inset-2 rounded-full border border-white/30 animate-spin" style={{ animationDuration: '16s' }} />
           <div className="absolute inset-7 rounded-full border border-white/20 animate-spin" style={{ animationDuration: '11s', animationDirection: 'reverse' }} />
-          <div className="absolute inset-12 rounded-full border border-white/14 animate-spin" style={{ animationDuration: '7s' }} />
+          <div className="absolute inset-12 rounded-full border border-white/10 animate-spin" style={{ animationDuration: '7s' }} />
 
           {/* Sweep scanner */}
           <div
@@ -178,7 +178,7 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
         </div>
 
         {/* Data overlay (minimal) */}
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-black/15 border border-white/15 backdrop-blur-md font-mono text-[10px] text-white/85 tracking-wider">
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-black/15 border border-white/20 backdrop-blur-md font-mono text-[10px] text-white/85 tracking-wider">
           LAT {dataOverlay.coords.split(',')[0]} · BIN {dataOverlay.binary}
         </div>
       </div>
