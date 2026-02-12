@@ -323,9 +323,9 @@ export default function MinePage() {
 
                                     {/* 累积收益 - 与聊天页头部 LRA 徽章同款样式 */}
                                     <div className="flex-1 flex justify-center items-center flex-shrink-0 min-w-0">
-                                        <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20 shadow-inner">
-                                            <Wallet className="w-3.5 h-3.5 text-green-400" />
-                                            <span className="text-[10px] font-semibold text-green-300 uppercase tracking-widest">{char.earnedLra} LRA</span>
+                                        <div className="flex items-center gap-2 px-3 py-1 bg-transparent rounded-full border border-white/25">
+                                            <Wallet className="w-3.5 h-3.5 text-white" />
+                                            <span className="text-[10px] font-semibold text-white uppercase tracking-widest">{char.earnedLra} LRA</span>
                                         </div>
                                     </div>
 
