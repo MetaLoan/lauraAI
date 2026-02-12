@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
-const isGitHubPages = process.env.GITHUB_PAGES === 'true'
+// Only enable static export when explicitly requested.
+// This app contains dynamic routes like /chat/[id] that are incompatible with output: 'export'.
+const isGitHubPages = process.env.NEXT_OUTPUT_EXPORT === 'true'
 // GitHub Pages basePath：与仓库名一致（Actions 中 GITHUB_REPOSITORY 如 MetaLoan/lauradesktop → /lauradesktop）
 const basePath = isGitHubPages
   ? (process.env.GITHUB_REPOSITORY ? '/' + process.env.GITHUB_REPOSITORY.split('/')[1] : '/lauraAI')
