@@ -131,133 +131,72 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
         paddingTop: 'calc(var(--tg-safe-area-top, 0px) + var(--tg-content-safe-area-top, 0px) + 24px)'
       }}
     >
-      {/* Header - Simplified */}
-      <div className="w-full text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Creating Your {localizedTitle}</h1>
-            <p className="text-sm text-white uppercase tracking-widest">AI Generation in Progress</p>
-          </div>
+      {/* Header */}
+      <div className="w-full text-center mb-6">
+        <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Creating Your {localizedTitle}</h1>
+        <p className="text-sm text-white/90 uppercase tracking-[0.25em]">AI Generation in Progress</p>
+      </div>
 
       {/* Central Animation Container */}
       <div className="flex-1 flex items-center justify-center relative">
-        {/* Orbiting Rings */}
-        <div className="relative w-64 h-64">
-          {/* Outer ring - no stroke */}
-          <div 
-            className="absolute inset-0 rounded-full border border-white/30 animate-spin"
-            style={{ animationDuration: '8s' }}
-          />
-          
-          {/* Middle ring - tilted */}
-          <div 
-            className="absolute inset-4 rounded-full border border-white/25 animate-spin"
-            style={{ 
-              animationDuration: '6s', 
-              animationDirection: 'reverse',
-              transform: 'rotateX(60deg)'
-            }}
-          />
-          
-          {/* Inner ring */}
-          <div 
-            className="absolute inset-8 rounded-full border border-white/20 animate-spin"
-            style={{ animationDuration: '4s' }}
-          />
-          
-          {/* Third ring - different tilt */}
-          <div 
-            className="absolute inset-12 rounded-full border border-white/25 animate-spin"
-            style={{ 
-              animationDuration: '5s', 
-              animationDirection: 'reverse',
-              transform: 'rotateY(60deg)'
+        <div className="relative w-72 h-72">
+          {/* Ambient halo */}
+          <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(255,175,80,0.26)_0%,rgba(168,85,247,0.12)_38%,rgba(59,130,246,0.04)_66%,transparent_72%)]" />
+
+          {/* Rings */}
+          <div className="absolute inset-2 rounded-full border border-white/28 animate-spin" style={{ animationDuration: '16s' }} />
+          <div className="absolute inset-7 rounded-full border border-white/20 animate-spin" style={{ animationDuration: '11s', animationDirection: 'reverse' }} />
+          <div className="absolute inset-12 rounded-full border border-white/14 animate-spin" style={{ animationDuration: '7s' }} />
+
+          {/* Sweep scanner */}
+          <div
+            className="absolute inset-2 rounded-full animate-spin opacity-60"
+            style={{
+              animationDuration: '5s',
+              background: 'conic-gradient(from 0deg, transparent 0deg, transparent 312deg, rgba(255,255,255,0.65) 350deg, transparent 360deg)',
+              WebkitMask: 'radial-gradient(circle, transparent 54%, black 56%)',
+              mask: 'radial-gradient(circle, transparent 54%, black 56%)',
             }}
           />
 
-          {/* Pulsing Core */}
+          {/* Core */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative">
-              {/* Outer glow */}
-              <div 
-                className="absolute -inset-8 rounded-full bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-cyan-500/20 blur-xl animate-pulse"
-                style={{ animationDuration: '2s' }}
-              />
-              
-              {/* Inner core */}
-              <div 
-                className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 animate-pulse shadow-lg shadow-amber-500/50"
-                style={{ animationDuration: '1.5s' }}
-              />
-              
-              {/* Core highlight */}
-              <div className="absolute top-2 left-2 w-4 h-4 rounded-full bg-white/40 blur-sm" />
+              <div className="absolute -inset-10 rounded-full bg-amber-400/20 blur-2xl animate-pulse" style={{ animationDuration: '2.1s' }} />
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-300 via-orange-500 to-red-500 shadow-[0_0_40px_rgba(251,146,60,0.45)] animate-pulse" style={{ animationDuration: '1.6s' }} />
+              <div className="absolute top-3 left-4 w-5 h-5 rounded-full bg-white/35 blur-sm" />
             </div>
           </div>
 
-          {/* Orbiting dots */}
-          <div 
-            className="absolute inset-0 animate-spin"
-            style={{ animationDuration: '3s' }}
-          >
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-amber-400 shadow-lg shadow-amber-400/50" />
+          {/* Orbit particles */}
+          <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3.4s' }}>
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-cyan-300" />
           </div>
-          <div 
-            className="absolute inset-0 animate-spin"
-            style={{ animationDuration: '4s', animationDirection: 'reverse' }}
-          >
-            <div className="absolute bottom-4 right-4 w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50" />
-          </div>
-          <div 
-            className="absolute inset-0 animate-spin"
-            style={{ animationDuration: '5s' }}
-          >
-            <div className="absolute top-8 left-4 w-1 h-1 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50" />
+          <div className="absolute inset-0 animate-spin" style={{ animationDuration: '4.2s', animationDirection: 'reverse' }}>
+            <div className="absolute bottom-10 right-8 w-2 h-2 rounded-full bg-amber-300" />
           </div>
         </div>
 
-        {/* Data Overlay - Floating coordinates */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Top left data */}
-          <div className="absolute top-4 left-4 font-mono text-[10px] text-cyan-400/60 animate-pulse">
-            <div>LAT: {dataOverlay.coords.split(',')[0]}</div>
-            <div>LNG: {dataOverlay.coords.split(',')[1]}</div>
-          </div>
-          
-          {/* Top right data */}
-          <div className="absolute top-4 right-4 font-mono text-[10px] text-amber-400/60 animate-pulse text-right">
-            <div>BIN: {dataOverlay.binary}</div>
-            <div>VEC: {(Math.random() * 100).toFixed(2)}%</div>
-          </div>
-          
-          {/* Bottom left data */}
-          <div className="absolute bottom-4 left-4 font-mono text-[10px] text-white animate-pulse">
-            <div>NODE: ACTIVE</div>
-            <div>SYNC: {Math.floor(Math.random() * 1000)}ms</div>
-          </div>
-
-          {/* Bottom right data */}
-          <div className="absolute bottom-4 right-4 font-mono text-[10px] text-green-400/60 animate-pulse text-right">
-            <div>NASA_JPL: OK</div>
-            <div>EPHEMERIS: LOADED</div>
-          </div>
+        {/* Data overlay (minimal) */}
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-black/15 border border-white/15 backdrop-blur-md font-mono text-[10px] text-white/85 tracking-wider">
+          LAT {dataOverlay.coords.split(',')[0]} · BIN {dataOverlay.binary}
         </div>
       </div>
 
       {/* Progress Section */}
-      <div className="w-full mb-4">
-        {/* Progress Bar */}
-        <div className="h-1 rounded-full overflow-hidden mb-4">
-          <div 
-            className="h-full bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 transition-all duration-300 ease-out"
+      <div className="w-full max-w-xl mb-4">
+        <div className="h-1.5 rounded-full overflow-hidden mb-5 bg-white/22">
+          <div
+            className="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 transition-all duration-300 ease-out"
             style={{ width: `${Math.min(progress, 95)}%` }}
           />
         </div>
-        
-        {/* Current Step Text */}
+
         <div className="text-center">
-          <p className="font-mono text-sm text-amber-400 mb-2 animate-pulse min-h-[2.5rem] flex items-center justify-center">
+          <p className="font-mono text-base text-amber-300 mb-2 min-h-[2.2rem] flex items-center justify-center">
             {calculationSteps[stepIndex]?.text}
           </p>
-          <p className="text-xs text-white">
+          <p className="text-sm text-white/85">
             {stepIndex + 1} / {calculationSteps.length}
           </p>
         </div>
