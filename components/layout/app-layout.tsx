@@ -39,9 +39,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col h-full relative z-10 overflow-hidden pb-safe">
 
-                {/* ───── Desktop Header（md+）：可收缩/展开，收缩时居中 ───── */}
+                {/* ───── Desktop Header（md+）：展开时沉浸式无玻璃，收缩时玻璃卡片 ───── */}
                 <motion.header
-                    className="hidden md:flex items-center justify-center glass-bar rounded-full absolute top-3 z-40 h-14 overflow-hidden"
+                    className={`hidden md:flex items-center justify-center rounded-full absolute top-3 z-40 h-14 overflow-hidden ${expanded ? 'bg-transparent shadow-none' : 'glass-bar'}`}
                     animate={{
                         left: expanded ? '0.75rem' : '50%',
                         x: expanded ? '0%' : '-50%',

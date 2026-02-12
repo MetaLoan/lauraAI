@@ -111,7 +111,8 @@ body {
   isolation: isolate;
   background: transparent;
   border-radius: 1rem;
-  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 0, 0, 0.05);
+  /* box-shadow 第一层（投影）先关掉看效果 */ /* 0 6px 6px rgba(0, 0, 0, 0.1), */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
   color: var(--lg-text);
 }
 /* 胶囊形：与 rounded-full 同用时强制整颗 pill */
@@ -203,7 +204,8 @@ body {
 }
 /* hover：显示弱玻璃（40% 描边） */
 .liquid-glass-card.glass-dormant:hover {
-  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 0, 0, 0.05) !important;
+  /* 0 6px 6px rgba(0, 0, 0, 0.1), */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05) !important;
 }
 .liquid-glass-card.glass-dormant:hover::before,
 .liquid-glass-card.glass-dormant:hover::after {
@@ -226,7 +228,8 @@ body {
 .glass-bar {
   isolation: isolate;
   background: transparent;
-  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 0, 0, 0.05);
+  /* 0 6px 6px rgba(0, 0, 0, 0.1), */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
   color: var(--lg-text);
 }
 .glass-bar::before,
