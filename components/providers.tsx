@@ -65,6 +65,8 @@ function initAppKit() {
   if (!adapter) return;
 
   createAppKit({
+    // Force wallet-only mode and bypass Reown remote auth-feature overrides.
+    basic: true,
     adapters: [adapter],
     networks: [getLocalHardhat(), bsc, bscTestnet],
     projectId,
