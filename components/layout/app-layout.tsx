@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { WalletButton } from '@/components/wallet-button';
 import { motion } from 'framer-motion';
+import { AmbientOrbsBg } from '@/components/ambient-orbs-bg';
 
 /**
  * AppLayout — 只负责内容区域的 shell（header + 可滚动内容区 + padding）。
@@ -32,8 +33,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="flex h-screen text-white selection:bg-purple-500/30 overflow-hidden relative">
+            {/* Ambient background: purple/yellow/blue Gaussian orbs */}
+            <AmbientOrbsBg />
+
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col h-full relative overflow-hidden pb-safe">
+            <main className="flex-1 flex flex-col h-full relative z-10 overflow-hidden pb-safe">
 
                 {/* ───── Desktop Header（md+）：可收缩/展开，收缩时居中 ───── */}
                 <motion.header
