@@ -117,6 +117,38 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 	response.Success(c, character.ToSafeResponse(string(locale)))
 }
 
+func ensureCharacterMetaDefaults(char *model.Character, user *model.User) bool {
+	changed := false
+
+	if char.Type == model.CharacterTypeMiniMe {
+		if char.Compatibility <= 0 {
+			char.Compatibility = 100
+			changed = true
+		}
+		if strings.TrimSpace(char.AstroSign) == "" {
+			char.AstroSign = getZodiacSignFromBirthDate(user.BirthDate)
+			changed = true
+		}
+		return changed
+	}
+
+	if char.Compatibility <= 0 {
+		// Keep deterministic fallback for old rows that missed compatibility initialization.
+		char.Compatibility = 75 + int(char.ID%25)
+		changed = true
+	}
+	if strings.TrimSpace(char.AstroSign) == "" {
+		sign := getZodiacSignFromBirthDate(user.BirthDate)
+		if strings.TrimSpace(sign) == "" {
+			sign = "Libra"
+		}
+		char.AstroSign = sign
+		changed = true
+	}
+
+	return changed
+}
+
 // List 获取用户的所有角色
 func (h *CharacterHandler) List(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
@@ -135,24 +167,18 @@ func (h *CharacterHandler) List(c *gin.Context) {
 	locale := middleware.GetLocaleFromContext(c)
 	safeCharacters := make([]map[string]interface{}, len(characters))
 	for i, char := range characters {
-		// Mini Me 默认值兜底（兼容历史数据）
-		if char.Type == model.CharacterTypeMiniMe {
-			if char.Compatibility == 0 {
-				char.Compatibility = 100
-			}
-			if char.AstroSign == "" {
-				char.AstroSign = getZodiacSignFromBirthDate(user.BirthDate)
-			}
+		if ensureCharacterMetaDefaults(&char, user) {
+			_ = h.characterRepo.Update(&char)
 		}
 
 		safeResponse := char.ToSafeResponse(string(locale))
 		// 记录返回的图片URL（包括原始值和规范化后的值）
 		if i < 3 { // 只记录前3个，避免日志过多
 			log.Printf("[Character] 返回角色图片URL - ID: %d, type: %s, unlock_status: %d", char.ID, char.Type, char.UnlockStatus)
-			log.Printf("[Character] 原始URL - FullBlur: %q, HalfBlur: %q, Clear: %q", 
+			log.Printf("[Character] 原始URL - FullBlur: %q, HalfBlur: %q, Clear: %q",
 				char.FullBlurImageURL, char.HalfBlurImageURL, char.ClearImageURL)
-			log.Printf("[Character] 规范化后URL - image_url: %q, full_blur: %q, half_blur: %q, clear: %q", 
-				safeResponse["image_url"], safeResponse["full_blur_image_url"], 
+			log.Printf("[Character] 规范化后URL - image_url: %q, full_blur: %q, half_blur: %q, clear: %q",
+				safeResponse["image_url"], safeResponse["full_blur_image_url"],
 				safeResponse["half_blur_image_url"], safeResponse["clear_image_url"])
 		}
 		safeCharacters[i] = safeResponse
@@ -188,14 +214,8 @@ func (h *CharacterHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	// Mini Me 默认值兜底（兼容历史数据）
-	if character.Type == model.CharacterTypeMiniMe {
-		if character.Compatibility == 0 {
-			character.Compatibility = 100
-		}
-		if character.AstroSign == "" {
-			character.AstroSign = getZodiacSignFromBirthDate(user.BirthDate)
-		}
+	if ensureCharacterMetaDefaults(character, user) {
+		_ = h.characterRepo.Update(character)
 	}
 
 	locale := middleware.GetLocaleFromContext(c)

@@ -121,6 +121,19 @@ export default function DashboardPage() {
         }
     };
 
+    const getCharacterCompatibility = (char: any): number => {
+        const raw = Number(char?.compatibility);
+        if (raw > 0) return raw;
+        if (char?.type === 'mini_me') return 100;
+        return 75 + (Number(char?.id || 0) % 25);
+    };
+
+    const getCharacterAstroSign = (char: any, userAstroSign: string): string => {
+        const raw = typeof char?.astro_sign === 'string' ? char.astro_sign.trim() : '';
+        if (raw) return raw;
+        return userAstroSign || 'Libra';
+    };
+
     const mapCharacters = (data: any[], me?: any): Character[] => {
         const userAstroSign = getZodiacFromBirthDate(me?.birth_date);
         return (data || []).map((char: any) => ({
@@ -130,8 +143,8 @@ export default function DashboardPage() {
             image: char.image,
             type: char.type,
             unlock_status: char.unlock_status,
-            compatibility: char.type === 'mini_me' ? (Number(char.compatibility) > 0 ? Number(char.compatibility) : 100) : Number(char.compatibility) || 0,
-            astro_sign: char.type === 'mini_me' ? (char.astro_sign || userAstroSign) : char.astro_sign,
+            compatibility: getCharacterCompatibility(char),
+            astro_sign: getCharacterAstroSign(char, userAstroSign),
             description: char.description,
             image_status: char.image_status || '',
         }));
@@ -339,7 +352,7 @@ export default function DashboardPage() {
                                                     {char.astro_sign && (
                                                         <p className="text-xs text-white mb-3 flex items-center gap-1.5">
                                                             {getZodiacGlyph(char.astro_sign) ? (
-                                                                <span className="font-zodiac text-lg leading-none" title={char.astro_sign}>
+                                                                <span className="text-lg leading-none" title={char.astro_sign}>
                                                                     {getZodiacGlyph(char.astro_sign)}
                                                                 </span>
                                                             ) : (
