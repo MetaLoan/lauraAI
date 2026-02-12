@@ -211,6 +211,7 @@ func main() {
 	})
 
 	mintOrderHandler := handler.NewMintOrderHandler()
+	mintOrderHandler.StartVerificationWorker()
 
 	// Public routes
 	api := r.Group("/api")

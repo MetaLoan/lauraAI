@@ -29,12 +29,14 @@ var safeMintSelectorHex = "40d097c3" // bytes4(keccak256("safeMint(address,strin
 var erc20TransferTopicHex = "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
 const (
-	asyncVerifyRetryAttempts = 20
-	asyncVerifyRetryInterval = 8 * time.Second
+	mintVerifyWorkerTick     = 8 * time.Second
+	mintVerifyClaimBatchSize = 12
+	mintVerifyStaleLockAfter = 2 * time.Minute
 )
 
 type MintOrderHandler struct {
 	mintOrderRepo     *repository.MintOrderRepository
+	mintVerifyJobRepo *repository.MintVerifyJobRepository
 	characterRepo     *repository.CharacterRepository
 	webhookReplayRepo *repository.MintWebhookReplayRepository
 }
@@ -42,6 +44,7 @@ type MintOrderHandler struct {
 func NewMintOrderHandler() *MintOrderHandler {
 	return &MintOrderHandler{
 		mintOrderRepo:     repository.NewMintOrderRepository(),
+		mintVerifyJobRepo: repository.NewMintVerifyJobRepository(),
 		characterRepo:     repository.NewCharacterRepository(),
 		webhookReplayRepo: repository.NewMintWebhookReplayRepository(),
 	}
@@ -197,7 +200,7 @@ func (h *MintOrderHandler) ConfirmOrder(c *gin.Context) {
 
 	if verifyErr := h.finalizeMintOrderByTx(order, txHash, strings.ToLower(user.WalletAddress)); verifyErr != nil {
 		if isTemporaryVerificationError(verifyErr) {
-			go h.retryFinalizeMintOrder(order.ID, txHash, strings.ToLower(user.WalletAddress))
+			_ = h.enqueueVerifyJob(order.ID, txHash, strings.ToLower(user.WalletAddress), verifyErr.Error(), time.Now().Add(6*time.Second))
 			response.Success(c, gin.H{
 				"status":  "verifying",
 				"order":   order,
@@ -345,7 +348,7 @@ func (h *MintOrderHandler) WebhookConfirm(c *gin.Context) {
 
 	if err := h.finalizeMintOrderByTx(order, txHash, payer); err != nil {
 		if isTemporaryVerificationError(err) {
-			go h.retryFinalizeMintOrder(order.ID, txHash, payer)
+			_ = h.enqueueVerifyJob(order.ID, txHash, payer, err.Error(), time.Now().Add(6*time.Second))
 			response.Success(c, gin.H{
 				"status":  "verifying",
 				"order":   order,
@@ -570,33 +573,73 @@ func isTemporaryVerificationError(err error) bool {
 		strings.Contains(msg, "rpc dial failed")
 }
 
-func (h *MintOrderHandler) retryFinalizeMintOrder(orderID uint64, txHash string, payerWallet string) {
-	for i := 0; i < asyncVerifyRetryAttempts; i++ {
-		time.Sleep(asyncVerifyRetryInterval)
+func (h *MintOrderHandler) enqueueVerifyJob(orderID uint64, txHash string, payerWallet string, reason string, nextRetryAt time.Time) error {
+	return h.mintVerifyJobRepo.UpsertPending(orderID, txHash, payerWallet, reason, nextRetryAt)
+}
 
-		order, err := h.mintOrderRepo.GetByID(orderID)
-		if err != nil || order == nil {
-			return
+func (h *MintOrderHandler) StartVerificationWorker() {
+	go func() {
+		ticker := time.NewTicker(mintVerifyWorkerTick)
+		defer ticker.Stop()
+
+		h.processVerificationQueueTick()
+		for range ticker.C {
+			h.processVerificationQueueTick()
 		}
+	}()
+}
+
+func (h *MintOrderHandler) processVerificationQueueTick() {
+	now := time.Now()
+	_ = h.mintVerifyJobRepo.UnlockStaleRunning(now.Add(-mintVerifyStaleLockAfter))
+
+	jobs, err := h.mintVerifyJobRepo.ClaimDue(mintVerifyClaimBatchSize, now)
+	if err != nil || len(jobs) == 0 {
+		return
+	}
+
+	for _, job := range jobs {
+		order, getErr := h.mintOrderRepo.GetByID(job.OrderID)
+		if getErr != nil || order == nil {
+			_ = h.mintVerifyJobRepo.RescheduleOrDead(job.OrderID, time.Now().Add(30*time.Second), "order not found")
+			continue
+		}
+
 		if order.Status == model.MintOrderStatusConfirmed {
-			return
-		}
-		if order.Status == model.MintOrderStatusFailed && !strings.Contains(strings.ToLower(order.FailReason), "verification pending") {
-			return
+			_ = h.mintVerifyJobRepo.MarkDone(job.OrderID)
+			continue
 		}
 
 		if model.CanMintOrderTransition(order.Status, model.MintOrderStatusVerifying) {
 			order.Status = model.MintOrderStatusVerifying
-			order.TxHash = stringPtr(txHash)
+			order.TxHash = stringPtr(job.TxHash)
 			_ = h.mintOrderRepo.Update(order)
 		}
 
-		if err := h.finalizeMintOrderByTx(order, txHash, payerWallet); err == nil {
-			return
-		} else if !isTemporaryVerificationError(err) {
-			return
+		payer := strings.ToLower(strings.TrimSpace(job.PayerWallet))
+		if payer == "" {
+			payer = strings.ToLower(strings.TrimSpace(order.PayerWallet))
 		}
+		if payer == "" {
+			_ = h.mintVerifyJobRepo.RescheduleOrDead(job.OrderID, time.Now().Add(30*time.Second), "missing payer wallet")
+			continue
+		}
+
+		verifyErr := h.finalizeMintOrderByTx(order, job.TxHash, payer)
+		if verifyErr == nil {
+			_ = h.mintVerifyJobRepo.MarkDone(job.OrderID)
+			continue
+		}
+
+		next := time.Now().Add(10 * time.Second)
+		if isTemporaryVerificationError(verifyErr) {
+			_ = h.mintVerifyJobRepo.RescheduleOrDead(job.OrderID, next, verifyErr.Error())
+			continue
+		}
+		_ = h.mintVerifyJobRepo.MarkDead(job.OrderID, verifyErr.Error())
 	}
+
+	_ = h.mintVerifyJobRepo.CleanupFinished(time.Now().Add(-72 * time.Hour))
 }
 
 func verifyWebhookSignature(timestamp string, rawBody []byte, gotSignature string, secret string) bool {

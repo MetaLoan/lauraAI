@@ -54,6 +54,7 @@ func InitDB() error {
 		&model.Message{},
 		&model.AuthNonce{},
 		&model.MintOrder{},
+		&model.MintVerifyJob{},
 		&model.MintWebhookReplay{},
 	)
 
