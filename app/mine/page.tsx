@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { apiClient } from '@/lib/api';
-import { Loader2, MessageCircle, Sparkles, ChevronRight, AlertTriangle, RotateCw, Wallet, Plus } from 'lucide-react';
+import { Loader2, MessageCircle, Sparkles, ChevronRight, AlertTriangle, RotateCw, DollarSign, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@/components/wallet-button';
@@ -311,7 +311,7 @@ export default function MinePage() {
                                     {/* Center LRA Capsule */}
                                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10">
                                         <div className="flex items-center gap-2 px-3 py-1 bg-transparent rounded-full border border-white/25">
-                                            <Wallet className="w-3.5 h-3.5 text-white" />
+                                            <DollarSign className="w-3.5 h-3.5 text-white" />
                                             <span className="text-[10px] font-semibold text-white uppercase tracking-widest">{char.earnedLra} LRA</span>
                                         </div>
                                     </div>
