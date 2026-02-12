@@ -297,6 +297,7 @@ export default function CreatePage() {
     // 是否处于 "生图失败，等待用户重试" 的状态
     const [generationFailed, setGenerationFailed] = useState(false);
     const [isRetrying, setIsRetrying] = useState(false);
+    const [mintRetryMode, setMintRetryMode] = useState(false);
 
     // 轮询检查生图结果
     const pollForResult = React.useCallback(async (charId: string) => {
@@ -316,6 +317,7 @@ export default function CreatePage() {
                 // 后端重试多次仍失败 → 停留在当前页面，显示失败 UI
                 if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
                 setGenerationFailed(true);
+                setMintRetryMode(false);
                 setMintStep('generating'); // 保持在 generating 步骤，不退回
             } else if (found && (found.image_status === '' || !found.image_status)) {
                 // 订单可能正在异步确认，周期性探测支付状态并自动续跑生图
@@ -333,9 +335,11 @@ export default function CreatePage() {
                         });
                         if (probe?.already_paid) {
                             setMintStep('generating');
+                            setMintRetryMode(false);
                             apiClient.generateImage(String(found.id)).catch(() => { });
                         } else {
                             setMintStep('minting');
+                            setMintRetryMode(String(probe?.order?.status || '').toLowerCase() === 'failed');
                         }
                     } catch {
                         // probe errors are ignored and retried by next polling tick
@@ -380,6 +384,61 @@ export default function CreatePage() {
         }
     };
 
+    const handleRetryMintForExisting = async () => {
+        if (!generatingCharacterId || !address) return;
+        setMintRetryMode(false);
+        setGenerationError(null);
+        setMintStep('minting');
+        try {
+            const mintOrderResult = await apiClient.createMintOrder({
+                character_id: Number(generatingCharacterId),
+                chain_id: chainId || 1,
+                token_address: FF_TOKEN_ADDRESS,
+                token_symbol: 'FF',
+                token_amount: MINT_PRICE_FF,
+                token_amount_wei: mintPrice.toString(),
+            });
+
+            if (!mintOrderResult?.already_paid) {
+                const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+                    ? 'http://localhost:8081'
+                    : 'https://lauraai-backend.fly.dev';
+                const metadataURI = `${baseUrl}/api/nft/metadata/${generatingCharacterId}`;
+
+                await writeContractAsync({
+                    address: FF_TOKEN_ADDRESS as `0x${string}`,
+                    abi: LAURA_AI_TOKEN_ABI,
+                    functionName: 'approve',
+                    args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
+                });
+
+                const txHash = await writeContractAsync({
+                    address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
+                    abi: LAURA_AI_SOULMATE_ABI,
+                    functionName: 'safeMint',
+                    args: [address, metadataURI],
+                });
+
+                const confirmed = await confirmWithRecovery(
+                    String(mintOrderResult.order?.id),
+                    txHash as string,
+                    (id, hash) => apiClient.confirmMintOrder(id, hash)
+                );
+                if (!confirmed) {
+                    throw new Error('Payment sent on-chain. Confirmation is pending and will auto-retry.');
+                }
+            }
+
+            setMintStep('generating');
+            apiClient.generateImage(generatingCharacterId).catch(() => { });
+            startPolling(generatingCharacterId);
+        } catch (error: any) {
+            setGenerationError(error?.shortMessage || error?.message || 'Mint retry failed');
+            setMintStep('minting');
+            setMintRetryMode(true);
+        }
+    };
+
     // 清理轮询
     React.useEffect(() => {
         return () => { if (pollRef.current) clearInterval(pollRef.current); };
@@ -405,7 +464,9 @@ export default function CreatePage() {
         setCurrentStep('generating');
         setGeneratingCharacterId(String(target.id));
         const failed = target.image_status === 'failed';
+        const mintFailed = String(target.mint_order_status || '').toLowerCase() === 'failed';
         setGenerationFailed(failed);
+        setMintRetryMode(mintFailed && !failed);
         setMintStep(failed ? 'generating' : 'minting');
         startPolling(String(target.id));
     }, [isConnected, isLoadingProfile, searchParams, existingCharacters, startPolling]);
@@ -415,6 +476,7 @@ export default function CreatePage() {
         if (!soulmateGender || !soulmateEthnicity || !selectedType || !address) return;
         setIsGenerating(true);
         setGenerationError(null);
+        setMintRetryMode(false);
         setCurrentStep('generating');
         setMintStep('minting');
 
@@ -468,6 +530,7 @@ export default function CreatePage() {
                 setMintStep('generating');
                 const charId = character.id.toString();
                 setGeneratingCharacterId(charId);
+                setMintRetryMode(false);
                 apiClient.generateImage(charId).catch((err: any) => {
                     console.warn('Generate image request sent (continues in background):', err);
                 });
@@ -513,6 +576,7 @@ export default function CreatePage() {
             setMintStep('generating');
             const charId = character.id.toString();
             setGeneratingCharacterId(charId);
+            setMintRetryMode(false);
 
             apiClient.generateImage(charId).catch((err: any) => {
                 console.warn('Generate image request sent (continues in background):', err);
@@ -528,6 +592,7 @@ export default function CreatePage() {
             setCurrentStep('ethnicity'); // Go back
             setIsGenerating(false);
             setMintStep('idle');
+            setMintRetryMode(false);
         }
     };
 
@@ -752,8 +817,11 @@ export default function CreatePage() {
                                     const isCreated = existingTypes.includes(preset.type);
                                     const existingChar = existingCharacters.find((c: any) => c.type === preset.type);
                                     const hasImage = !!(existingChar && (existingChar.image_url || existingChar.clear_image_url));
-                                    const isMintingInProgress = !!(existingChar && !hasImage && existingChar.image_status !== 'failed');
-                                    const isPaidFailed = !!(existingChar && !hasImage && existingChar.image_status === 'failed');
+                                    const mintOrderStatus = String(existingChar?.mint_order_status || '').toLowerCase();
+                                    const isGenerationFailed = !!(existingChar && !hasImage && existingChar.image_status === 'failed');
+                                    const isMintFailed = !!(existingChar && !hasImage && mintOrderStatus === 'failed');
+                                    const isPaidFailed = isGenerationFailed || isMintFailed;
+                                    const isMintingInProgress = !!(existingChar && !hasImage && !isPaidFailed);
                                     return (
                                         <motion.div
                                             key={preset.type}
@@ -1021,6 +1089,15 @@ export default function CreatePage() {
                                         <span className="block mt-1 text-amber-400 font-medium">Fee: {MINT_PRICE_FF} FF</span>
                                     </p>
                                     <Loader2 className="w-8 h-8 animate-spin text-white" />
+                                    {mintRetryMode && (
+                                        <Button
+                                            onClick={handleRetryMintForExisting}
+                                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold gap-2 px-8"
+                                        >
+                                            <RotateCw className="w-4 h-4" />
+                                            Retry Mint
+                                        </Button>
+                                    )}
                                 </div>
                             ) : generationError ? (
                                 /* ===== Mint 阶段失败（钱包拒绝等） ===== */

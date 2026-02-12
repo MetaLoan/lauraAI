@@ -42,6 +42,7 @@ export default function CreateMiniMePage() {
     const [generationError, setGenerationError] = useState<string | null>(null);
     const [generationFailed, setGenerationFailed] = useState(false);
     const [isRetrying, setIsRetrying] = useState(false);
+    const [mintRetryMode, setMintRetryMode] = useState(false);
     const [generatingCharacterId, setGeneratingCharacterId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const pollRef = useRef<NodeJS.Timeout | null>(null);
@@ -69,6 +70,7 @@ export default function CreateMiniMePage() {
                 // 生成失败
                 if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
                 setGenerationFailed(true);
+                setMintRetryMode(false);
                 setMintStep('generating');
             } else if (found && (found.image_status === '' || !found.image_status)) {
                 const now = Date.now();
@@ -85,9 +87,11 @@ export default function CreateMiniMePage() {
                         });
                         if (probe?.already_paid) {
                             setMintStep('generating');
+                            setMintRetryMode(false);
                             apiClient.generateImage(String(found.id)).catch(() => { });
                         } else {
                             setMintStep('minting');
+                            setMintRetryMode(String(probe?.order?.status || '').toLowerCase() === 'failed');
                         }
                     } catch {
                         // ignore and continue polling
@@ -130,6 +134,62 @@ export default function CreateMiniMePage() {
         }
     };
 
+    const handleRetryMintForExisting = async () => {
+        if (!generatingCharacterId || !address) return;
+        setMintRetryMode(false);
+        setGenerationError(null);
+        setMintStep('minting');
+
+        try {
+            const mintOrderResult = await apiClient.createMintOrder({
+                character_id: Number(generatingCharacterId),
+                chain_id: chainId || 1,
+                token_address: FF_TOKEN_ADDRESS,
+                token_symbol: 'FF',
+                token_amount: MINT_PRICE_FF,
+                token_amount_wei: mintPrice.toString(),
+            });
+
+            if (!mintOrderResult?.already_paid) {
+                const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+                    ? 'http://localhost:8081'
+                    : 'https://lauraai-backend.fly.dev';
+                const metadataURI = `${baseUrl}/api/nft/metadata/${generatingCharacterId}`;
+
+                await writeContractAsync({
+                    address: FF_TOKEN_ADDRESS as `0x${string}`,
+                    abi: LAURA_AI_TOKEN_ABI,
+                    functionName: 'approve',
+                    args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
+                });
+
+                const txHash = await writeContractAsync({
+                    address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
+                    abi: LAURA_AI_SOULMATE_ABI,
+                    functionName: 'safeMint',
+                    args: [address, metadataURI],
+                });
+
+                const confirmed = await confirmWithRecovery(
+                    String(mintOrderResult.order?.id),
+                    txHash as string,
+                    (id, hash) => apiClient.confirmMintOrder(id, hash)
+                );
+                if (!confirmed) {
+                    throw new Error('Payment sent on-chain. Confirmation is pending and will auto-retry.');
+                }
+            }
+
+            setMintStep('generating');
+            apiClient.generateImage(generatingCharacterId).catch(() => { });
+            startPolling(generatingCharacterId);
+        } catch (error: any) {
+            setGenerationError(error?.shortMessage || error?.message || 'Mint retry failed');
+            setMintStep('minting');
+            setMintRetryMode(true);
+        }
+    };
+
     // 清理轮询
     useEffect(() => {
         return () => { if (pollRef.current) clearInterval(pollRef.current); };
@@ -151,6 +211,7 @@ export default function CreateMiniMePage() {
                     setMintStep(existingMiniMe.image_status === 'failed' ? 'generating' : 'minting');
                     setGeneratingCharacterId(charId);
                     setGenerationFailed(existingMiniMe.image_status === 'failed');
+                    setMintRetryMode(String(existingMiniMe.mint_order_status || '').toLowerCase() === 'failed' && existingMiniMe.image_status !== 'failed');
                     setGenerationError(null);
                     startPolling(charId);
                     return;
@@ -184,6 +245,7 @@ export default function CreateMiniMePage() {
 
         setStep('generating');
         setMintStep('minting');
+        setMintRetryMode(false);
         setError(null);
         setGenerationError(null);
 
@@ -250,6 +312,7 @@ export default function CreateMiniMePage() {
                     );
                     if (recovered) {
                         setMintStep('generating');
+                        setMintRetryMode(false);
                         const charId = character.id.toString();
                         setGeneratingCharacterId(charId);
                         apiClient.generateImage(charId).catch((err: any) => {
@@ -293,6 +356,7 @@ export default function CreateMiniMePage() {
             setMintStep('generating');
             const charId = character.id.toString();
             setGeneratingCharacterId(charId);
+            setMintRetryMode(false);
 
             apiClient.generateImage(charId).catch((err: any) => {
                 console.warn('Generate image request sent:', err);
@@ -322,6 +386,7 @@ export default function CreateMiniMePage() {
             setGenerationError(msg);
             setStep('intro');
             setMintStep('idle');
+            setMintRetryMode(false);
         }
     };
 
@@ -465,11 +530,20 @@ export default function CreateMiniMePage() {
                                             <img src={getAssetPath('/icons/3d/gem_3d.png')} alt="" className="w-10 h-10 object-contain animate-pulse" />
                                         </div>
                                     <h2 className="text-2xl font-bold text-white">Confirm in Wallet</h2>
-                                    <p className="text-white text-center max-w-sm">
+                                        <p className="text-white text-center max-w-sm">
                                             Please confirm FF approve and mint transactions in your wallet.
                                             <span className="block mt-1 text-amber-400 font-medium">Fee: {MINT_PRICE_FF} FF</span>
-                                    </p>
+                                        </p>
                                         <Loader2 className="w-8 h-8 animate-spin text-white" />
+                                        {mintRetryMode && (
+                                            <Button
+                                                onClick={handleRetryMintForExisting}
+                                                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold gap-2 px-8"
+                                            >
+                                                <RotateCw className="w-4 h-4" />
+                                                Retry Mint
+                                            </Button>
+                                        )}
                                     </div>
                                 ) : generationError ? (
                                     /* Mint failed */

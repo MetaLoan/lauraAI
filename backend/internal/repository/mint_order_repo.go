@@ -81,6 +81,17 @@ func (r *MintOrderRepository) GetLatestVerifyingByCharacter(userID uint64, chara
 	return &order, nil
 }
 
+func (r *MintOrderRepository) GetLatestByCharacter(userID uint64, characterID uint64) (*model.MintOrder, error) {
+	var order model.MintOrder
+	err := DB.Where("user_id = ? AND character_id = ?", userID, characterID).
+		Order("id desc").
+		First(&order).Error
+	if err != nil {
+		return nil, err
+	}
+	return &order, nil
+}
+
 func (r *MintOrderRepository) Update(order *model.MintOrder) error {
 	return DB.Save(order).Error
 }

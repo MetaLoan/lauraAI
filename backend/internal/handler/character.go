@@ -170,6 +170,22 @@ func hasAnyImage(char model.Character) bool {
 		strings.TrimSpace(char.ClearImageURL) != ""
 }
 
+func hasMintStarted(order *model.MintOrder) bool {
+	if order == nil {
+		return false
+	}
+	// Visible recovery states:
+	// - confirmed: paid and done
+	// - verifying/failed: payment sent and verification/regen needs recovery
+	if order.Status == model.MintOrderStatusConfirmed ||
+		order.Status == model.MintOrderStatusVerifying ||
+		order.Status == model.MintOrderStatusFailed {
+		return true
+	}
+	// Fallback for legacy rows: pending but tx hash already captured.
+	return order.TxHash != nil && strings.TrimSpace(*order.TxHash) != ""
+}
+
 // List 获取用户的所有角色
 func (h *CharacterHandler) List(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
@@ -188,11 +204,12 @@ func (h *CharacterHandler) List(c *gin.Context) {
 	locale := middleware.GetLocaleFromContext(c)
 	safeCharacters := make([]map[string]interface{}, 0, len(characters))
 	for _, char := range characters {
+		var latestOrder *model.MintOrder
 		// Hide unpaid+unrendered characters:
-		// If no image exists and no confirmed mint payment, this is an abandoned mint attempt.
+		// If no image exists and mint did not start, this is an abandoned/unpaid attempt.
 		if !hasAnyImage(char) {
-			paid, _ := h.mintOrderRepo.HasConfirmedForCharacter(user.ID, char.ID)
-			if !paid {
+			latestOrder, _ = h.mintOrderRepo.GetLatestByCharacter(user.ID, char.ID)
+			if !hasMintStarted(latestOrder) {
 				continue
 			}
 		}
@@ -202,6 +219,9 @@ func (h *CharacterHandler) List(c *gin.Context) {
 		}
 
 		safeResponse := char.ToSafeResponse(string(locale))
+		if latestOrder != nil {
+			safeResponse["mint_order_status"] = string(latestOrder.Status)
+		}
 		// 记录返回的图片URL（包括原始值和规范化后的值）
 		if len(safeCharacters) < 3 { // 只记录前3个，避免日志过多
 			log.Printf("[Character] 返回角色图片URL - ID: %d, type: %s, unlock_status: %d", char.ID, char.Type, char.UnlockStatus)
@@ -245,11 +265,21 @@ func (h *CharacterHandler) GetByID(c *gin.Context) {
 	}
 
 	if !hasAnyImage(*character) {
-		paid, _ := h.mintOrderRepo.HasConfirmedForCharacter(user.ID, character.ID)
-		if !paid {
+		latestOrder, _ := h.mintOrderRepo.GetLatestByCharacter(user.ID, character.ID)
+		if !hasMintStarted(latestOrder) {
 			response.Error(c, 404, "Character not found")
 			return
 		}
+		if ensureCharacterMetaDefaults(character, user) {
+			_ = h.characterRepo.Update(character)
+		}
+		locale := middleware.GetLocaleFromContext(c)
+		resp := character.ToSafeResponse(string(locale))
+		if latestOrder != nil {
+			resp["mint_order_status"] = string(latestOrder.Status)
+		}
+		response.Success(c, resp)
+		return
 	}
 
 	if ensureCharacterMetaDefaults(character, user) {
