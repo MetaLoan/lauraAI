@@ -87,7 +87,7 @@ type Character struct {
 	ShareCode      string       `gorm:"type:varchar(20);uniqueIndex" json:"share_code"`
 
 	// 图片生成状态: "" (空=未开始), "generating", "done", "failed"
-	ImageStatus    string `gorm:"type:varchar(20);default:''" json:"image_status"`
+	ImageStatus     string `gorm:"type:varchar(20);default:''" json:"image_status"`
 	ImageFailReason string `gorm:"type:text;default:''" json:"image_fail_reason,omitempty"` // 失败原因
 
 	// Marketplace 相关
@@ -280,19 +280,20 @@ func normalizeImageURL(url string) string {
 // locale 参数用于返回对应语言的报告内容（en/zh/ru）
 func (c *Character) ToSafeResponse(locale string) map[string]interface{} {
 	result := map[string]interface{}{
-		"id":            c.ID,
-		"user_id":       c.UserID,
-		"type":          c.Type,
-		"title":         c.Title,
-		"gender":        c.Gender,
-		"ethnicity":     c.Ethnicity,
-		"compatibility": c.Compatibility,
-		"astro_sign":    c.AstroSign,
-		"unlock_status": c.UnlockStatus,
-		"share_code":    c.ShareCode,
-		"image_status":  c.ImageStatus,
-		"created_at":    c.CreatedAt,
-		"updated_at":    c.UpdatedAt,
+		"id":                c.ID,
+		"user_id":           c.UserID,
+		"type":              c.Type,
+		"title":             c.Title,
+		"gender":            c.Gender,
+		"ethnicity":         c.Ethnicity,
+		"compatibility":     c.Compatibility,
+		"astro_sign":        c.AstroSign,
+		"unlock_status":     c.UnlockStatus,
+		"share_code":        c.ShareCode,
+		"image_status":      c.ImageStatus,
+		"on_chain_token_id": c.OnChainTokenID,
+		"created_at":        c.CreatedAt,
+		"updated_at":        c.UpdatedAt,
 	}
 
 	// 根据解锁状态决定返回哪些图片 URL

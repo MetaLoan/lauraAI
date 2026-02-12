@@ -21,12 +21,14 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
 )
 
 var safeMintSelectorHex = "40d097c3" // bytes4(keccak256("safeMint(address,string)"))
 var erc20TransferTopicHex = "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+var soulmateBornTopicHash = crypto.Keccak256Hash([]byte("SoulmateBorn(address,uint256,string)"))
 
 const (
 	mintVerifyWorkerTick     = 8 * time.Second
@@ -366,71 +368,76 @@ func (h *MintOrderHandler) WebhookConfirm(c *gin.Context) {
 	})
 }
 
-func (h *MintOrderHandler) verifyMintTransaction(txHash string, walletAddress string, order *model.MintOrder) (uint64, error) {
+func (h *MintOrderHandler) verifyMintTransaction(txHash string, walletAddress string, order *model.MintOrder) (uint64, *uint64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	client, err := ethclient.DialContext(ctx, config.AppConfig.ChainRPCURL)
 	if err != nil {
-		return 0, fmt.Errorf("rpc dial failed")
+		return 0, nil, fmt.Errorf("rpc dial failed")
 	}
 	defer client.Close()
 
 	hash := common.HexToHash(txHash)
 	tx, isPending, err := client.TransactionByHash(ctx, hash)
 	if err != nil {
-		return 0, fmt.Errorf("tx not found on chain")
+		return 0, nil, fmt.Errorf("tx not found on chain")
 	}
 	if isPending {
-		return 0, fmt.Errorf("tx is still pending")
+		return 0, nil, fmt.Errorf("tx is still pending")
 	}
 
 	receipt, err := client.TransactionReceipt(ctx, hash)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get tx receipt")
+		return 0, nil, fmt.Errorf("failed to get tx receipt")
 	}
 	if receipt.Status != types.ReceiptStatusSuccessful {
-		return 0, fmt.Errorf("tx execution failed on chain")
+		return 0, nil, fmt.Errorf("tx execution failed on chain")
 	}
 
 	if config.AppConfig.MintExpectedChainID > 0 && tx.ChainId() != nil && tx.ChainId().Int64() != config.AppConfig.MintExpectedChainID {
-		return 0, fmt.Errorf("unexpected chain id %d", tx.ChainId().Int64())
+		return 0, nil, fmt.Errorf("unexpected chain id %d", tx.ChainId().Int64())
 	}
 
 	signer := types.LatestSignerForChainID(tx.ChainId())
 	sender, err := types.Sender(signer, tx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to recover tx sender")
+		return 0, nil, fmt.Errorf("failed to recover tx sender")
 	}
 	if strings.ToLower(sender.Hex()) != strings.ToLower(walletAddress) {
-		return 0, fmt.Errorf("tx sender mismatch")
+		return 0, nil, fmt.Errorf("tx sender mismatch")
 	}
 
 	if tx.To() == nil {
-		return 0, fmt.Errorf("tx destination is empty")
+		return 0, nil, fmt.Errorf("tx destination is empty")
 	}
 	if config.AppConfig.MintContractAddress != "" && strings.ToLower(tx.To().Hex()) != strings.ToLower(config.AppConfig.MintContractAddress) {
-		return 0, fmt.Errorf("tx target is not mint contract")
+		return 0, nil, fmt.Errorf("tx target is not mint contract")
 	}
 
 	data := tx.Data()
 	if len(data) < 4 {
-		return 0, fmt.Errorf("tx data too short for safeMint")
+		return 0, nil, fmt.Errorf("tx data too short for safeMint")
 	}
 	if hex.EncodeToString(data[:4]) != safeMintSelectorHex {
-		return 0, fmt.Errorf("tx method is not safeMint(address,string)")
+		return 0, nil, fmt.Errorf("tx method is not safeMint(address,string)")
 	}
 
 	charIDMarker := "/api/nft/metadata/" + strconv.FormatUint(order.CharacterID, 10)
 	if !strings.Contains(strings.ToLower(hex.EncodeToString(data)), strings.ToLower(hex.EncodeToString([]byte(charIDMarker)))) {
-		return 0, fmt.Errorf("tx metadata uri does not match character")
+		return 0, nil, fmt.Errorf("tx metadata uri does not match character")
 	}
 
 	if err := verifyERC20TreasuryTransfer(receipt, strings.ToLower(walletAddress), strings.ToLower(order.TokenAddress), strings.ToLower(order.TreasuryWallet), order.TokenAmountWei); err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 
-	return receipt.BlockNumber.Uint64(), nil
+	tokenID, err := parseSoulmateTokenIDFromReceipt(receipt, strings.ToLower(tx.To().Hex()), strings.ToLower(walletAddress))
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return receipt.BlockNumber.Uint64(), tokenID, nil
 }
 
 func verifyERC20TreasuryTransfer(receipt *types.Receipt, payer string, tokenAddress string, treasuryWallet string, amountWei string) error {
@@ -528,8 +535,33 @@ func isHexTxHash(txHash string) bool {
 	return true
 }
 
+func parseSoulmateTokenIDFromReceipt(receipt *types.Receipt, contractAddress string, expectedOwner string) (*uint64, error) {
+	for _, lg := range receipt.Logs {
+		if strings.ToLower(lg.Address.Hex()) != contractAddress {
+			continue
+		}
+		if len(lg.Topics) < 3 {
+			continue
+		}
+		if lg.Topics[0] != soulmateBornTopicHash {
+			continue
+		}
+		owner := common.HexToAddress(lg.Topics[1].Hex()).Hex()
+		if strings.ToLower(owner) != expectedOwner {
+			continue
+		}
+		tokenBig := new(big.Int).SetBytes(lg.Topics[2].Bytes())
+		if !tokenBig.IsUint64() {
+			return nil, fmt.Errorf("token id overflow")
+		}
+		tokenID := tokenBig.Uint64()
+		return &tokenID, nil
+	}
+	return nil, fmt.Errorf("soulmate mint event not found in receipt logs")
+}
+
 func (h *MintOrderHandler) finalizeMintOrderByTx(order *model.MintOrder, txHash string, payerWallet string) error {
-	blockNumber, verifyErr := h.verifyMintTransaction(txHash, payerWallet, order)
+	blockNumber, tokenID, verifyErr := h.verifyMintTransaction(txHash, payerWallet, order)
 	if verifyErr != nil {
 		if isTemporaryVerificationError(verifyErr) {
 			if model.CanMintOrderTransition(order.Status, model.MintOrderStatusVerifying) {
@@ -558,6 +590,13 @@ func (h *MintOrderHandler) finalizeMintOrderByTx(order *model.MintOrder, txHash 
 	order.FailReason = ""
 	if err := h.mintOrderRepo.Update(order); err != nil {
 		return fmt.Errorf("failed to update order status: %w", err)
+	}
+	if tokenID != nil {
+		character, err := h.characterRepo.GetByID(order.CharacterID)
+		if err == nil && character != nil {
+			character.OnChainTokenID = tokenID
+			_ = h.characterRepo.Update(character)
+		}
 	}
 	return nil
 }
