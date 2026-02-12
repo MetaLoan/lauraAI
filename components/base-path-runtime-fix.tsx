@@ -12,6 +12,11 @@ function shouldPatch(value: string, basePath: string) {
 
 export function BasePathRuntimeFix() {
   useEffect(() => {
+    const debugEnabled =
+      typeof window !== 'undefined' &&
+      (window.location.search.includes('debug_assets=1') ||
+        window.localStorage.getItem('debug_assets') === '1');
+
     const envBasePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
     const scriptWithNext = Array.from(document.scripts).find((script) => script.src.includes('/_next/static/'));
     const runtimeBasePath = scriptWithNext
@@ -26,6 +31,14 @@ export function BasePathRuntimeFix() {
         })()
       : '';
     const basePath = (runtimeBasePath || envBasePath).replace(/\/+$/, '');
+    if (debugEnabled) {
+      console.info('[asset-debug] init', {
+        envBasePath,
+        runtimeBasePath,
+        finalBasePath: basePath,
+        scriptSample: scriptWithNext?.src || null,
+      });
+    }
     if (!basePath) return;
 
     const patchElement = (el: Element) => {
@@ -34,6 +47,14 @@ export function BasePathRuntimeFix() {
         const raw = el.getAttribute(attr);
         if (!raw) return;
         if (!shouldPatch(raw, basePath)) return;
+        if (debugEnabled) {
+          console.info('[asset-debug] patch', {
+            tag: el.tagName,
+            attr,
+            from: raw,
+            to: `${basePath}${raw}`,
+          });
+        }
         el.setAttribute(attr, `${basePath}${raw}`);
       });
     };
@@ -49,6 +70,20 @@ export function BasePathRuntimeFix() {
     const onRouteLikeChange = () => patchAll();
     window.addEventListener('popstate', onRouteLikeChange);
     window.addEventListener('hashchange', onRouteLikeChange);
+    const onResourceError = (event: Event) => {
+      const target = event.target as HTMLImageElement | HTMLScriptElement | HTMLLinkElement | null;
+      if (!target) return;
+      if (!debugEnabled) return;
+      const src = (target as HTMLImageElement).src || '';
+      const href = (target as HTMLLinkElement).href || '';
+      const url = src || href || '';
+      if (!url) return;
+      console.error('[asset-debug] load-error', {
+        tag: target.tagName,
+        url,
+      });
+    };
+    window.addEventListener('error', onResourceError, true);
 
     const originalPushState = history.pushState.bind(history);
     const originalReplaceState = history.replaceState.bind(history);
@@ -65,6 +100,7 @@ export function BasePathRuntimeFix() {
     return () => {
       window.removeEventListener('popstate', onRouteLikeChange);
       window.removeEventListener('hashchange', onRouteLikeChange);
+      window.removeEventListener('error', onResourceError, true);
       history.pushState = originalPushState;
       history.replaceState = originalReplaceState;
     };
