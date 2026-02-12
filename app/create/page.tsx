@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/api';
@@ -177,6 +177,7 @@ type StepType = 'profile' | 'preset' | 'gender' | 'ethnicity' | 'generating' | '
 
 export default function CreatePage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { isConnected, address, chainId } = useAccount();
     const { writeContractAsync } = useWriteContract();
     const mintPrice = parseUnits(MINT_PRICE_FF, MINT_PRICE_FF_DECIMALS);
@@ -235,14 +236,12 @@ export default function CreatePage() {
                     });
                 }
 
-                // Load existing characters (已生成或生成中的都算已创建)
+                // Load existing characters (后端已过滤未付款脏数据，这里全部可视为有效记录)
                 const characters = await apiClient.getCharacters() as any[];
                 if (characters && Array.isArray(characters)) {
-                    const created = characters.filter((c: any) =>
-                        (c.image_url && c.image_url !== '') || c.image_status === 'generating'
-                    );
-                    setExistingTypes(created.map((c: any) => c.type));
-                    setExistingCharacters(created.map((c: any) => ({ ...c, id: c.id?.toString?.() ?? String(c.id) })));
+                    const available = characters.map((c: any) => ({ ...c, id: c.id?.toString?.() ?? String(c.id) }));
+                    setExistingTypes(available.map((c: any) => c.type));
+                    setExistingCharacters(available);
                 }
 
                 // 如果资料不完整，先填资料
@@ -293,6 +292,7 @@ export default function CreatePage() {
     // 正在生成中的角色 ID（用于轮询）
     const [generatingCharacterId, setGeneratingCharacterId] = useState<string | null>(null);
     const pollRef = React.useRef<NodeJS.Timeout | null>(null);
+    const lastResumeProbeAtRef = React.useRef<number>(0);
 
     // 是否处于 "生图失败，等待用户重试" 的状态
     const [generationFailed, setGenerationFailed] = useState(false);
@@ -317,11 +317,35 @@ export default function CreatePage() {
                 if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
                 setGenerationFailed(true);
                 setMintStep('generating'); // 保持在 generating 步骤，不退回
+            } else if (found && (found.image_status === '' || !found.image_status)) {
+                // 订单可能正在异步确认，周期性探测支付状态并自动续跑生图
+                const now = Date.now();
+                if (now - lastResumeProbeAtRef.current > 10000) {
+                    lastResumeProbeAtRef.current = now;
+                    try {
+                        const probe = await apiClient.createMintOrder({
+                            character_id: Number(found.id),
+                            chain_id: chainId || 1,
+                            token_address: FF_TOKEN_ADDRESS,
+                            token_symbol: 'FF',
+                            token_amount: MINT_PRICE_FF,
+                            token_amount_wei: mintPrice.toString(),
+                        });
+                        if (probe?.already_paid) {
+                            setMintStep('generating');
+                            apiClient.generateImage(String(found.id)).catch(() => { });
+                        } else {
+                            setMintStep('minting');
+                        }
+                    } catch {
+                        // probe errors are ignored and retried by next polling tick
+                    }
+                }
             }
         } catch {
             // 轮询出错不中断
         }
-    }, []);
+    }, [chainId, mintPrice]);
 
     // 启动轮询
     const startPolling = React.useCallback((charId: string) => {
@@ -360,6 +384,31 @@ export default function CreatePage() {
     React.useEffect(() => {
         return () => { if (pollRef.current) clearInterval(pollRef.current); };
     }, []);
+
+    // Resume mint/generation state when user returns from middle of flow.
+    useEffect(() => {
+        if (!isConnected || isLoadingProfile) return;
+        const shouldResume = searchParams.get('resume') === '1';
+        const resumeCharacterId = searchParams.get('characterId');
+        if (!shouldResume || !resumeCharacterId) return;
+
+        const target = existingCharacters.find((c: any) => String(c.id) === String(resumeCharacterId));
+        if (!target) return;
+
+        if (target.image_url || target.clear_image_url) {
+            setSelectedCharacterForDetail(target);
+            return;
+        }
+
+        setSelectedType(target.type || searchParams.get('type') || '');
+        setGenerationError(null);
+        setCurrentStep('generating');
+        setGeneratingCharacterId(String(target.id));
+        const failed = target.image_status === 'failed';
+        setGenerationFailed(failed);
+        setMintStep(failed ? 'generating' : 'minting');
+        startPolling(String(target.id));
+    }, [isConnected, isLoadingProfile, searchParams, existingCharacters, startPolling]);
 
     // ============ 创建角色（Mint + 生图一体化） ============
     const handleCreateCharacter = async () => {
@@ -702,6 +751,9 @@ export default function CreatePage() {
                                 {PRESET_TYPES.map((preset, index) => {
                                     const isCreated = existingTypes.includes(preset.type);
                                     const existingChar = existingCharacters.find((c: any) => c.type === preset.type);
+                                    const hasImage = !!(existingChar && (existingChar.image_url || existingChar.clear_image_url));
+                                    const isMintingInProgress = !!(existingChar && !hasImage && existingChar.image_status !== 'failed');
+                                    const isPaidFailed = !!(existingChar && !hasImage && existingChar.image_status === 'failed');
                                     return (
                                         <motion.div
                                             key={preset.type}
@@ -712,7 +764,13 @@ export default function CreatePage() {
                                             tabIndex={0}
                                             onClick={() => {
                                                 if (isCreated && existingChar) {
-                                                    setSelectedCharacterForDetail(existingChar);
+                                                    if (hasImage) {
+                                                        setSelectedCharacterForDetail(existingChar);
+                                                    } else if (existingChar.type === 'mini_me') {
+                                                        router.push(`/create/minime?resume=1&characterId=${existingChar.id}`);
+                                                    } else {
+                                                        router.push(`/create?resume=1&characterId=${existingChar.id}&type=${existingChar.type}`);
+                                                    }
                                                 } else if (preset.type === 'mini_me') {
                                                     router.push('/create/minime');
                                                 } else {
@@ -722,7 +780,15 @@ export default function CreatePage() {
                                             }}
                                             onKeyDown={(e) => {
                                                 if (e.key !== 'Enter' && e.key !== ' ') return;
-                                                if (isCreated && existingChar) setSelectedCharacterForDetail(existingChar);
+                                                if (isCreated && existingChar) {
+                                                    if (hasImage) {
+                                                        setSelectedCharacterForDetail(existingChar);
+                                                    } else if (existingChar.type === 'mini_me') {
+                                                        router.push(`/create/minime?resume=1&characterId=${existingChar.id}`);
+                                                    } else {
+                                                        router.push(`/create?resume=1&characterId=${existingChar.id}&type=${existingChar.type}`);
+                                                    }
+                                                }
                                                 else if (preset.type === 'mini_me') router.push('/create/minime');
                                                 else { setSelectedType(preset.type); setCurrentStep('gender'); }
                                             }}
@@ -754,9 +820,22 @@ export default function CreatePage() {
                                             {/* Created Badge - more visible */}
                                             {isCreated && (
                                                 <>
-                                                    <div className="absolute top-3 right-3 z-20 px-3 py-2 rounded-xl bg-green-600/95 backdrop-blur-md text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 shadow-lg shadow-green-500/40">
-                                                        <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                                        Created
+                                                    <div
+                                                        className={`absolute top-3 right-3 z-20 px-3 py-2 rounded-xl backdrop-blur-md text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 shadow-lg ${isPaidFailed
+                                                            ? 'bg-amber-600/95 shadow-amber-500/40'
+                                                            : isMintingInProgress
+                                                                ? 'bg-blue-600/95 shadow-blue-500/40'
+                                                                : 'bg-green-600/95 shadow-green-500/40'
+                                                            }`}
+                                                    >
+                                                        {isPaidFailed ? (
+                                                            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                                                        ) : isMintingInProgress ? (
+                                                            <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin" />
+                                                        ) : (
+                                                            <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                                        )}
+                                                        {isPaidFailed ? 'Retry' : isMintingInProgress ? 'Minting' : 'Created'}
                                                     </div>
                                                     <div className="absolute inset-0 z-15" />
                                                 </>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import SoulmateDetailPage from '@/components/soulmate-detail-page';
@@ -33,6 +33,7 @@ type MintStep = 'idle' | 'minting' | 'generating' | 'done';
 
 export default function CreateMiniMePage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { isConnected, address, chainId } = useAccount();
     const [step, setStep] = useState<Step>('intro');
     const [mintStep, setMintStep] = useState<MintStep>('idle');
@@ -44,6 +45,7 @@ export default function CreateMiniMePage() {
     const [generatingCharacterId, setGeneratingCharacterId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const pollRef = useRef<NodeJS.Timeout | null>(null);
+    const lastResumeProbeAtRef = useRef<number>(0);
 
     const mintPrice = parseUnits(MINT_PRICE_FF, MINT_PRICE_FF_DECIMALS);
 
@@ -68,11 +70,34 @@ export default function CreateMiniMePage() {
                 if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
                 setGenerationFailed(true);
                 setMintStep('generating');
+            } else if (found && (found.image_status === '' || !found.image_status)) {
+                const now = Date.now();
+                if (now - lastResumeProbeAtRef.current > 10000) {
+                    lastResumeProbeAtRef.current = now;
+                    try {
+                        const probe = await apiClient.createMintOrder({
+                            character_id: Number(found.id),
+                            chain_id: chainId || 1,
+                            token_address: FF_TOKEN_ADDRESS,
+                            token_symbol: 'FF',
+                            token_amount: MINT_PRICE_FF,
+                            token_amount_wei: mintPrice.toString(),
+                        });
+                        if (probe?.already_paid) {
+                            setMintStep('generating');
+                            apiClient.generateImage(String(found.id)).catch(() => { });
+                        } else {
+                            setMintStep('minting');
+                        }
+                    } catch {
+                        // ignore and continue polling
+                    }
+                }
             }
         } catch {
             // 轮询出错不中断
         }
-    }, []);
+    }, [chainId, mintPrice]);
 
     // 启动轮询
     const startPolling = useCallback((charId: string) => {
@@ -113,14 +138,26 @@ export default function CreateMiniMePage() {
     // 与普通角色逻辑一致：若已存在已生成的 Mini Me，直接进入结果页
     useEffect(() => {
         if (!isConnected) return;
+        const shouldResume = searchParams.get('resume') === '1';
         let cancelled = false;
 
         (async () => {
             try {
                 const chars = await apiClient.getCharacters() as any[];
-                const existingMiniMe = chars?.find((c: any) => c.type === 'mini_me' && (c.image_url || c.clear_image_url));
-                if (!cancelled && existingMiniMe) {
-                    setCharacterData({ ...existingMiniMe, id: existingMiniMe.id?.toString?.() ?? String(existingMiniMe.id) });
+                const existingMiniMe = chars?.find((c: any) => c.type === 'mini_me');
+                if (!cancelled && shouldResume && existingMiniMe && !(existingMiniMe.image_url || existingMiniMe.clear_image_url)) {
+                    const charId = String(existingMiniMe.id);
+                    setStep('generating');
+                    setMintStep(existingMiniMe.image_status === 'failed' ? 'generating' : 'minting');
+                    setGeneratingCharacterId(charId);
+                    setGenerationFailed(existingMiniMe.image_status === 'failed');
+                    setGenerationError(null);
+                    startPolling(charId);
+                    return;
+                }
+                const readyMiniMe = chars?.find((c: any) => c.type === 'mini_me' && (c.image_url || c.clear_image_url));
+                if (!cancelled && readyMiniMe) {
+                    setCharacterData({ ...readyMiniMe, id: readyMiniMe.id?.toString?.() ?? String(readyMiniMe.id) });
                     setStep('result');
                     setMintStep('idle');
                     setGenerationError(null);
@@ -131,7 +168,7 @@ export default function CreateMiniMePage() {
         })();
 
         return () => { cancelled = true; };
-    }, [isConnected]);
+    }, [isConnected, searchParams, startPolling]);
 
     // Recover pending mint confirmations from previous interrupted sessions.
     useEffect(() => {
