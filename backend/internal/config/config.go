@@ -18,6 +18,7 @@ type Config struct {
 	UploadsDir     string
 	AdminSecret    string // Secret for /api/admin/clear-all-data (X-Admin-Key header)
 	TGELive        bool   // true when LRA token is live with liquidity; before that pool/TVL/APY endpoints return empty
+	ChainRPCURL    string // EVM RPC endpoint used by backend market/deFi helpers
 }
 
 var AppConfig *Config
@@ -43,6 +44,7 @@ func LoadConfig() {
 		UploadsDir:     getEnv("UPLOADS_DIR", "./uploads"),
 		AdminSecret:    getEnv("ADMIN_SECRET", ""),
 		TGELive:        getEnv("TGE_LIVE", "false") == "true",
+		ChainRPCURL:    getEnv("CHAIN_RPC_URL", "https://eth.llamarpc.com"),
 	}
 
 	if AppConfig.GeminiAPIKey == "" {

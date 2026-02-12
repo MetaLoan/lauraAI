@@ -8,13 +8,20 @@ import { apiClient } from '@/lib/api';
 import { Loader2, ArrowLeft, Check, Sparkles, ChevronRight, User, Heart, Users, Baby, Crown, Compass, BookOpen, Ghost, Star, Moon, X, RefreshCw, Home, AlertTriangle, RotateCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConnectButton } from '@/components/wallet-button';
-import { useAccount, useWriteContract, useReadContract } from 'wagmi';
-import { formatEther } from 'viem';
+import { useAccount, useWriteContract } from 'wagmi';
+import { parseUnits } from 'viem';
 import Image from 'next/image';
 import { getAssetPath, getFullImageUrl } from '@/lib/utils';
 import SoulmateDetailPage from '@/components/soulmate-detail-page';
 import DrawingLoading from '@/components/drawing-loading';
-import { LAURA_AI_SOULMATE_ABI, LAURA_AI_SOULMATE_ADDRESS } from '@/lib/contracts';
+import {
+    LAURA_AI_SOULMATE_ABI,
+    LAURA_AI_SOULMATE_ADDRESS,
+    LAURA_AI_TOKEN_ABI,
+    FF_TOKEN_ADDRESS,
+    MINT_PRICE_FF,
+    MINT_PRICE_FF_DECIMALS,
+} from '@/lib/contracts';
 
 // ============ 预设角色类型定义 ============
 interface PresetType {
@@ -167,15 +174,7 @@ export default function CreatePage() {
     const router = useRouter();
     const { isConnected, address } = useAccount();
     const { writeContractAsync } = useWriteContract();
-
-    // Read mint price from contract
-    const { data: mintPriceRaw } = useReadContract({
-        address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
-        abi: LAURA_AI_SOULMATE_ABI,
-        functionName: 'mintPrice',
-    });
-    const mintPrice = mintPriceRaw ? BigInt(mintPriceRaw.toString()) : BigInt(0);
-    const mintPriceDisplay = mintPrice > 0 ? formatEther(mintPrice) : '0';
+    const mintPrice = parseUnits(MINT_PRICE_FF, MINT_PRICE_FF_DECIMALS);
 
     // Mint state
     const [mintStep, setMintStep] = useState<'idle' | 'minting' | 'generating' | 'done'>('idle');
@@ -373,14 +372,22 @@ export default function CreatePage() {
                 : 'https://lauraai-backend.fly.dev';
             const metadataURI = `${baseUrl}/api/nft/metadata/${character.id}`;
 
-            console.log('Minting NFT with metadata URI:', metadataURI, 'mintPrice:', mintPrice.toString());
+            console.log('Minting NFT with metadata URI:', metadataURI, 'mintPriceFF:', mintPrice.toString());
 
+            // Step 2a: Approve FF token spending (1 FF)
+            await writeContractAsync({
+                address: FF_TOKEN_ADDRESS as `0x${string}`,
+                abi: LAURA_AI_TOKEN_ABI,
+                functionName: 'approve',
+                args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
+            });
+
+            // Step 2b: Mint NFT (contract charges FF via transferFrom)
             await writeContractAsync({
                 address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
                 abi: LAURA_AI_SOULMATE_ABI,
                 functionName: 'safeMint',
                 args: [address, metadataURI],
-                value: mintPrice,
             });
 
             // Step 3: Mint succeeded → 触发后台生图（后端异步，客户端关闭不影响）
@@ -837,9 +844,7 @@ export default function CreatePage() {
                                         <span className="relative z-10 flex items-center justify-center gap-2">
                                             <img src={getAssetPath('/icons/3d/gem_3d.png')} className="w-6 h-6 object-contain" alt="Gem" />
                                             <span>Mint & Create</span>
-                                            {mintPrice > 0 && (
-                                                <span className="text-sm opacity-90">({mintPriceDisplay} BNB)</span>
-                                            )}
+                                            <span className="text-sm opacity-90">({MINT_PRICE_FF} FF)</span>
                                         </span>
                                     </Button>
                                 </div>
@@ -863,8 +868,8 @@ export default function CreatePage() {
                                     </div>
                                     <h2 className="text-2xl font-bold text-white">Confirm in Wallet</h2>
                                     <p className="text-white text-center max-w-sm">
-                                        Please confirm the mint transaction in your wallet.
-                                        {mintPrice > 0 && <span className="block mt-1 text-amber-400 font-medium">Fee: {mintPriceDisplay} BNB</span>}
+                                        Please confirm FF approve and mint transactions in your wallet.
+                                        <span className="block mt-1 text-amber-400 font-medium">Fee: {MINT_PRICE_FF} FF</span>
                                     </p>
                                     <Loader2 className="w-8 h-8 animate-spin text-white" />
                                 </div>

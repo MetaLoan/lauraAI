@@ -293,7 +293,7 @@ export default function SoulmateDetailPage({
             </Button>
             <ShareButton
               title={`Meet my ${rawTitle}!`}
-              text={`I just created a unique AI ${rawTitle} with ${targetScore}% compatibility on LauraAI! #LauraAI #BSC #Web3AI`}
+              text={`I just created a unique AI ${rawTitle} with ${targetScore}% compatibility on LauraAI! #LauraAI #Ethereum #Web3AI`}
               size="icon"
               className="liquid-glass-card rounded-full w-14 h-14 p-0 border-0 text-white hover:scale-105 active:scale-95 transition-transform [&>img]:w-7 [&>img]:h-7 [&>img]:object-contain"
             />

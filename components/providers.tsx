@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createAppKit } from '@reown/appkit/react';
 import { WagmiProvider, type Config } from 'wagmi';
-import { bsc, bscTestnet } from '@reown/appkit/networks';
+import { mainnet } from '@reown/appkit/networks';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { AutoSwitchChain } from '@/components/auto-switch-chain';
@@ -25,7 +25,7 @@ let wagmiAdapter: WagmiAdapter | null = null;
 function getWagmiAdapter() {
   if (!wagmiAdapter && typeof window !== 'undefined') {
     wagmiAdapter = new WagmiAdapter({
-      networks: [bscTestnet, bsc],
+      networks: [mainnet],
       projectId,
       ssr: true
     });
@@ -46,8 +46,8 @@ function initAppKit() {
     // Force wallet-only mode and bypass Reown remote auth-feature overrides.
     basic: true,
     adapters: [adapter],
-    networks: [bscTestnet, bsc],
-    defaultNetwork: bscTestnet,
+    networks: [mainnet],
+    defaultNetwork: mainnet,
     projectId,
     metadata,
     features: {

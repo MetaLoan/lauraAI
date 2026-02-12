@@ -159,7 +159,7 @@ export default function ProfilePage() {
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                <span className="text-white text-sm">BSC Mainnet Connected</span>
+                                <span className="text-white text-sm">Ethereum Mainnet Connected</span>
                             </div>
                         </div>
                     </div>

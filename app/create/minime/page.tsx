@@ -7,32 +7,21 @@ import { Button } from '@/components/ui/button';
 import SoulmateDetailPage from '@/components/soulmate-detail-page';
 import DrawingLoading from '@/components/drawing-loading';
 import { ArrowLeft, Loader2, Upload, AlertTriangle, RefreshCw, Home, RotateCw } from 'lucide-react';
-import { useAccount, useWriteContract, useReadContract } from 'wagmi';
+import { useAccount, useWriteContract } from 'wagmi';
 import { ConnectButton } from '@/components/wallet-button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '@/lib/api';
 import imageCompression from 'browser-image-compression';
-import { formatEther } from 'viem';
+import { parseUnits } from 'viem';
 import { getAssetPath } from '@/lib/utils';
-
-// Contract info
-const LAURA_AI_SOULMATE_ADDRESS = process.env.NEXT_PUBLIC_LAURA_AI_SOULMATE_ADDRESS;
-const LAURA_AI_SOULMATE_ABI = [
-    {
-        "inputs": [{ "internalType": "address", "name": "to", "type": "address" }, { "internalType": "string", "name": "uri", "type": "string" }],
-        "name": "safeMint",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "mintPrice",
-        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-        "stateMutability": "view",
-        "type": "function"
-    }
-] as const;
+import {
+    LAURA_AI_SOULMATE_ABI,
+    LAURA_AI_SOULMATE_ADDRESS,
+    LAURA_AI_TOKEN_ABI,
+    FF_TOKEN_ADDRESS,
+    MINT_PRICE_FF,
+    MINT_PRICE_FF_DECIMALS,
+} from '@/lib/contracts';
 
 type Step = 'intro' | 'generating' | 'result';
 type MintStep = 'idle' | 'minting' | 'generating' | 'done';
@@ -51,14 +40,7 @@ export default function CreateMiniMePage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const pollRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Mint price
-    const { data: mintPriceRaw } = useReadContract({
-        address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
-        abi: LAURA_AI_SOULMATE_ABI,
-        functionName: 'mintPrice',
-    });
-    const mintPrice = mintPriceRaw ? BigInt(mintPriceRaw.toString()) : BigInt(0);
-    const mintPriceDisplay = mintPrice > 0 ? formatEther(mintPrice) : '0';
+    const mintPrice = parseUnits(MINT_PRICE_FF, MINT_PRICE_FF_DECIMALS);
 
     // Mint contract
     const { writeContractAsync } = useWriteContract();
@@ -189,7 +171,15 @@ export default function CreateMiniMePage() {
 
             if (!character?.id) throw new Error('Failed to create character');
 
-            // 3. Mint NFT
+            // 3a. Approve FF token spending (1 FF)
+            await writeContractAsync({
+                address: FF_TOKEN_ADDRESS as `0x${string}`,
+                abi: LAURA_AI_TOKEN_ABI,
+                functionName: 'approve',
+                args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
+            });
+
+            // 3b. Mint NFT
             const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
                 ? 'http://localhost:8081'
                 : 'https://lauraai-backend.fly.dev';
@@ -200,7 +190,6 @@ export default function CreateMiniMePage() {
                 abi: LAURA_AI_SOULMATE_ABI,
                 functionName: 'safeMint',
                 args: [address, metadataURI],
-                value: mintPrice,
             });
 
             // 4. Trigger image generation
@@ -352,9 +341,7 @@ export default function CreateMiniMePage() {
                                                 <span className="relative z-10 flex items-center justify-center gap-3">
                                                     <Upload className="w-6 h-6" />
                                                     <span>Upload & Mint</span>
-                                                    {mintPrice > 0 && (
-                                                        <span className="text-sm font-medium opacity-80 bg-white/10 px-3 py-1 rounded-full">{mintPriceDisplay} BNB</span>
-                                                    )}
+                                                    <span className="text-sm font-medium opacity-80 bg-white/10 px-3 py-1 rounded-full">{MINT_PRICE_FF} FF</span>
                                                 </span>
                                             </Button>
 
@@ -380,11 +367,11 @@ export default function CreateMiniMePage() {
                                         <div className="w-20 h-20 rounded-2xl flex items-center justify-center">
                                             <img src={getAssetPath('/icons/3d/gem_3d.png')} alt="" className="w-10 h-10 object-contain animate-pulse" />
                                         </div>
-                                        <h2 className="text-2xl font-bold text-white">Confirm in Wallet</h2>
-                                        <p className="text-white text-center max-w-sm">
-                                            Please confirm the mint transaction in your wallet.
-                                            {mintPrice > 0 && <span className="block mt-1 text-amber-400 font-medium">Fee: {mintPriceDisplay} BNB</span>}
-                                        </p>
+                                    <h2 className="text-2xl font-bold text-white">Confirm in Wallet</h2>
+                                    <p className="text-white text-center max-w-sm">
+                                            Please confirm FF approve and mint transactions in your wallet.
+                                            <span className="block mt-1 text-amber-400 font-medium">Fee: {MINT_PRICE_FF} FF</span>
+                                    </p>
                                         <Loader2 className="w-8 h-8 animate-spin text-white" />
                                     </div>
                                 ) : generationError ? (

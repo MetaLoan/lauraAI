@@ -3,10 +3,8 @@
 import { useEffect } from 'react';
 import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 
-const BSC_TESTNET_CHAIN_ID = 97;
-
 /**
- * 当已连接钱包且当前不是 BSC Testnet(97) 时，自动切换到测试网，
+ * 当已连接钱包且当前不是 Ethereum Mainnet(1) 时，自动切换到主网，
  * 确保 dApp 与钱包网络一致。
  */
 export function AutoSwitchChain() {
@@ -16,8 +14,8 @@ export function AutoSwitchChain() {
 
   useEffect(() => {
     if (!isConnected) return;
-    if (chainId === BSC_TESTNET_CHAIN_ID) return;
-    switchChain?.({ chainId: BSC_TESTNET_CHAIN_ID });
+    if (chainId === 1) return;
+    switchChain?.({ chainId: 1 });
   }, [isConnected, chainId, switchChain]);
 
   return null;

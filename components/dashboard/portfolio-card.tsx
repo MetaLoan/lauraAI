@@ -23,7 +23,7 @@ export function PortfolioRefreshButton({ onRefresh }: { onRefresh?: () => void }
         }
     };
 
-    if (chainId !== 97) return null;
+    if (chainId !== 1) return null;
 
     return (
         <Button

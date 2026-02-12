@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'LauraAI | Sovereign AI Soulmate',
-    description: 'The world\'s first Intent-based AI Asset Management Companion on BSC.',
+    description: 'The world\'s first Intent-based AI Asset Management Companion on Ethereum.',
     creator: '@LauraAI_BSC',
     images: ['/og-image.png'],
   },

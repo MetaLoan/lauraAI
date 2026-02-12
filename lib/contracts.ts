@@ -477,9 +477,16 @@ export const PANCAKE_ROUTER_ABI = [
 // Update these after deploying to testnet/mainnet
 // -----------------------------------------------------------------------------
 
-// 云端 Fly RPC 部署地址（与 deploy.js --network fly 输出一致）
-export const LAURA_AI_TOKEN_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-export const LAURA_AI_SOULMATE_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+// FF ERC20 token (mint payment token): 1 FF per mint
+export const FF_TOKEN_ADDRESS =
+    process.env.NEXT_PUBLIC_FF_TOKEN_ADDRESS || "0xFA1C09fC8B491B6A4d3Ff53A10CAd29381b3F949";
+export const MINT_PRICE_FF = "1";
+export const MINT_PRICE_FF_DECIMALS = 18;
+
+// 保留原常量名用于兼容现有调用：现在指向 FF 代币
+export const LAURA_AI_TOKEN_ADDRESS = FF_TOKEN_ADDRESS;
+export const LAURA_AI_SOULMATE_ADDRESS =
+    process.env.NEXT_PUBLIC_LAURA_AI_SOULMATE_ADDRESS || "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 export const LAURA_AI_MARKETPLACE_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
 export const LAURA_AI_STAKING_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
 

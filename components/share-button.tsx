@@ -17,7 +17,7 @@ interface ShareButtonProps {
 
 export function ShareButton({
   title = 'Meet my AI Soulmate on LauraAI',
-  text = 'I just minted my sovereign AI companion on BSC. Start your Chat-to-Earn journey with LauraAI!',
+  text = 'I just minted my sovereign AI companion on Ethereum. Start your Chat-to-Earn journey with LauraAI!',
   url = typeof window !== 'undefined' ? window.location.href : 'https://laura-ai.com',
   variant = 'outline',
   className,

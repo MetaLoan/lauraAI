@@ -44,11 +44,8 @@ export function WalletButton({ className, showBalance = true }: WalletButtonProp
 
   const getExplorerUrl = () => {
     if (!address) return '';
-    if (caipNetwork?.name?.includes('BSC') || caipNetwork?.id === 56) {
-      return `https://bscscan.com/address/${address}`;
-    }
-    if (caipNetwork?.id === 97) {
-      return `https://testnet.bscscan.com/address/${address}`;
+    if (caipNetwork?.id === 1 || caipNetwork?.name?.toLowerCase().includes('ethereum')) {
+      return `https://etherscan.io/address/${address}`;
     }
     return `https://etherscan.io/address/${address}`;
   };

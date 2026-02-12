@@ -25,7 +25,7 @@ func NewDeFiHandler() *DeFiHandler {
 
 // GetMarketIntelligence 获取市场情报（TGE 前不返回池子假数据）
 func (h *DeFiHandler) GetMarketIntelligence(c *gin.Context) {
-	bnbPrice := h.fetchBNBPrice()
+	ethPrice := h.fetchETHPrice()
 	gasPrice := h.fetchGasPrice()
 	var pools []gin.H
 	if config.AppConfig.TGELive {
@@ -34,10 +34,11 @@ func (h *DeFiHandler) GetMarketIntelligence(c *gin.Context) {
 	response.Success(c, gin.H{
 		"tge_live":   config.AppConfig.TGELive,
 		"timestamp":  time.Now().Unix(),
-		"bnb_price":  bnbPrice,
+		"eth_price":  ethPrice,
+		"bnb_price":  ethPrice, // backward compatibility
 		"v3_pools":   pools,
 		"gas_price":  gasPrice,
-		"sentiment":  h.calculateMarketSentiment(bnbPrice),
+		"sentiment":  h.calculateMarketSentiment(ethPrice),
 	})
 }
 
@@ -77,7 +78,7 @@ func (h *DeFiHandler) GetMarketCharacters(c *gin.Context) {
 		safeData["is_listed"] = char.IsListed
 		safeData["list_price"] = char.ListPrice
 		safeData["listed_at"] = char.ListedAt
-		safeData["price"] = fmt.Sprintf("%.3f BNB", char.ListPrice)
+		safeData["price"] = fmt.Sprintf("%.3f ETH", char.ListPrice)
 		// 为前端兼容添加 rarity 和 likes
 		safeData["rarity"] = h.calculateRarity(char.Compatibility)
 		safeData["likes"] = char.ID % 500 // 简单模拟
@@ -257,11 +258,11 @@ func (h *DeFiHandler) DelistCharacter(c *gin.Context) {
 
 // ===== Helper Functions =====
 
-func (h *DeFiHandler) fetchBNBPrice() string {
+func (h *DeFiHandler) fetchETHPrice() string {
 	client := &http.Client{Timeout: 5 * time.Second}
-	resp, err := client.Get("https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT")
+	resp, err := client.Get("https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT")
 	if err != nil {
-		return "312.45" // Fallback
+		return "3000.00" // Fallback
 	}
 	defer resp.Body.Close()
 
@@ -269,19 +270,19 @@ func (h *DeFiHandler) fetchBNBPrice() string {
 		Price string `json:"price"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return "312.45"
+		return "3000.00"
 	}
 
 	return data.Price
 }
 
 func (h *DeFiHandler) fetchGasPrice() string {
-	// 使用 BSC RPC 获取真实 gas price
+	// 使用配置的 EVM RPC 获取真实 gas price
 	client := &http.Client{Timeout: 5 * time.Second}
 
 	rpcPayload := strings.NewReader(`{"jsonrpc":"2.0","method":"eth_gasPrice","params":[],"id":1}`)
 	resp, err := client.Post(
-		"https://bsc-dataseed.binance.org/",
+		config.AppConfig.ChainRPCURL,
 		"application/json",
 		rpcPayload,
 	)
@@ -315,8 +316,8 @@ func (h *DeFiHandler) fetchPancakeSwapPools() []gin.H {
 	// 这里使用简化版本，实际生产环境应该调用 The Graph API
 	client := &http.Client{Timeout: 10 * time.Second}
 
-	// 获取 BNB 24h 变化作为参考
-	resp, err := client.Get("https://api.binance.com/api/v3/ticker/24hr?symbol=BNBUSDT")
+	// 获取 ETH 24h 变化作为参考
+	resp, err := client.Get("https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT")
 	if err == nil {
 		defer resp.Body.Close()
 		var ticker struct {
@@ -332,7 +333,7 @@ func (h *DeFiHandler) fetchPancakeSwapPools() []gin.H {
 
 			return []gin.H{
 				{
-					"name":       "LRA-BNB",
+					"name":       "LRA-ETH",
 					"apy":        lraBnbAPY,
 					"tvl":        "$1.85M",
 					"tvl_number": 1850000,
@@ -364,7 +365,7 @@ func (h *DeFiHandler) fetchPancakeSwapPools() []gin.H {
 
 	// Fallback mock data
 	return []gin.H{
-		{"name": "LRA-BNB", "apy": 24.5, "tvl": "$1.2M", "tvl_number": 1200000, "trend": "up", "volume_24h": "$180K", "fee_tier": "0.25%"},
+		{"name": "LRA-ETH", "apy": 24.5, "tvl": "$1.2M", "tvl_number": 1200000, "trend": "up", "volume_24h": "$180K", "fee_tier": "0.25%"},
 		{"name": "LRA-USDT", "apy": 18.2, "tvl": "$840K", "tvl_number": 840000, "trend": "stable", "volume_24h": "$95K", "fee_tier": "0.05%"},
 	}
 }
