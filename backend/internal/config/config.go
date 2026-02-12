@@ -26,6 +26,8 @@ type Config struct {
 	MintContractAddress      string // NFT contract address used for mint verification
 	MintExpectedChainID      int64  // expected chain id for mint tx verification (0 disables strict check)
 	MintTreasuryWallet       string // treasury wallet that must receive mint FF payment
+	MintWebhookSecret        string // HMAC secret for mint webhook callback verification
+	MintWebhookMaxSkewSec    int64  // allowed timestamp skew for webhook request anti-replay
 }
 
 var AppConfig *Config
@@ -58,6 +60,8 @@ func LoadConfig() {
 		MintContractAddress:      getEnv("MINT_CONTRACT_ADDRESS", ""),
 		MintExpectedChainID:      getEnvInt64("MINT_EXPECTED_CHAIN_ID", 1),
 		MintTreasuryWallet:       getEnv("MINT_TREASURY_WALLET", "0x636cf7bed3da64f93e5b79465fc04ed79bccfcac"),
+		MintWebhookSecret:        getEnv("MINT_WEBHOOK_SECRET", ""),
+		MintWebhookMaxSkewSec:    getEnvInt64("MINT_WEBHOOK_MAX_SKEW_SEC", 300),
 	}
 
 	if AppConfig.GeminiAPIKey == "" {

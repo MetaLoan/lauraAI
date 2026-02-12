@@ -32,6 +32,22 @@ func (r *MintOrderRepository) GetByIDAndUser(orderID uint64, userID uint64) (*mo
 	return &order, nil
 }
 
+func (r *MintOrderRepository) GetByID(orderID uint64) (*model.MintOrder, error) {
+	var order model.MintOrder
+	if err := DB.Where("id = ?", orderID).First(&order).Error; err != nil {
+		return nil, err
+	}
+	return &order, nil
+}
+
+func (r *MintOrderRepository) GetByOrderNo(orderNo string) (*model.MintOrder, error) {
+	var order model.MintOrder
+	if err := DB.Where("order_no = ?", orderNo).First(&order).Error; err != nil {
+		return nil, err
+	}
+	return &order, nil
+}
+
 func (r *MintOrderRepository) GetConfirmedByCharacter(userID uint64, characterID uint64) (*model.MintOrder, error) {
 	var order model.MintOrder
 	err := DB.Where("user_id = ? AND character_id = ? AND status = ?", userID, characterID, model.MintOrderStatusConfirmed).

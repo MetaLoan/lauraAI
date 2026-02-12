@@ -10,6 +10,7 @@ type MintOrderStatus string
 
 const (
 	MintOrderStatusPending   MintOrderStatus = "pending"
+	MintOrderStatusVerifying MintOrderStatus = "verifying"
 	MintOrderStatusConfirmed MintOrderStatus = "confirmed"
 	MintOrderStatusFailed    MintOrderStatus = "failed"
 )
@@ -39,4 +40,19 @@ type MintOrder struct {
 
 func (MintOrder) TableName() string {
 	return "mint_orders"
+}
+
+func CanMintOrderTransition(from MintOrderStatus, to MintOrderStatus) bool {
+	switch from {
+	case MintOrderStatusPending:
+		return to == MintOrderStatusVerifying || to == MintOrderStatusConfirmed || to == MintOrderStatusFailed
+	case MintOrderStatusVerifying:
+		return to == MintOrderStatusConfirmed || to == MintOrderStatusFailed
+	case MintOrderStatusFailed:
+		return to == MintOrderStatusVerifying || to == MintOrderStatusFailed
+	case MintOrderStatusConfirmed:
+		return to == MintOrderStatusConfirmed
+	default:
+		return false
+	}
 }

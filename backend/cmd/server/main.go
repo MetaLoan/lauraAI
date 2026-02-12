@@ -80,7 +80,7 @@ func main() {
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, X-Wallet-Address, X-Wallet-Signature, X-Inviter-Code, Accept-Language")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, X-Wallet-Address, X-Wallet-Signature, X-Inviter-Code, Accept-Language, X-Webhook-Id, X-Webhook-Timestamp, X-Webhook-Signature")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
 
 		if c.Request.Method == "OPTIONS" {
@@ -210,6 +210,8 @@ func main() {
 		})
 	})
 
+	mintOrderHandler := handler.NewMintOrderHandler()
+
 	// Public routes
 	api := r.Group("/api")
 	{
@@ -217,6 +219,9 @@ func main() {
 		authHandler := handler.NewAuthHandler()
 		api.POST("/auth/nonce", authHandler.GetNonce)
 		api.POST("/auth/verify", authHandler.Verify)
+
+		// Mint webhook callback (HMAC + anti-replay)
+		api.POST("/mint/webhook/confirm", mintOrderHandler.WebhookConfirm)
 
 		// Share link public endpoint (no auth required)
 		unlockHandler := handler.NewUnlockHandler(reportService)
@@ -249,7 +254,6 @@ func main() {
 		apiAuth.DELETE("/characters/cleanup", characterHandler.CleanupEmpty)
 
 		// Mint 订单相关（支付闭环）
-		mintOrderHandler := handler.NewMintOrderHandler()
 		apiAuth.POST("/mint/orders", mintOrderHandler.CreateOrder)
 		apiAuth.POST("/mint/orders/:id/confirm", mintOrderHandler.ConfirmOrder)
 		apiAuth.GET("/mint/orders/:id", mintOrderHandler.GetOrder)
