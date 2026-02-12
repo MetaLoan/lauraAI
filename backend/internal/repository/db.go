@@ -33,6 +33,19 @@ func InitDB() error {
 	DB.Exec("ALTER TABLE users ALTER COLUMN wallet_address SET NOT NULL")
 	log.Println("Migration complete")
 
+	// Mint orders compatibility migration for new non-null fields.
+	// Must run BEFORE AutoMigrate, otherwise adding NOT NULL columns on existing rows may fail.
+	defaultTreasury := config.AppConfig.MintTreasuryWallet
+	if defaultTreasury == "" {
+		defaultTreasury = "0x636cf7bed3da64f93e5b79465fc04ed79bccfcac"
+	}
+	log.Println("Running pre-autmigrate mint_orders compatibility migration...")
+	DB.Exec("ALTER TABLE mint_orders ADD COLUMN IF NOT EXISTS token_amount_wei varchar(120)")
+	DB.Exec("UPDATE mint_orders SET token_amount_wei = '0' WHERE token_amount_wei IS NULL OR token_amount_wei = ''")
+	DB.Exec("ALTER TABLE mint_orders ADD COLUMN IF NOT EXISTS treasury_wallet varchar(42)")
+	DB.Exec("UPDATE mint_orders SET treasury_wallet = ? WHERE treasury_wallet IS NULL OR treasury_wallet = ''", defaultTreasury)
+	log.Println("pre-automigrate mint_orders compatibility migration complete")
+
 	// Auto-migrate models
 	err = DB.AutoMigrate(
 		&model.User{},
@@ -58,12 +71,8 @@ func InitDB() error {
 	DB.Exec("ALTER TABLE characters ALTER COLUMN image_url TYPE text")
 	log.Println("image_url 字段类型修复完成")
 
-	// Mint orders compatibility migration for new non-null fields
-	defaultTreasury := config.AppConfig.MintTreasuryWallet
-	if defaultTreasury == "" {
-		defaultTreasury = "0x636cf7bed3da64f93e5b79465fc04ed79bccfcac"
-	}
-	log.Println("Running mint_orders compatibility migration...")
+	// Post-autmigrate: enforce defaults and not-null constraints for mint_orders fields.
+	log.Println("Running post-automigrate mint_orders constraints migration...")
 	DB.Exec("ALTER TABLE mint_orders ADD COLUMN IF NOT EXISTS token_amount_wei varchar(120)")
 	DB.Exec("UPDATE mint_orders SET token_amount_wei = '0' WHERE token_amount_wei IS NULL OR token_amount_wei = ''")
 	DB.Exec("ALTER TABLE mint_orders ALTER COLUMN token_amount_wei SET DEFAULT '0'")
@@ -72,7 +81,7 @@ func InitDB() error {
 	DB.Exec("UPDATE mint_orders SET treasury_wallet = ? WHERE treasury_wallet IS NULL OR treasury_wallet = ''", defaultTreasury)
 	DB.Exec("ALTER TABLE mint_orders ALTER COLUMN treasury_wallet SET DEFAULT '" + defaultTreasury + "'")
 	DB.Exec("ALTER TABLE mint_orders ALTER COLUMN treasury_wallet SET NOT NULL")
-	log.Println("mint_orders compatibility migration complete")
+	log.Println("post-automigrate mint_orders constraints migration complete")
 
 	log.Println("数据库连接成功")
 	return nil
