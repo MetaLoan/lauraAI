@@ -11,7 +11,7 @@ import { ConnectButton } from '@/components/wallet-button';
 import { useAccount, useWriteContract, useReadContract } from 'wagmi';
 import { formatEther } from 'viem';
 import Image from 'next/image';
-import { getFullImageUrl } from '@/lib/utils';
+import { getAssetPath, getFullImageUrl } from '@/lib/utils';
 import SoulmateDetailPage from '@/components/soulmate-detail-page';
 import DrawingLoading from '@/components/drawing-loading';
 import { LAURA_AI_SOULMATE_ABI, LAURA_AI_SOULMATE_ADDRESS } from '@/lib/contracts';
@@ -34,7 +34,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'mini_me',
         label: 'Mini Me',
         description: 'Upload a selfie and AI creates your unique avatar',
-        icon: <img src="/icons/3d/profile.png" className={PRESET_ICON_STYLE} alt="Mini Me" />,
+        icon: <img src={getAssetPath('/icons/3d/profile.png')} className={PRESET_ICON_STYLE} alt="Mini Me" />,
         gradient: 'from-cyan-500 to-blue-600',
         bgGlow: 'bg-cyan-500/10',
         presetImage: '/minime.jpg',
@@ -43,7 +43,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'girlfriend',
         label: 'AI Girlfriend',
         description: 'Sweet and caring companion who truly understands you',
-        icon: <img src="/icons/3d/soulmate.png" className={PRESET_ICON_STYLE} alt="Girlfriend" />,
+        icon: <img src={getAssetPath('/icons/3d/soulmate.png')} className={PRESET_ICON_STYLE} alt="Girlfriend" />,
         gradient: 'from-pink-500 to-rose-600',
         bgGlow: 'bg-pink-500/10',
         presetImage: '/presets/girlfriend.jpg',
@@ -52,7 +52,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'boyfriend',
         label: 'AI Boyfriend',
         description: 'Warm, charming partner always by your side',
-        icon: <img src="/icons/3d/star.png" className={PRESET_ICON_STYLE} alt="Boyfriend" />,
+        icon: <img src={getAssetPath('/icons/3d/star.png')} className={PRESET_ICON_STYLE} alt="Boyfriend" />,
         gradient: 'from-blue-500 to-indigo-600',
         bgGlow: 'bg-blue-500/10',
         presetImage: '/presets/boyfriend.jpg',
@@ -61,7 +61,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'best_friend',
         label: 'Best Friend',
         description: 'Your ride-or-die, the one you tell everything to',
-        icon: <img src="/icons/3d/users.png" className={PRESET_ICON_STYLE} alt="Best Friend" />,
+        icon: <img src={getAssetPath('/icons/3d/users.png')} className={PRESET_ICON_STYLE} alt="Best Friend" />,
         gradient: 'from-amber-500 to-orange-600',
         bgGlow: 'bg-amber-500/10',
         presetImage: '/presets/best_friend.jpg',
@@ -70,7 +70,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'soulmate',
         label: 'Soulmate',
         description: 'Your destined other half, a bond beyond time',
-        icon: <img src="/icons/3d/sparkles.png" className={PRESET_ICON_STYLE} alt="Soulmate" />,
+        icon: <img src={getAssetPath('/icons/3d/sparkles.png')} className={PRESET_ICON_STYLE} alt="Soulmate" />,
         gradient: 'from-purple-500 to-violet-600',
         bgGlow: 'bg-purple-500/10',
         presetImage: '/presets/soulmate.jpg',
@@ -79,7 +79,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'future_baby',
         label: 'Future Baby',
         description: 'A glimpse of your future child',
-        icon: <img src="/icons/3d/baby.png" className={PRESET_ICON_STYLE} alt="Future Baby" />,
+        icon: <img src={getAssetPath('/icons/3d/baby.png')} className={PRESET_ICON_STYLE} alt="Future Baby" />,
         gradient: 'from-green-400 to-emerald-600',
         bgGlow: 'bg-green-500/10',
         presetImage: '/presets/future_baby.jpg',
@@ -88,7 +88,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'future_wife',
         label: 'Future Wife',
         description: 'Elegant, wise partner for life',
-        icon: <img src="/icons/3d/crown.png" className={PRESET_ICON_STYLE} alt="Future Wife" />,
+        icon: <img src={getAssetPath('/icons/3d/crown.png')} className={PRESET_ICON_STYLE} alt="Future Wife" />,
         gradient: 'from-rose-400 to-pink-600',
         bgGlow: 'bg-rose-500/10',
         presetImage: '/presets/future_wife.jpg',
@@ -97,7 +97,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'future_husband',
         label: 'Future Husband',
         description: 'Mature, dependable soulmate',
-        icon: <img src="/icons/3d/crown.png" className={PRESET_ICON_STYLE} alt="Future Husband" />,
+        icon: <img src={getAssetPath('/icons/3d/crown.png')} className={PRESET_ICON_STYLE} alt="Future Husband" />,
         gradient: 'from-slate-400 to-zinc-600',
         bgGlow: 'bg-slate-500/10',
         presetImage: '/presets/future_husband.jpg',
@@ -106,7 +106,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'companion',
         label: 'Companion',
         description: 'Warm, reliable travel partner for life',
-        icon: <img src="/icons/3d/compass.png" className={PRESET_ICON_STYLE} alt="Companion" />,
+        icon: <img src={getAssetPath('/icons/3d/compass.png')} className={PRESET_ICON_STYLE} alt="Companion" />,
         gradient: 'from-teal-500 to-cyan-600',
         bgGlow: 'bg-teal-500/10',
         presetImage: '/presets/companion.jpg',
@@ -115,7 +115,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'wise_mentor',
         label: 'Wise Mentor',
         description: 'Knowledgeable guide for life',
-        icon: <img src="/icons/3d/book.png" className={PRESET_ICON_STYLE} alt="Wise Mentor" />,
+        icon: <img src={getAssetPath('/icons/3d/book.png')} className={PRESET_ICON_STYLE} alt="Wise Mentor" />,
         gradient: 'from-yellow-500 to-amber-600',
         bgGlow: 'bg-yellow-500/10',
         presetImage: '/presets/wise_mentor.jpg',
@@ -124,7 +124,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'dream_guide',
         label: 'Dream Guide',
         description: 'Mysterious guide across time and dreams',
-        icon: <img src="/icons/3d/moon.png" className={PRESET_ICON_STYLE} alt="Dream Guide" />,
+        icon: <img src={getAssetPath('/icons/3d/moon.png')} className={PRESET_ICON_STYLE} alt="Dream Guide" />,
         gradient: 'from-indigo-500 to-purple-700',
         bgGlow: 'bg-indigo-500/10',
         presetImage: '/presets/dream_guide.jpg',
@@ -133,7 +133,7 @@ const PRESET_TYPES: PresetType[] = [
         type: 'mysterious_stranger',
         label: 'Mysterious Stranger',
         description: 'A fateful unknown encounter',
-        icon: <img src="/icons/3d/ghost.png" className={PRESET_ICON_STYLE} alt="Mysterious Stranger" />,
+        icon: <img src={getAssetPath('/icons/3d/ghost.png')} className={PRESET_ICON_STYLE} alt="Mysterious Stranger" />,
         gradient: 'from-gray-500 to-zinc-700',
         bgGlow: 'bg-gray-500/10',
         presetImage: '/presets/mysterious_stranger.jpg',
@@ -514,7 +514,7 @@ export default function CreatePage() {
                                                         : 'glass-dormant'
                                                         }`}
                                                 >
-                                                    <img src={opt.icon} className="w-8 h-8 object-contain" alt={opt.label} />
+                                                    <img src={getAssetPath(opt.icon)} className="w-8 h-8 object-contain" alt={opt.label} />
                                                     <span className="text-xs font-bold leading-tight mt-1">{opt.label}</span>
                                                 </button>
                                             ))}
@@ -569,7 +569,7 @@ export default function CreatePage() {
                                                         : 'glass-dormant'
                                                         }`}
                                                 >
-                                                    <img src={opt.icon} className="w-8 h-8 object-contain drop-shadow-sm" alt={opt.label} />
+                                                    <img src={getAssetPath(opt.icon)} className="w-8 h-8 object-contain drop-shadow-sm" alt={opt.label} />
                                                     <span className="text-[10px] font-medium leading-tight">{opt.label}</span>
                                                 </button>
                                             ))}
@@ -664,7 +664,7 @@ export default function CreatePage() {
                                                 />
                                             ) : preset.presetImage ? (
                                                 <Image
-                                                    src={preset.presetImage}
+                                                    src={getAssetPath(preset.presetImage)}
                                                     alt={preset.label}
                                                     fill
                                                     className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-50"
@@ -761,7 +761,7 @@ export default function CreatePage() {
                                                 : 'glass-dormant'
                                                 }`}
                                         >
-                                            <img src={opt.icon} className="w-12 h-12 object-contain group-hover:scale-110 transition-transform" alt={opt.label} />
+                                            <img src={getAssetPath(opt.icon)} className="w-12 h-12 object-contain group-hover:scale-110 transition-transform" alt={opt.label} />
                                             <span className="text-sm font-bold">{opt.label}</span>
                                         </button>
                                     ))}
@@ -820,7 +820,7 @@ export default function CreatePage() {
                                                 : 'glass-dormant'
                                                 }`}
                                         >
-                                            <img src={opt.icon} className="w-10 h-10 object-contain group-hover:scale-110 transition-transform" alt={opt.label} />
+                                            <img src={getAssetPath(opt.icon)} className="w-10 h-10 object-contain group-hover:scale-110 transition-transform" alt={opt.label} />
                                             <span className="text-[11px] font-bold leading-tight text-center">{opt.label}</span>
                                         </button>
                                     ))}
@@ -835,7 +835,7 @@ export default function CreatePage() {
                                     >
                                         <span className="btn-gradient-layer absolute inset-0 rounded-full pointer-events-none opacity-50 transition-opacity duration-200 group-hover:opacity-75 group-active:opacity-75" aria-hidden />
                                         <span className="relative z-10 flex items-center justify-center gap-2">
-                                            <img src="/icons/3d/gem_3d.png" className="w-6 h-6 object-contain" alt="Gem" />
+                                            <img src={getAssetPath('/icons/3d/gem_3d.png')} className="w-6 h-6 object-contain" alt="Gem" />
                                             <span>Mint & Create</span>
                                             {mintPrice > 0 && (
                                                 <span className="text-sm opacity-90">({mintPriceDisplay} BNB)</span>
@@ -859,7 +859,7 @@ export default function CreatePage() {
                                 /* ===== 阶段 1：等待钱包确认 ===== */
                                 <div className="flex flex-col items-center justify-center py-20 space-y-6">
                                     <div className="w-20 h-20 rounded-2xl flex items-center justify-center">
-                                        <Image src="/icons/3d/gem_3d.png" alt="" width={40} height={40} className="w-10 h-10 object-contain animate-pulse" />
+                                        <Image src={getAssetPath('/icons/3d/gem_3d.png')} alt="" width={40} height={40} className="w-10 h-10 object-contain animate-pulse" />
                                     </div>
                                     <h2 className="text-2xl font-bold text-white">Confirm in Wallet</h2>
                                     <p className="text-white text-center max-w-sm">

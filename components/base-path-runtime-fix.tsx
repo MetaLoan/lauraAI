@@ -1,17 +1,20 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 
 function shouldPatch(value: string, basePath: string) {
   if (!value) return false;
-  if (!value.startsWith('/')) return false;
   if (value.startsWith('//')) return false;
   if (value.startsWith(`${basePath}/`) || value === basePath) return false;
+  if (value.startsWith('/')) return true;
+  if (typeof window !== 'undefined' && value.startsWith(`${window.location.origin}/`)) {
+    return true;
+  }
   return true;
 }
 
 export function BasePathRuntimeFix() {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const debugEnabled =
       typeof window !== 'undefined' &&
       (window.location.search.includes('debug_assets=1') ||
@@ -30,11 +33,21 @@ export function BasePathRuntimeFix() {
           }
         })()
       : '';
-    const basePath = (runtimeBasePath || envBasePath).replace(/\/+$/, '');
+    const pathDerivedBasePath = (() => {
+      if (typeof window === 'undefined') return '';
+      const { host, pathname } = window.location;
+      if (!host.endsWith('github.io')) return '';
+      const segments = pathname.split('/').filter(Boolean);
+      if (segments.length === 0) return '';
+      return `/${segments[0]}`;
+    })();
+    const basePath = (runtimeBasePath || envBasePath || pathDerivedBasePath).replace(/\/+$/, '');
+    (window as any).__LAURA_BASE_PATH = basePath;
     if (debugEnabled) {
       console.info('[asset-debug] init', {
         envBasePath,
         runtimeBasePath,
+        pathDerivedBasePath,
         finalBasePath: basePath,
         scriptSample: scriptWithNext?.src || null,
       });
@@ -47,15 +60,24 @@ export function BasePathRuntimeFix() {
         const raw = el.getAttribute(attr);
         if (!raw) return;
         if (!shouldPatch(raw, basePath)) return;
+        let normalized = raw;
+        if (normalized.startsWith(window.location.origin)) {
+          try {
+            normalized = new URL(normalized).pathname;
+          } catch {
+            // noop
+          }
+        }
+        if (!normalized.startsWith('/')) return;
         if (debugEnabled) {
           console.info('[asset-debug] patch', {
             tag: el.tagName,
             attr,
             from: raw,
-            to: `${basePath}${raw}`,
+            to: `${basePath}${normalized}`,
           });
         }
-        el.setAttribute(attr, `${basePath}${raw}`);
+        el.setAttribute(attr, `${basePath}${normalized}`);
       });
     };
 

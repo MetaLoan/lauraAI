@@ -1,12 +1,12 @@
-// API URL: 浏览器通过局域网 IP 访问时用同机 8081，否则用环境变量或默认值
+// API URL: 仅本地开发允许直连 :8081，线上一律使用 HTTPS API
 function getApiBaseUrl(): string {
+  const envApi = process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api'
   if (typeof window !== 'undefined') {
     const host = window.location.hostname
-    if (host !== 'localhost' && host !== '127.0.0.1') {
-      return `http://${host}:8081/api`
-    }
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8081/api'
+    return envApi
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api'
+  return envApi
 }
 const API_BASE_URL = getApiBaseUrl()
 

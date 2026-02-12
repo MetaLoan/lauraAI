@@ -6,13 +6,39 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getAssetPath(path: string) {
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+  const envBasePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')
   if (!path) return ''
   if (path.startsWith('http') || path.startsWith('data:') || path.startsWith('blob:')) {
     return path
   }
+  const runtimeBasePath = (() => {
+    if (typeof window === 'undefined') return ''
+
+    const fromWindow = ((window as any).__LAURA_BASE_PATH || '').replace(/\/+$/, '')
+    if (fromWindow) return fromWindow
+
+    const scriptWithNext = Array.from(document.scripts).find((script) => script.src.includes('/_next/static/'))
+    if (scriptWithNext?.src) {
+      try {
+        const pathname = new URL(scriptWithNext.src, window.location.origin).pathname
+        const nextIndex = pathname.indexOf('/_next/')
+        if (nextIndex > 0) return pathname.slice(0, nextIndex).replace(/\/+$/, '')
+      } catch {
+        // noop
+      }
+    }
+
+    const { host, pathname } = window.location
+    if (host.endsWith('github.io')) {
+      const segments = pathname.split('/').filter(Boolean)
+      if (segments.length > 0) return `/${segments[0]}`
+    }
+
+    return ''
+  })()
   // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  const basePath = runtimeBasePath || envBasePath
   return `${basePath}${normalizedPath}`
 }
 

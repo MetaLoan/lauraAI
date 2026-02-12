@@ -12,7 +12,7 @@ import { Loader2, User, Camera, Plus, ArrowRight, Heart, Sparkles, MessageCircle
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '@/lib/api';
-import { getFullImageUrl } from '@/lib/utils';
+import { getAssetPath, getFullImageUrl } from '@/lib/utils';
 import { getZodiacGlyph } from '@/lib/zodiac';
 import SoulmateDetailPage from '@/components/soulmate-detail-page';
 
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                             <div className="group relative liquid-glass-card rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer overflow-hidden">
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/10 rounded-full blur-[60px] transition-all duration-700" />
                                 <div className="absolute right-5 top-1/2 -translate-y-1/2 h-[66.67%] aspect-[3/4] pointer-events-none z-10 origin-bottom-right transition-all duration-500 ease-out group-hover:-translate-y-[calc(50%+4px)] group-hover:translate-x-0.5 group-hover:scale-[1.03] group-hover:rotate-[8deg]">
-                                    <img src="/minime.jpg" className="w-full h-full object-cover rounded-lg transition-all duration-500 group-hover:drop-shadow-[0_0_18px_rgba(244,114,182,0.45)]" alt="" />
+                                    <img src={getAssetPath('/minime.jpg')} className="w-full h-full object-cover rounded-lg transition-all duration-500 group-hover:drop-shadow-[0_0_18px_rgba(244,114,182,0.45)]" alt="" />
                                 </div>
                                 <div className="relative z-30 pr-20 md:pr-24">
                                     <div className="flex items-center justify-between mb-3">
@@ -216,7 +216,7 @@ export default function DashboardPage() {
                             <div className="group relative liquid-glass-card rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer overflow-hidden">
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full blur-[60px] transition-all duration-700" />
                                 <div className="absolute right-5 top-1/2 -translate-y-1/2 h-[66.67%] aspect-[3/4] pointer-events-none z-10 origin-bottom-right transition-all duration-500 ease-out group-hover:-translate-y-[calc(50%+4px)] group-hover:translate-x-0.5 group-hover:scale-[1.03] group-hover:rotate-[8deg]">
-                                    <img src="/presets/soulmate.jpg" className="w-full h-full object-cover rounded-lg transition-all duration-500 group-hover:drop-shadow-[0_0_18px_rgba(139,92,246,0.45)]" alt="" />
+                                    <img src={getAssetPath('/presets/soulmate.jpg')} className="w-full h-full object-cover rounded-lg transition-all duration-500 group-hover:drop-shadow-[0_0_18px_rgba(139,92,246,0.45)]" alt="" />
                                 </div>
                                 <div className="relative z-30 pr-20 md:pr-24">
                                     <div className="flex items-center justify-between mb-3">
@@ -242,7 +242,7 @@ export default function DashboardPage() {
                         </h2>
                         {characters.length > 0 && (
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10 text-sm w-fit">
-                                <img src="/icons/3d/sparkles.png" className="w-6 h-6 object-contain" alt="" />
+                                <img src={getAssetPath('/icons/3d/sparkles.png')} className="w-6 h-6 object-contain" alt="" />
                                 <span className="text-white"><span className="text-white font-semibold">{characters.length}</span> characters</span>
                             </div>
                         )}
@@ -331,7 +331,7 @@ export default function DashboardPage() {
                                                         <h3 className="text-lg font-bold text-white truncate min-w-0">{char.title}</h3>
                                                         {char.compatibility != null && (
                                                             <span className="flex items-center gap-1.5 flex-shrink-0 text-sm font-black text-white bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
-                                                                <img src="/icons/3d/star_compatibility.png" className="w-4 h-4 object-contain" alt="Star" />
+                                                                <img src={getAssetPath('/icons/3d/star_compatibility.png')} className="w-4 h-4 object-contain" alt="Star" />
                                                                 {char.compatibility}%
                                                             </span>
                                                         )}
@@ -348,7 +348,7 @@ export default function DashboardPage() {
                                                         </p>
                                                     )}
                                                     <div className="flex items-center gap-3 w-full bg-white/10 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/20 group-hover:bg-white/20 transition-all shadow-lg">
-                                                        <img src="/icons/3d/message_chat.png" className="w-5 h-5 object-contain" alt="Chat" />
+                                                        <img src={getAssetPath('/icons/3d/message_chat.png')} className="w-5 h-5 object-contain" alt="Chat" />
                                                         <span className="text-sm font-bold text-white tracking-wide">Start Chat</span>
                                                         <span className="ml-auto text-[10px] text-green-400 font-black bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 translate-x-1">+5 LRA</span>
                                                     </div>
@@ -368,7 +368,7 @@ export default function DashboardPage() {
                                 <Link href="/create" className="block h-full">
                                     <div className="group flex flex-col items-center justify-center aspect-[3/4] rounded-2xl border border-white/20 hover:border-white/40 transition-all duration-300 cursor-pointer">
                                         <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5 group-hover:scale-110 transition-all duration-300">
-                                            <img src="/icons/3d/plus_new.png" className="w-12 h-12 object-contain group-hover:rotate-90 transition-transform duration-500" alt="Create New" />
+                                            <img src={getAssetPath('/icons/3d/plus_new.png')} className="w-12 h-12 object-contain group-hover:rotate-90 transition-transform duration-500" alt="Create New" />
                                         </div>
                                         <span className="text-white/60 font-medium group-hover:text-white transition-colors text-sm">Create New</span>
                                     </div>
