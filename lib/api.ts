@@ -219,6 +219,33 @@ class ApiClient {
     }, 60000) // 60秒超时
   }
 
+  async createMintOrder(data: {
+    character_id: number
+    chain_id: number
+    token_address: string
+    token_symbol: string
+    token_amount: string
+  }): Promise<{
+    already_paid: boolean
+    order: any
+  }> {
+    return this.request('/mint/orders', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async confirmMintOrder(orderId: string, txHash: string): Promise<{ order: any }> {
+    return this.request(`/mint/orders/${orderId}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify({ tx_hash: txHash }),
+    }, 45000)
+  }
+
+  async getMintOrder(orderId: string): Promise<{ order: any }> {
+    return this.request(`/mint/orders/${orderId}`)
+  }
+
   // Mini Me generation
   async generateMiniMe(file: File) {
     const formData = new FormData()

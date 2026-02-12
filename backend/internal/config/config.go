@@ -23,6 +23,8 @@ type Config struct {
 	AuthTokenSecret          string // HMAC secret for auth bearer token
 	AuthTokenTTLMinutes      int    // Bearer token TTL in minutes
 	AllowLegacySignatureAuth bool   // temporary rollback switch for legacy X-Wallet-* auth
+	MintContractAddress      string // NFT contract address used for mint verification
+	MintExpectedChainID      int64  // expected chain id for mint tx verification (0 disables strict check)
 }
 
 var AppConfig *Config
@@ -52,6 +54,8 @@ func LoadConfig() {
 		AuthTokenSecret:          getEnv("AUTH_TOKEN_SECRET", ""),
 		AuthTokenTTLMinutes:      getEnvInt("AUTH_TOKEN_TTL_MINUTES", 120),
 		AllowLegacySignatureAuth: getEnv("ALLOW_LEGACY_SIGNATURE_AUTH", "false") == "true",
+		MintContractAddress:      getEnv("MINT_CONTRACT_ADDRESS", ""),
+		MintExpectedChainID:      getEnvInt64("MINT_EXPECTED_CHAIN_ID", 1),
 	}
 
 	if AppConfig.GeminiAPIKey == "" {
@@ -85,6 +89,18 @@ func getEnvInt(key string, defaultValue int) int {
 		return defaultValue
 	}
 	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return defaultValue
+	}
+	return parsed
+}
+
+func getEnvInt64(key string, defaultValue int64) int64 {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {
 		return defaultValue
 	}

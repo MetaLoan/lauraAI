@@ -248,6 +248,12 @@ func main() {
 		apiAuth.GET("/characters/:id", characterHandler.GetByID)
 		apiAuth.DELETE("/characters/cleanup", characterHandler.CleanupEmpty)
 
+		// Mint 订单相关（支付闭环）
+		mintOrderHandler := handler.NewMintOrderHandler()
+		apiAuth.POST("/mint/orders", mintOrderHandler.CreateOrder)
+		apiAuth.POST("/mint/orders/:id/confirm", mintOrderHandler.ConfirmOrder)
+		apiAuth.GET("/mint/orders/:id", mintOrderHandler.GetOrder)
+
 		// 邀请相关
 		inviteHandler := handler.NewInviteHandler()
 		apiAuth.GET("/invite/code", inviteHandler.GetInviteCode)

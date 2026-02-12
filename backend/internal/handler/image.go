@@ -23,6 +23,7 @@ const (
 
 type ImageHandler struct {
 	characterRepo *repository.CharacterRepository
+	mintOrderRepo *repository.MintOrderRepository
 	userRepo      *repository.UserRepository
 	imagenService *service.GeminiImagenService
 	reportService *service.GeminiReportService
@@ -31,6 +32,7 @@ type ImageHandler struct {
 func NewImageHandler(imagenService *service.GeminiImagenService, reportService *service.GeminiReportService) *ImageHandler {
 	return &ImageHandler{
 		characterRepo: repository.NewCharacterRepository(),
+		mintOrderRepo: repository.NewMintOrderRepository(),
 		userRepo:      repository.NewUserRepository(),
 		imagenService: imagenService,
 		reportService: reportService,
@@ -84,6 +86,17 @@ func (h *ImageHandler) GenerateImage(c *gin.Context) {
 	// 空状态也允许（首次生成）
 	if character.ImageStatus != "" && character.ImageStatus != "failed" {
 		response.Error(c, 400, "Invalid character state for image generation")
+		return
+	}
+
+	// 支付闭环校验：首次生成和重试都必须存在已确认的 mint 订单
+	hasConfirmedOrder, err := h.mintOrderRepo.HasConfirmedForCharacter(user.ID, character.ID)
+	if err != nil {
+		response.Error(c, 500, "Failed to verify mint payment status")
+		return
+	}
+	if !hasConfirmedOrder {
+		response.ErrorWithCode(c, 402, "mint_payment_required", "Mint payment is required before image generation")
 		return
 	}
 

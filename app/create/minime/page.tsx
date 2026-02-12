@@ -28,7 +28,7 @@ type MintStep = 'idle' | 'minting' | 'generating' | 'done';
 
 export default function CreateMiniMePage() {
     const router = useRouter();
-    const { isConnected, address } = useAccount();
+    const { isConnected, address, chainId } = useAccount();
     const [step, setStep] = useState<Step>('intro');
     const [mintStep, setMintStep] = useState<MintStep>('idle');
     const [characterData, setCharacterData] = useState<any>(null);
@@ -171,26 +171,40 @@ export default function CreateMiniMePage() {
 
             if (!character?.id) throw new Error('Failed to create character');
 
-            // 3a. Approve FF token spending (1 FF)
-            await writeContractAsync({
-                address: FF_TOKEN_ADDRESS as `0x${string}`,
-                abi: LAURA_AI_TOKEN_ABI,
-                functionName: 'approve',
-                args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
-            });
-
-            // 3b. Mint NFT
             const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
                 ? 'http://localhost:8081'
                 : 'https://lauraai-backend.fly.dev';
             const metadataURI = `${baseUrl}/api/nft/metadata/${character.id}`;
 
-            await writeContractAsync({
-                address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
-                abi: LAURA_AI_SOULMATE_ABI,
-                functionName: 'safeMint',
-                args: [address, metadataURI],
-            });
+            // 3. Create mint order
+            const mintOrderResult = await apiClient.createMintOrder({
+                character_id: Number(character.id),
+                chain_id: chainId || 1,
+                token_address: FF_TOKEN_ADDRESS,
+                token_symbol: 'FF',
+                token_amount: MINT_PRICE_FF,
+            })
+
+            if (!mintOrderResult?.already_paid) {
+                // 3a. Approve FF token spending (1 FF)
+                await writeContractAsync({
+                    address: FF_TOKEN_ADDRESS as `0x${string}`,
+                    abi: LAURA_AI_TOKEN_ABI,
+                    functionName: 'approve',
+                    args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
+                });
+
+                // 3b. Mint NFT
+                const txHash = await writeContractAsync({
+                    address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
+                    abi: LAURA_AI_SOULMATE_ABI,
+                    functionName: 'safeMint',
+                    args: [address, metadataURI],
+                });
+
+                // 3c. Confirm mint order
+                await apiClient.confirmMintOrder(String(mintOrderResult.order?.id), txHash as string);
+            }
 
             // 4. Trigger image generation
             setMintStep('generating');

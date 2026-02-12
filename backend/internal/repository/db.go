@@ -39,6 +39,7 @@ func InitDB() error {
 		&model.Character{},
 		&model.Message{},
 		&model.AuthNonce{},
+		&model.MintOrder{},
 	)
 
 	if err != nil {

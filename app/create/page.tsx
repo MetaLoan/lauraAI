@@ -172,7 +172,7 @@ type StepType = 'profile' | 'preset' | 'gender' | 'ethnicity' | 'generating' | '
 
 export default function CreatePage() {
     const router = useRouter();
-    const { isConnected, address } = useAccount();
+    const { isConnected, address, chainId } = useAccount();
     const { writeContractAsync } = useWriteContract();
     const mintPrice = parseUnits(MINT_PRICE_FF, MINT_PRICE_FF_DECIMALS);
 
@@ -366,7 +366,28 @@ export default function CreatePage() {
 
             if (!character?.id) throw new Error('Failed to create character');
 
-            // Step 2: Mint NFT on-chain (pay mint fee)
+            // Step 2: Create mint order (payment closure)
+            const mintOrderResult = await apiClient.createMintOrder({
+                character_id: Number(character.id),
+                chain_id: chainId || 1,
+                token_address: FF_TOKEN_ADDRESS,
+                token_symbol: 'FF',
+                token_amount: MINT_PRICE_FF,
+            })
+
+            // already paid: skip chain payment and continue generation
+            if (mintOrderResult?.already_paid) {
+                setMintStep('generating');
+                const charId = character.id.toString();
+                setGeneratingCharacterId(charId);
+                apiClient.generateImage(charId).catch((err: any) => {
+                    console.warn('Generate image request sent (continues in background):', err);
+                });
+                startPolling(charId);
+                return;
+            }
+
+            // Step 3: Mint NFT on-chain (pay mint fee)
             const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
                 ? 'http://localhost:8081'
                 : 'https://lauraai-backend.fly.dev';
@@ -374,7 +395,7 @@ export default function CreatePage() {
 
             console.log('Minting NFT with metadata URI:', metadataURI, 'mintPriceFF:', mintPrice.toString());
 
-            // Step 2a: Approve FF token spending (1 FF)
+            // Step 3a: Approve FF token spending (1 FF)
             await writeContractAsync({
                 address: FF_TOKEN_ADDRESS as `0x${string}`,
                 abi: LAURA_AI_TOKEN_ABI,
@@ -382,15 +403,18 @@ export default function CreatePage() {
                 args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
             });
 
-            // Step 2b: Mint NFT (contract charges FF via transferFrom)
-            await writeContractAsync({
+            // Step 3b: Mint NFT (contract charges FF via transferFrom)
+            const txHash = await writeContractAsync({
                 address: LAURA_AI_SOULMATE_ADDRESS as `0x${string}`,
                 abi: LAURA_AI_SOULMATE_ABI,
                 functionName: 'safeMint',
                 args: [address, metadataURI],
             });
 
-            // Step 3: Mint succeeded → 触发后台生图（后端异步，客户端关闭不影响）
+            // Step 3c: Confirm order with on-chain tx hash
+            await apiClient.confirmMintOrder(String(mintOrderResult.order?.id), txHash as string)
+
+            // Step 4: Mint succeeded → 触发后台生图（后端异步，客户端关闭不影响）
             setMintStep('generating');
             const charId = character.id.toString();
             setGeneratingCharacterId(charId);
@@ -399,7 +423,7 @@ export default function CreatePage() {
                 console.warn('Generate image request sent (continues in background):', err);
             });
 
-            // 启动轮询，每5秒检查一次
+            // Step 5: 启动轮询，每5秒检查一次
             startPolling(charId);
 
         } catch (error: any) {
