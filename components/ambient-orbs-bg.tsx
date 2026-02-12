@@ -110,8 +110,6 @@ export function AmbientOrbsBg() {
       className="absolute inset-0 overflow-hidden pointer-events-none z-0"
       aria-hidden
     >
-      {/* Base tone so orbs are visible on all screens */}
-      <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_50%_10%,rgba(94,42,126,0.35),rgba(10,8,18,0.92))]" />
       {ORBS.map((orb, i) => (
         <div
           key={i}
