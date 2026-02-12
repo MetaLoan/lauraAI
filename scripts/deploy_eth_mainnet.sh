@@ -17,7 +17,6 @@ fi
 source "$ENV_FILE"
 
 required_vars=(
-  PRIVATE_KEY
   ETH_MAINNET_RPC_URL
   FF_TOKEN_ADDRESS
   MINT_TREASURY_WALLET
@@ -31,6 +30,11 @@ for v in "${required_vars[@]}"; do
   fi
 done
 
+if [[ -z "${PRIVATE_KEY:-}" && -z "${MNEMONIC:-}" ]]; then
+  echo "Missing signer credentials: set PRIVATE_KEY or MNEMONIC"
+  exit 1
+fi
+
 echo "==> Deploying LauraAISoulmate to Ethereum mainnet"
 echo "    RPC: $ETH_MAINNET_RPC_URL"
 echo "    FF token: $FF_TOKEN_ADDRESS"
@@ -38,7 +42,8 @@ echo "    Treasury: $MINT_TREASURY_WALLET"
 echo "    Mint price (wei): $MINT_PRICE_WEI"
 
 pushd "$CONTRACTS_DIR" >/dev/null
-export PRIVATE_KEY
+export PRIVATE_KEY="${PRIVATE_KEY:-}"
+export MNEMONIC="${MNEMONIC:-}"
 export ETH_MAINNET_RPC_URL
 export MINT_TREASURY_WALLET
 export MINT_PRICE_WEI

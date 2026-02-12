@@ -7,7 +7,7 @@ cp scripts/env.mainnet.template scripts/.env.mainnet
 ```
 
 Fill `scripts/.env.mainnet`:
-- `PRIVATE_KEY`
+- `PRIVATE_KEY` 或 `MNEMONIC`（二选一）
 - `ETH_MAINNET_RPC_URL`
 - `FF_TOKEN_ADDRESS`
 - `MINT_TREASURY_WALLET`
