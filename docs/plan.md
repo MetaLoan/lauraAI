@@ -41,10 +41,21 @@
 - Same behavior for normal roles and `mini_me`.
 
 ## Phase 2 (Next)
-- Split wallet stage into explicit sub-steps: `awaiting_approve`, `awaiting_mint`, `mint_verifying`.
-- Persist recovery queue server-side (DB job/cron) to survive process restarts.
-- Parse mint event/tokenId and persist `on_chain_token_id` reliably.
 - Optional architecture upgrade: switch to `pay -> generate -> final mint with final metadata`.
+
+## Delivery Status (2026-02-12)
+- [x] Backend returns unified `mint_ui_state` for both normal roles and `mini_me`.
+- [x] Mint AI card UX supports `minting` / `retry_mint` / `generating` / `retry_generation`.
+- [x] Wallet stage split: `awaiting_approve` -> `awaiting_mint` -> `mint_verifying`.
+- [x] Server-side persistent verify queue (`mint_verify_jobs`) with worker recovery after restart.
+- [x] Queue observability/admin endpoints:
+  - `GET /api/admin/mint/verify-jobs/stats`
+  - `GET /api/admin/mint/verify-jobs?status=&limit=`
+  - `POST /api/admin/mint/verify-jobs/:orderId/retry`
+- [x] Mint event parse + token archive: `characters.on_chain_token_id`.
+- [x] Chat eligibility lock: only `mint confirmed + image done` can chat / appear in Mine list.
+- [x] Contract source aligned to FF token payment model (`transferFrom` to treasury).
+- [ ] Optional architecture change to final-image-first minting (`pay -> generate -> mint final metadata`).
 
 ## Acceptance Criteria
 - No-image role with paid/on-chain trace never disappears from Mint AI list.

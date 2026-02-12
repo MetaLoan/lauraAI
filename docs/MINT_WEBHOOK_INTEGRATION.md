@@ -8,6 +8,14 @@
 ## Purpose
 - Asynchronously confirm mint payment orders from an indexer/relayer callback.
 - Move order state from `pending/failed` -> `verifying` -> `confirmed/failed`.
+- On temporary chain/RPC propagation errors, order enters persistent retry queue (`mint_verify_jobs`), not in-memory retry.
+
+## Verify Queue Operations (Admin)
+Use header `X-Admin-Key: <ADMIN_SECRET>`.
+
+- `GET /api/admin/mint/verify-jobs/stats`
+- `GET /api/admin/mint/verify-jobs?status=pending&limit=50`
+- `POST /api/admin/mint/verify-jobs/:orderId/retry`
 
 ## Required Headers
 - `X-Webhook-Id`: unique event id (idempotency key, must not repeat)
@@ -93,6 +101,7 @@ Webhook confirmation validates:
    - `from` = payer wallet
    - `to` = treasury wallet
    - amount = expected `token_amount_wei`
+6. `SoulmateBorn(address,uint256,string)` event exists and tokenId is archived to `characters.on_chain_token_id`.
 
 If any check fails, order becomes `failed`.
 
