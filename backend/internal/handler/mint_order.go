@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +22,7 @@ import (
 )
 
 var safeMintSelectorHex = "40d097c3" // bytes4(keccak256("safeMint(address,string)"))
+var erc20TransferTopicHex = "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
 type MintOrderHandler struct {
 	mintOrderRepo *repository.MintOrderRepository
@@ -42,11 +44,12 @@ func (h *MintOrderHandler) CreateOrder(c *gin.Context) {
 	}
 
 	var req struct {
-		CharacterID  uint64 `json:"character_id" binding:"required"`
-		ChainID      int64  `json:"chain_id" binding:"required"`
-		TokenAddress string `json:"token_address" binding:"required"`
-		TokenSymbol  string `json:"token_symbol" binding:"required"`
-		TokenAmount  string `json:"token_amount" binding:"required"`
+		CharacterID    uint64 `json:"character_id" binding:"required"`
+		ChainID        int64  `json:"chain_id" binding:"required"`
+		TokenAddress   string `json:"token_address" binding:"required"`
+		TokenSymbol    string `json:"token_symbol" binding:"required"`
+		TokenAmount    string `json:"token_amount" binding:"required"`
+		TokenAmountWei string `json:"token_amount_wei" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(c, 400, "Invalid request parameters")
@@ -81,15 +84,23 @@ func (h *MintOrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
+	treasury := strings.ToLower(strings.TrimSpace(config.AppConfig.MintTreasuryWallet))
+	if !common.IsHexAddress(treasury) {
+		response.Error(c, 500, "Mint treasury wallet is not configured correctly")
+		return
+	}
+
 	order := &model.MintOrder{
-		UserID:       user.ID,
-		CharacterID:  req.CharacterID,
-		Status:       model.MintOrderStatusPending,
-		ChainID:      req.ChainID,
-		TokenAddress: strings.ToLower(req.TokenAddress),
-		TokenSymbol:  strings.ToUpper(req.TokenSymbol),
-		TokenAmount:  req.TokenAmount,
-		PayerWallet:  strings.ToLower(user.WalletAddress),
+		UserID:         user.ID,
+		CharacterID:    req.CharacterID,
+		Status:         model.MintOrderStatusPending,
+		ChainID:        req.ChainID,
+		TokenAddress:   strings.ToLower(req.TokenAddress),
+		TokenSymbol:    strings.ToUpper(req.TokenSymbol),
+		TokenAmount:    req.TokenAmount,
+		TokenAmountWei: strings.TrimSpace(req.TokenAmountWei),
+		TreasuryWallet: treasury,
+		PayerWallet:    strings.ToLower(user.WalletAddress),
 	}
 	if err := h.mintOrderRepo.Create(order); err != nil {
 		response.Error(c, 500, "Failed to create mint order")
@@ -139,7 +150,7 @@ func (h *MintOrderHandler) ConfirmOrder(c *gin.Context) {
 		return
 	}
 
-	if verifyErr := h.verifyMintTransaction(txHash, user.WalletAddress, order.CharacterID); verifyErr != nil {
+	if verifyErr := h.verifyMintTransaction(txHash, user.WalletAddress, order); verifyErr != nil {
 		order.Status = model.MintOrderStatusFailed
 		order.TxHash = txHash
 		order.FailReason = verifyErr.Error()
@@ -183,7 +194,7 @@ func (h *MintOrderHandler) GetOrder(c *gin.Context) {
 	response.Success(c, gin.H{"order": order})
 }
 
-func (h *MintOrderHandler) verifyMintTransaction(txHash string, walletAddress string, characterID uint64) error {
+func (h *MintOrderHandler) verifyMintTransaction(txHash string, walletAddress string, order *model.MintOrder) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -238,12 +249,62 @@ func (h *MintOrderHandler) verifyMintTransaction(txHash string, walletAddress st
 		return fmt.Errorf("tx method is not safeMint(address,string)")
 	}
 
-	charIDMarker := "/api/nft/metadata/" + strconv.FormatUint(characterID, 10)
+	charIDMarker := "/api/nft/metadata/" + strconv.FormatUint(order.CharacterID, 10)
 	if !strings.Contains(strings.ToLower(hex.EncodeToString(data)), strings.ToLower(hex.EncodeToString([]byte(charIDMarker)))) {
 		return fmt.Errorf("tx metadata uri does not match character")
 	}
 
+	if err := verifyERC20TreasuryTransfer(receipt, strings.ToLower(walletAddress), strings.ToLower(order.TokenAddress), strings.ToLower(order.TreasuryWallet), order.TokenAmountWei); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func verifyERC20TreasuryTransfer(receipt *types.Receipt, payer string, tokenAddress string, treasuryWallet string, amountWei string) error {
+	if !common.IsHexAddress(tokenAddress) {
+		return fmt.Errorf("invalid token address in order")
+	}
+	if !common.IsHexAddress(treasuryWallet) {
+		return fmt.Errorf("invalid treasury wallet in order")
+	}
+	expectedAmount, ok := new(big.Int).SetString(strings.TrimSpace(amountWei), 10)
+	if !ok || expectedAmount.Sign() <= 0 {
+		return fmt.Errorf("invalid token amount_wei in order")
+	}
+
+	transferTopic := common.HexToHash("0x" + erc20TransferTopicHex)
+	payerHash := topicFromAddress(payer)
+	treasuryHash := topicFromAddress(treasuryWallet)
+
+	for _, lg := range receipt.Logs {
+		if strings.ToLower(lg.Address.Hex()) != tokenAddress {
+			continue
+		}
+		if len(lg.Topics) < 3 {
+			continue
+		}
+		if lg.Topics[0] != transferTopic {
+			continue
+		}
+		if lg.Topics[1] != payerHash || lg.Topics[2] != treasuryHash {
+			continue
+		}
+		if len(lg.Data) == 0 {
+			continue
+		}
+		amount := new(big.Int).SetBytes(lg.Data)
+		if amount.Cmp(expectedAmount) == 0 {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("no FF transfer to treasury found in receipt logs")
+}
+
+func topicFromAddress(addr string) common.Hash {
+	address := common.HexToAddress(addr)
+	return common.BytesToHash(common.LeftPadBytes(address.Bytes(), 32))
 }
 
 func isHexTxHash(txHash string) bool {

@@ -239,6 +239,7 @@ class ApiClient {
     token_address: string
     token_symbol: string
     token_amount: string
+    token_amount_wei: string
   }): Promise<{
     already_paid: boolean
     order: any

@@ -373,6 +373,7 @@ export default function CreatePage() {
                 token_address: FF_TOKEN_ADDRESS,
                 token_symbol: 'FF',
                 token_amount: MINT_PRICE_FF,
+                token_amount_wei: mintPrice.toString(),
             })
 
             // already paid: skip chain payment and continue generation

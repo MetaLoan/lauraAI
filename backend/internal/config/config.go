@@ -25,6 +25,7 @@ type Config struct {
 	AllowLegacySignatureAuth bool   // temporary rollback switch for legacy X-Wallet-* auth
 	MintContractAddress      string // NFT contract address used for mint verification
 	MintExpectedChainID      int64  // expected chain id for mint tx verification (0 disables strict check)
+	MintTreasuryWallet       string // treasury wallet that must receive mint FF payment
 }
 
 var AppConfig *Config
@@ -56,6 +57,7 @@ func LoadConfig() {
 		AllowLegacySignatureAuth: getEnv("ALLOW_LEGACY_SIGNATURE_AUTH", "false") == "true",
 		MintContractAddress:      getEnv("MINT_CONTRACT_ADDRESS", ""),
 		MintExpectedChainID:      getEnvInt64("MINT_EXPECTED_CHAIN_ID", 1),
+		MintTreasuryWallet:       getEnv("MINT_TREASURY_WALLET", "0x636cf7bed3da64f93e5b79465fc04ed79bccfcac"),
 	}
 
 	if AppConfig.GeminiAPIKey == "" {
