@@ -91,7 +91,7 @@ export function ShareButton({
                                         <Button
                                             variant="outline"
                                             onClick={handleCopy}
-                                            className="w-full liquid-glass-card text-white h-12 rounded-xl gap-3"
+                                            className="w-full bg-white/5 border border-white/20 hover:bg-white/10 text-white h-12 rounded-xl gap-3"
                                         >
                                             {copied ? (
                                                 <Check className="w-5 h-5 text-green-400" />
