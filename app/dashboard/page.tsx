@@ -29,6 +29,27 @@ interface Character {
     image_status?: string; // "", "generating", "done", "failed"
 }
 
+function getZodiacFromBirthDate(birthDate?: string): string {
+    if (!birthDate) return '';
+    const d = new Date(birthDate);
+    if (Number.isNaN(d.getTime())) return '';
+    const month = d.getUTCMonth() + 1;
+    const day = d.getUTCDate();
+
+    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'Aries';
+    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'Taurus';
+    if ((month === 5 && day >= 21) || (month === 6 && day <= 21)) return 'Gemini';
+    if ((month === 6 && day >= 22) || (month === 7 && day <= 22)) return 'Cancer';
+    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'Leo';
+    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'Virgo';
+    if ((month === 9 && day >= 23) || (month === 10 && day <= 23)) return 'Libra';
+    if ((month === 10 && day >= 24) || (month === 11 && day <= 21)) return 'Scorpio';
+    if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'Sagittarius';
+    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'Capricorn';
+    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'Aquarius';
+    return 'Pisces';
+}
+
 export default function DashboardPage() {
     const router = useRouter();
     const { address, isConnected, isConnecting } = useAccount();
@@ -73,8 +94,11 @@ export default function DashboardPage() {
     const fetchCharacters = async () => {
         try {
             setCharactersLoading(true);
-            const data = await apiClient.getCharacters() as any[];
-            const mappedData = mapCharacters(data);
+            const [data, me] = await Promise.all([
+                apiClient.getCharacters() as Promise<any[]>,
+                apiClient.getMe() as Promise<any>,
+            ]);
+            const mappedData = mapCharacters(data, me);
             setCharacters(mappedData);
         } catch (error) {
             console.error('Failed to load characters:', error);
@@ -86,15 +110,19 @@ export default function DashboardPage() {
     // 静默刷新（不显示 loading）
     const fetchCharactersSilent = async () => {
         try {
-            const data = await apiClient.getCharacters() as any[];
-            const mappedData = mapCharacters(data);
+            const [data, me] = await Promise.all([
+                apiClient.getCharacters() as Promise<any[]>,
+                apiClient.getMe() as Promise<any>,
+            ]);
+            const mappedData = mapCharacters(data, me);
             setCharacters(mappedData);
         } catch (error) {
             console.error('Failed to refresh characters:', error);
         }
     };
 
-    const mapCharacters = (data: any[]): Character[] => {
+    const mapCharacters = (data: any[], me?: any): Character[] => {
+        const userAstroSign = getZodiacFromBirthDate(me?.birth_date);
         return (data || []).map((char: any) => ({
             id: char.id.toString(),
             title: char.title || 'Soulmate',
@@ -102,8 +130,8 @@ export default function DashboardPage() {
             image: char.image,
             type: char.type,
             unlock_status: char.unlock_status,
-            compatibility: char.compatibility,
-            astro_sign: char.astro_sign,
+            compatibility: char.type === 'mini_me' ? (Number(char.compatibility) > 0 ? Number(char.compatibility) : 100) : Number(char.compatibility) || 0,
+            astro_sign: char.type === 'mini_me' ? (char.astro_sign || userAstroSign) : char.astro_sign,
             description: char.description,
             image_status: char.image_status || '',
         }));
