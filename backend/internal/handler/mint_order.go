@@ -55,10 +55,10 @@ func (h *MintOrderHandler) CreateOrder(c *gin.Context) {
 		TokenAddress   string `json:"token_address" binding:"required"`
 		TokenSymbol    string `json:"token_symbol" binding:"required"`
 		TokenAmount    string `json:"token_amount" binding:"required"`
-		TokenAmountWei string `json:"token_amount_wei" binding:"required"`
+		TokenAmountWei string `json:"token_amount_wei"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, 400, "Invalid request parameters")
+		response.Error(c, 400, "Invalid request parameters: "+err.Error())
 		return
 	}
 
@@ -96,6 +96,22 @@ func (h *MintOrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
+	amountWei := strings.TrimSpace(req.TokenAmountWei)
+	if amountWei == "" {
+		// Backward compatibility: old clients may only send token_amount.
+		// FF defaults to 18 decimals.
+		decimals := 18
+		if strings.EqualFold(strings.TrimSpace(req.TokenSymbol), "FF") {
+			decimals = 18
+		}
+		parsedAmountWei, parseErr := parseDecimalAmountToWei(strings.TrimSpace(req.TokenAmount), decimals)
+		if parseErr != nil {
+			response.Error(c, 400, "Invalid token amount format")
+			return
+		}
+		amountWei = parsedAmountWei
+	}
+
 	order := &model.MintOrder{
 		UserID:         user.ID,
 		CharacterID:    req.CharacterID,
@@ -104,7 +120,7 @@ func (h *MintOrderHandler) CreateOrder(c *gin.Context) {
 		TokenAddress:   strings.ToLower(req.TokenAddress),
 		TokenSymbol:    strings.ToUpper(req.TokenSymbol),
 		TokenAmount:    req.TokenAmount,
-		TokenAmountWei: strings.TrimSpace(req.TokenAmountWei),
+		TokenAmountWei: amountWei,
 		TreasuryWallet: treasury,
 		PayerWallet:    strings.ToLower(user.WalletAddress),
 	}
@@ -426,6 +442,43 @@ func verifyERC20TreasuryTransfer(receipt *types.Receipt, payer string, tokenAddr
 func topicFromAddress(addr string) common.Hash {
 	address := common.HexToAddress(addr)
 	return common.BytesToHash(common.LeftPadBytes(address.Bytes(), 32))
+}
+
+func parseDecimalAmountToWei(amount string, decimals int) (string, error) {
+	if amount == "" {
+		return "", fmt.Errorf("empty amount")
+	}
+	parts := strings.Split(amount, ".")
+	if len(parts) > 2 {
+		return "", fmt.Errorf("invalid decimal format")
+	}
+	intPart := parts[0]
+	fracPart := ""
+	if len(parts) == 2 {
+		fracPart = parts[1]
+	}
+	if intPart == "" {
+		intPart = "0"
+	}
+	if len(fracPart) > decimals {
+		return "", fmt.Errorf("too many decimal places")
+	}
+	for _, ch := range intPart {
+		if ch < '0' || ch > '9' {
+			return "", fmt.Errorf("invalid integer part")
+		}
+	}
+	for _, ch := range fracPart {
+		if ch < '0' || ch > '9' {
+			return "", fmt.Errorf("invalid fractional part")
+		}
+	}
+	fracPadded := fracPart + strings.Repeat("0", decimals-len(fracPart))
+	combined := strings.TrimLeft(intPart+fracPadded, "0")
+	if combined == "" {
+		combined = "0"
+	}
+	return combined, nil
 }
 
 func isHexTxHash(txHash string) bool {
