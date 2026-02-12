@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { MouseEvent, useState } from 'react';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,7 +27,9 @@ export function ShareButton({
     const [isOpen, setIsOpen] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    const handleShareClick = () => {
+    const handleShareClick = (event: MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
         // App-level share only: always show in-app modal, never trigger system share sheet
         setIsOpen(true);
     };
@@ -48,6 +50,7 @@ export function ShareButton({
             <Button
                 variant={variant}
                 size={size}
+                type="button"
                 onClick={handleShareClick}
                 className={cn("rounded-full border-white/10 hover:bg-white/10 text-white", className)}
             >
@@ -74,6 +77,7 @@ export function ShareButton({
                                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                    onClick={(event) => event.stopPropagation()}
                                     className="w-[90%] max-w-sm liquid-glass-card rounded-3xl p-6 pointer-events-auto"
                                 >
                                     <h3 className="text-xl font-bold text-white mb-2">Share LauraAI</h3>
@@ -81,6 +85,7 @@ export function ShareButton({
 
                                     <div className="space-y-3">
                                         <Button
+                                            type="button"
                                             onClick={shareToTwitter}
                                             className="w-full bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white font-bold h-12 rounded-xl gap-3"
                                         >
@@ -90,6 +95,7 @@ export function ShareButton({
 
                                         <Button
                                             variant="outline"
+                                            type="button"
                                             onClick={handleCopy}
                                             className="w-full bg-white/5 border border-white/20 hover:bg-white/10 text-white h-12 rounded-xl gap-3"
                                         >
@@ -104,6 +110,7 @@ export function ShareButton({
 
                                     <Button
                                         variant="ghost"
+                                        type="button"
                                         onClick={() => setIsOpen(false)}
                                         className="w-full mt-4 text-white hover:text-white"
                                     >
