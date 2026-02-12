@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Loader2, ExternalLink } from 'lucide-react'
+import { ChevronDown, ArrowLeft } from 'lucide-react'
 import { getFullImageUrl, cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
 import { apiClient } from '@/lib/api'
@@ -296,6 +296,18 @@ export default function SoulmateDetailPage({
               className="liquid-glass-card rounded-full w-14 h-14 p-0 border-0 text-white hover:scale-105 active:scale-95 transition-transform [&>img]:w-7 [&>img]:h-7 [&>img]:object-contain"
             />
           </div>
+
+          {isMiniMe && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onBack}
+              className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5 flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+          )}
         </div>
 
         {/* Divider - 只在非 Mini Me 时显示 */}

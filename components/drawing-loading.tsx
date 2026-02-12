@@ -143,13 +143,13 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
         <div className="relative w-64 h-64">
           {/* Outer ring - no stroke */}
           <div 
-            className="absolute inset-0 rounded-full animate-spin"
+            className="absolute inset-0 rounded-full border border-white/30 animate-spin"
             style={{ animationDuration: '8s' }}
           />
           
           {/* Middle ring - tilted */}
           <div 
-            className="absolute inset-4 rounded-full animate-spin"
+            className="absolute inset-4 rounded-full border border-white/25 animate-spin"
             style={{ 
               animationDuration: '6s', 
               animationDirection: 'reverse',
@@ -159,13 +159,13 @@ export default function DrawingLoading({ onBack, error, onRetry, characterTitle 
           
           {/* Inner ring */}
           <div 
-            className="absolute inset-8 rounded-full animate-spin"
+            className="absolute inset-8 rounded-full border border-white/20 animate-spin"
             style={{ animationDuration: '4s' }}
           />
           
           {/* Third ring - different tilt */}
           <div 
-            className="absolute inset-12 rounded-full animate-spin"
+            className="absolute inset-12 rounded-full border border-white/25 animate-spin"
             style={{ 
               animationDuration: '5s', 
               animationDirection: 'reverse',
