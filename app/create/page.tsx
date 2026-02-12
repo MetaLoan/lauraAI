@@ -744,7 +744,6 @@ export default function CreatePage() {
                                         Create {PRESET_TYPES.find(p => p.type === selectedType)?.label}
                                     </div>
                                     <h2 className="text-2xl md:text-3xl font-bold text-white">Choose Their Gender</h2>
-                                    <p className="text-white">What gender should they be?</p>
                                 </div>
 
                                 {/* Options */}
