@@ -19,11 +19,13 @@ import (
 
 type CharacterHandler struct {
 	characterRepo *repository.CharacterRepository
+	mintOrderRepo *repository.MintOrderRepository
 }
 
 func NewCharacterHandler() *CharacterHandler {
 	return &CharacterHandler{
 		characterRepo: repository.NewCharacterRepository(),
+		mintOrderRepo: repository.NewMintOrderRepository(),
 	}
 }
 
@@ -103,8 +105,20 @@ func (h *CharacterHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// Delete any incomplete (no image) character of the same type to allow retry
+	// If previous character has confirmed payment but image is missing/failed,
+	// keep it and return the existing record so frontend can continue from already_paid flow.
 	if existing != nil {
+		paid, _ := h.mintOrderRepo.HasConfirmedForCharacter(user.ID, existing.ID)
+		if paid {
+			if ensureCharacterMetaDefaults(existing, user) {
+				_ = h.characterRepo.Update(existing)
+			}
+			locale := middleware.GetLocaleFromContext(c)
+			response.Success(c, existing.ToSafeResponse(string(locale)))
+			return
+		}
+
+		// Delete unpaid incomplete character of the same type to avoid ghost entries.
 		h.characterRepo.DeleteByUserIDAndType(user.ID, model.CharacterType(req.Type))
 	}
 
@@ -149,6 +163,13 @@ func ensureCharacterMetaDefaults(char *model.Character, user *model.User) bool {
 	return changed
 }
 
+func hasAnyImage(char model.Character) bool {
+	return strings.TrimSpace(char.ImageURL) != "" ||
+		strings.TrimSpace(char.FullBlurImageURL) != "" ||
+		strings.TrimSpace(char.HalfBlurImageURL) != "" ||
+		strings.TrimSpace(char.ClearImageURL) != ""
+}
+
 // List 获取用户的所有角色
 func (h *CharacterHandler) List(c *gin.Context) {
 	user, exists := middleware.GetUserFromContext(c)
@@ -165,15 +186,24 @@ func (h *CharacterHandler) List(c *gin.Context) {
 
 	// 转换为安全响应，过滤敏感图片URL
 	locale := middleware.GetLocaleFromContext(c)
-	safeCharacters := make([]map[string]interface{}, len(characters))
-	for i, char := range characters {
+	safeCharacters := make([]map[string]interface{}, 0, len(characters))
+	for _, char := range characters {
+		// Hide unpaid+unrendered characters:
+		// If no image exists and no confirmed mint payment, this is an abandoned mint attempt.
+		if !hasAnyImage(char) {
+			paid, _ := h.mintOrderRepo.HasConfirmedForCharacter(user.ID, char.ID)
+			if !paid {
+				continue
+			}
+		}
+
 		if ensureCharacterMetaDefaults(&char, user) {
 			_ = h.characterRepo.Update(&char)
 		}
 
 		safeResponse := char.ToSafeResponse(string(locale))
 		// 记录返回的图片URL（包括原始值和规范化后的值）
-		if i < 3 { // 只记录前3个，避免日志过多
+		if len(safeCharacters) < 3 { // 只记录前3个，避免日志过多
 			log.Printf("[Character] 返回角色图片URL - ID: %d, type: %s, unlock_status: %d", char.ID, char.Type, char.UnlockStatus)
 			log.Printf("[Character] 原始URL - FullBlur: %q, HalfBlur: %q, Clear: %q",
 				char.FullBlurImageURL, char.HalfBlurImageURL, char.ClearImageURL)
@@ -181,7 +211,7 @@ func (h *CharacterHandler) List(c *gin.Context) {
 				safeResponse["image_url"], safeResponse["full_blur_image_url"],
 				safeResponse["half_blur_image_url"], safeResponse["clear_image_url"])
 		}
-		safeCharacters[i] = safeResponse
+		safeCharacters = append(safeCharacters, safeResponse)
 	}
 
 	response.Success(c, safeCharacters)
@@ -212,6 +242,14 @@ func (h *CharacterHandler) GetByID(c *gin.Context) {
 	if character.UserID != user.ID {
 		response.Error(c, 403, "Access denied")
 		return
+	}
+
+	if !hasAnyImage(*character) {
+		paid, _ := h.mintOrderRepo.HasConfirmedForCharacter(user.ID, character.ID)
+		if !paid {
+			response.Error(c, 404, "Character not found")
+			return
+		}
 	}
 
 	if ensureCharacterMetaDefaults(character, user) {

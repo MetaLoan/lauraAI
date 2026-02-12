@@ -16,6 +16,7 @@ import (
 
 type MiniMeHandler struct {
 	characterRepo *repository.CharacterRepository
+	mintOrderRepo *repository.MintOrderRepository
 	visionService *service.GeminiVisionService
 	imagenService *service.GeminiImagenService
 }
@@ -23,6 +24,7 @@ type MiniMeHandler struct {
 func NewMiniMeHandler(visionService *service.GeminiVisionService, imagenService *service.GeminiImagenService) *MiniMeHandler {
 	return &MiniMeHandler{
 		characterRepo: repository.NewCharacterRepository(),
+		mintOrderRepo: repository.NewMintOrderRepository(),
 		visionService: visionService,
 		imagenService: imagenService,
 	}
@@ -44,8 +46,26 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 		return
 	}
 
-	// 若仅有未完成记录（无图），删除后允许重试创建
+	// 若已有已付款但未完成记录，直接复用（前端将走 already_paid 并继续流程）
 	if existing != nil {
+		paid, _ := h.mintOrderRepo.HasConfirmedForCharacter(user.ID, existing.ID)
+		if paid {
+			if existing.Compatibility <= 0 {
+				existing.Compatibility = 100
+				_ = h.characterRepo.Update(existing)
+			}
+			if existing.AstroSign == "" {
+				existing.AstroSign = getZodiacSignFromBirthDate(user.BirthDate)
+				_ = h.characterRepo.Update(existing)
+			}
+			locale := middleware.GetLocaleFromContext(c)
+			response.Success(c, gin.H{
+				"character": existing.ToSafeResponse(string(locale)),
+			})
+			return
+		}
+
+		// 无付款的旧未完成记录直接删除，避免列表脏数据
 		if err := h.characterRepo.DeleteByUserIDAndType(user.ID, model.CharacterTypeMiniMe); err != nil {
 			log.Printf("[MiniMe] 删除旧未完成角色忽略错误: %v", err)
 		}
