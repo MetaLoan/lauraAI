@@ -10,9 +10,9 @@ type OrbConfig = {
 };
 
 const ORBS: OrbConfig[] = [
-  { sizeVmax: 46, color: 'rgba(168, 85, 247, 1)', blurPx: 170, opacity: 0.34 }, // purple
-  { sizeVmax: 42, color: 'rgba(250, 204, 21, 1)', blurPx: 165, opacity: 0.26 }, // yellow
-  { sizeVmax: 44, color: 'rgba(59, 130, 246, 1)', blurPx: 170, opacity: 0.3 },  // blue
+  { sizeVmax: 52, color: 'rgba(168, 85, 247, 1)', blurPx: 130, opacity: 0.5 }, // purple
+  { sizeVmax: 46, color: 'rgba(250, 204, 21, 1)', blurPx: 120, opacity: 0.4 }, // yellow
+  { sizeVmax: 50, color: 'rgba(59, 130, 246, 1)', blurPx: 130, opacity: 0.46 },  // blue
 ];
 
 type OrbState = {
@@ -107,16 +107,18 @@ export function AmbientOrbsBg() {
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 overflow-hidden pointer-events-none"
+      className="absolute inset-0 overflow-hidden pointer-events-none z-0"
       aria-hidden
     >
+      {/* Base tone so orbs are visible on all screens */}
+      <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_50%_10%,rgba(94,42,126,0.35),rgba(10,8,18,0.92))]" />
       {ORBS.map((orb, i) => (
         <div
           key={i}
           ref={(el) => {
             orbRefs.current[i] = el;
           }}
-          className="absolute rounded-full will-change-transform"
+          className="absolute rounded-full will-change-transform mix-blend-screen"
           style={{
             left: 0,
             top: 0,
@@ -129,4 +131,3 @@ export function AmbientOrbsBg() {
     </div>
   );
 }
-
