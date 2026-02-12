@@ -71,9 +71,10 @@ function initAppKit() {
     metadata,
     features: {
       analytics: true,
-      email: true, // 启用邮箱登录
-      socials: ['google', 'x', 'discord', 'farcaster', 'github'], // 社交登录
-      emailShowWallets: true, // 显示钱包选项
+      // Wallet-only auth flow
+      email: false,
+      socials: [],
+      emailShowWallets: false,
     },
     themeMode: 'dark',
     themeVariables: {

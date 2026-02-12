@@ -56,7 +56,7 @@ export function WalletButton({ className, showBalance = true }: WalletButtonProp
   if (!isConnected) {
     return (
       <Button
-        onClick={() => open()}
+        onClick={() => open({ view: 'Connect' })}
         className={`liquid-glass-card text-white font-medium hover:brightness-110 ${className}`}
       >
         <Wallet className="w-4 h-4 mr-2" />
@@ -155,7 +155,7 @@ export function ConnectButton({ className }: { className?: string }) {
 
   return (
     <Button
-      onClick={() => open()}
+      onClick={() => open({ view: 'Connect' })}
       className={`liquid-glass-card text-white font-medium hover:brightness-110 ${className}`}
     >
       <Wallet className="w-4 h-4 mr-2" />
