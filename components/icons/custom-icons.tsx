@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { cn, getAssetPath } from '@/lib/utils';
 
 interface IconProps {
     className?: string;
@@ -8,7 +8,7 @@ interface IconProps {
 const IconBase = ({ src, alt, className }: { src: string; alt: string; className?: string }) => (
     <div className={cn("relative flex items-center justify-center", className)}>
         <img
-            src={`/icons/3d/${src}.png`}
+            src={getAssetPath(`/icons/3d/${src}.png`)}
             alt={alt}
             className="w-full h-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]"
         />

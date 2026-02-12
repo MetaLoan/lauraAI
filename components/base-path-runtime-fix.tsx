@@ -12,7 +12,20 @@ function shouldPatch(value: string, basePath: string) {
 
 export function BasePathRuntimeFix() {
   useEffect(() => {
-    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+    const envBasePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+    const scriptWithNext = Array.from(document.scripts).find((script) => script.src.includes('/_next/static/'));
+    const runtimeBasePath = scriptWithNext
+      ? (() => {
+          try {
+            const pathname = new URL(scriptWithNext.src, window.location.origin).pathname;
+            const nextIndex = pathname.indexOf('/_next/');
+            return nextIndex > 0 ? pathname.slice(0, nextIndex) : '';
+          } catch {
+            return '';
+          }
+        })()
+      : '';
+    const basePath = (runtimeBasePath || envBasePath).replace(/\/+$/, '');
     if (!basePath) return;
 
     const patchElement = (el: Element) => {
