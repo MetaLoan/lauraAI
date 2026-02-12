@@ -18,7 +18,7 @@ import { formatEther } from 'viem';
 const LAURA_AI_SOULMATE_ADDRESS = process.env.NEXT_PUBLIC_LAURA_AI_SOULMATE_ADDRESS;
 const LAURA_AI_SOULMATE_ABI = [
     {
-        "inputs": [{"internalType": "address","name": "to","type": "address"},{"internalType": "string","name": "uri","type": "string"}],
+        "inputs": [{ "internalType": "address", "name": "to", "type": "address" }, { "internalType": "string", "name": "uri", "type": "string" }],
         "name": "safeMint",
         "outputs": [],
         "stateMutability": "payable",
@@ -27,7 +27,7 @@ const LAURA_AI_SOULMATE_ABI = [
     {
         "inputs": [],
         "name": "mintPrice",
-        "outputs": [{"internalType": "uint256","name": "","type": "uint256"}],
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
         "stateMutability": "view",
         "type": "function"
     }
@@ -232,192 +232,167 @@ export default function CreateMiniMePage() {
 
     return (
         <AppLayout>
-            <div className="max-w-xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8">
+            <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8">
                 <main className="overflow-hidden min-h-[480px] relative">
                     <AnimatePresence mode="wait">
-                    {/* Intro Step */}
-                    {step === 'intro' && (
-                        <motion.div
-                            key="intro"
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -16 }}
-                            transition={{ duration: 0.35 }}
-                            className="flex flex-col items-center text-center pb-8"
-                        >
-                            {/* Back Button */}
-                            <div className="w-full flex items-center gap-3 mb-6 sm:mb-8">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleBack}
-                                    className="shrink-0 rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
-                                >
-                                    <ArrowLeft className="w-4 h-4 mr-1.5" />
-                                    Back
-                                </Button>
-                                <h1 className="text-lg font-semibold text-white/90 truncate">
-                                    Create Mini Me
-                                </h1>
-                            </div>
-
-                            {/* Example image */}
-                            <div className="relative w-full max-w-sm aspect-[3/4] mb-6 sm:mb-8 rounded-3xl overflow-hidden liquid-glass-card">
-                                <img
-                                    src="/minime.jpg"
-                                    className="w-full h-full object-cover"
-                                    alt="Mini Me Example"
-                                />
-                            </div>
-
-                            {/* Title & description */}
-                            <div className="space-y-2 mb-8">
-                                <h2 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">
-                                    Create Your Mini Me
-                                </h2>
-                                <p className="text-white/90 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-                                    Upload a photo and our AI will create a unique digital avatar NFT.
-                                </p>
-                            </div>
-
-                            {/* Error message */}
-                            {generationError && (
-                                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm max-w-sm">
-                                    {generationError}
-                                </div>
-                            )}
-
-                            {/* Hidden file input */}
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileSelect}
-                                className="hidden"
-                            />
-
-                            {/* Upload & Mint Button */}
-                            <Button
-                                onClick={handleUploadClick}
-                                disabled={!address}
-                                className="enter-dashboard-btn group w-full max-w-sm h-14 text-lg font-bold liquid-glass-card rounded-full text-white disabled:opacity-40 disabled:cursor-not-allowed gap-2 relative overflow-hidden transform hover:scale-105 active:scale-[0.98] shadow-[0_0_20px_rgba(168,85,247,0.25)] ![transition:box-shadow_0.4s_ease,scale_0.4s_cubic-bezier(0.34,1.56,0.64,1)]"
+                        {/* Intro Step */}
+                        {step === 'intro' && (
+                            <motion.div
+                                key="intro"
+                                initial={{ opacity: 0, y: 16 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -16 }}
+                                transition={{ duration: 0.35 }}
+                                className="flex flex-col pb-8"
                             >
-                                <span className="btn-gradient-layer absolute inset-0 rounded-full pointer-events-none opacity-50 transition-opacity duration-200 group-hover:opacity-75 group-active:opacity-75" aria-hidden />
-                                <span className="relative z-10 flex items-center justify-center gap-2">
-                                    <Upload className="w-5 h-5" />
-                                    <span>Upload & Mint</span>
-                                    {mintPrice > 0 && (
-                                        <span className="text-sm opacity-90">({mintPriceDisplay} BNB)</span>
-                                    )}
-                                </span>
-                            </Button>
-
-                            <p className="text-[11px] text-white/60 mt-4 max-w-xs mx-auto">
-                                Photo is processed securely. Only the generated avatar NFT is saved.
-                            </p>
-                        </motion.div>
-                    )}
-
-                    {/* Generating Step */}
-                    {step === 'generating' && (
-                        <motion.div
-                            key="generating"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="min-h-[600px]"
-                        >
-                            {mintStep === 'minting' ? (
-                                /* Waiting for wallet confirmation */
-                                <div className="flex flex-col items-center justify-center py-20 space-y-6">
-                                    <div className="w-20 h-20 rounded-2xl flex items-center justify-center">
-                                        <img src="/icons/3d/gem_3d.png" alt="" className="w-10 h-10 object-contain animate-pulse" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-white">Confirm in Wallet</h2>
-                                    <p className="text-white text-center max-w-sm">
-                                        Please confirm the mint transaction in your wallet.
-                                        {mintPrice > 0 && <span className="block mt-1 text-amber-400 font-medium">Fee: {mintPriceDisplay} BNB</span>}
-                                    </p>
-                                    <Loader2 className="w-8 h-8 animate-spin text-white" />
-                                </div>
-                            ) : generationError ? (
-                                /* Mint failed */
-                                <div className="flex flex-col items-center justify-center py-20 space-y-6">
-                                    <div className="w-16 h-16 rounded-full flex items-center justify-center">
-                                        <AlertTriangle className="w-8 h-8 text-red-400" />
-                                    </div>
-                                    <h2 className="text-xl font-bold text-white">Transaction Failed</h2>
-                                    <p className="text-red-400 text-center max-w-sm">{generationError}</p>
+                                {/* Top Bar / Back Button */}
+                                <div className="w-full flex items-center justify-start mb-8 md:mb-10">
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => {
-                                            setGenerationError(null);
-                                            setStep('intro');
-                                            setMintStep('idle');
-                                        }}
-                                        className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                                        onClick={handleBack}
+                                        className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5 flex items-center gap-2"
                                     >
-                                        <ArrowLeft className="w-4 h-4 mr-1.5" />
+                                        <ArrowLeft className="w-4 h-4" />
                                         Back
                                     </Button>
                                 </div>
-                            ) : generationFailed ? (
-                                /* Generation timed out/failed, allow retry */
-                                <div className="flex flex-col items-center justify-center py-20 space-y-6">
-                                    <div className="w-20 h-20 rounded-full flex items-center justify-center">
-                                        <AlertTriangle className="w-10 h-10 text-amber-400" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-white">Generation Timed Out</h2>
-                                    <p className="text-white text-center max-w-sm leading-relaxed">
-                                        AI image generation didn&apos;t complete in time. Your Mint has been confirmed — tap Retry to regenerate at no extra cost.
-                                    </p>
 
-                                    <div className="flex items-center gap-3 pt-4">
-                                        <Button
-                                            onClick={handleRetryGeneration}
-                                            disabled={isRetrying}
-                                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold gap-2 px-8"
-                                        >
-                                            {isRetrying ? (
-                                                <Loader2 className="w-4 h-4 animate-spin text-white" />
-                                            ) : (
-                                                <RotateCw className="w-4 h-4" />
+                                <div className="w-full md:grid md:grid-cols-2 md:gap-16 md:items-center">
+                                    {/* Left: Example image (on desktop) */}
+                                    <div className="order-2 md:order-1 mb-10 md:mb-0">
+                                        <div className="relative w-full max-w-sm mx-auto aspect-[3/4] rounded-3xl overflow-hidden liquid-glass-card shadow-2xl">
+                                            <img
+                                                src="/minime.jpg"
+                                                className="w-full h-full object-cover"
+                                                alt="Mini Me Example"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Right: Title & Interaction (on desktop) */}
+                                    <div className="order-1 md:order-2 flex flex-col items-center md:items-start text-center md:text-left space-y-8">
+                                        <div className="space-y-4">
+                                            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 leading-tight">
+                                                Create Your Mini Me
+                                            </h2>
+                                            <p className="text-white/90 text-base sm:text-lg lg:text-xl max-w-md leading-relaxed">
+                                                Transform your photo into a unique, AI-generated digital avatar NFT with just one click.
+                                            </p>
+                                        </div>
+
+                                        {/* Actions & Feedback */}
+                                        <div className="w-full max-w-sm space-y-6">
+                                            {/* Error message */}
+                                            {generationError && (
+                                                <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm animate-in fade-in slide-in-from-top-1">
+                                                    <div className="flex items-center gap-2 font-semibold mb-1">
+                                                        <AlertTriangle className="w-4 h-4" />
+                                                        Generation Failed
+                                                    </div>
+                                                    {generationError}
+                                                </div>
                                             )}
-                                            {isRetrying ? 'Retrying...' : 'Retry Generation'}
-                                        </Button>
+
+                                            {/* Hidden file input */}
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileSelect}
+                                                className="hidden"
+                                            />
+
+                                            {/* Upload & Mint Button */}
+                                            <Button
+                                                onClick={handleUploadClick}
+                                                disabled={!address}
+                                                className="enter-dashboard-btn group w-full h-16 text-xl font-bold liquid-glass-card rounded-full text-white disabled:opacity-40 disabled:cursor-not-allowed gap-3 relative overflow-hidden transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_30px_rgba(168,85,247,0.3)] ![transition:box-shadow_0.4s_ease,scale_0.4s_cubic-bezier(0.34,1.56,0.64,1)]"
+                                            >
+                                                <span className="btn-gradient-layer absolute inset-0 rounded-full pointer-events-none opacity-50 transition-opacity duration-200 group-hover:opacity-75 group-active:opacity-75" aria-hidden />
+                                                <span className="relative z-10 flex items-center justify-center gap-3">
+                                                    <Upload className="w-6 h-6" />
+                                                    <span>Upload & Mint</span>
+                                                    {mintPrice > 0 && (
+                                                        <span className="text-sm font-medium opacity-80 bg-white/10 px-3 py-1 rounded-full">{mintPriceDisplay} BNB</span>
+                                                    )}
+                                                </span>
+                                            </Button>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Generating Step */}
+                        {step === 'generating' && (
+                            <motion.div
+                                key="generating"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="min-h-[600px]"
+                            >
+                                {mintStep === 'minting' ? (
+                                    /* Waiting for wallet confirmation */
+                                    <div className="flex flex-col items-center justify-center py-20 space-y-6">
+                                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center">
+                                            <img src="/icons/3d/gem_3d.png" alt="" className="w-10 h-10 object-contain animate-pulse" />
+                                        </div>
+                                        <h2 className="text-2xl font-bold text-white">Confirm in Wallet</h2>
+                                        <p className="text-white text-center max-w-sm">
+                                            Please confirm the mint transaction in your wallet.
+                                            {mintPrice > 0 && <span className="block mt-1 text-amber-400 font-medium">Fee: {mintPriceDisplay} BNB</span>}
+                                        </p>
+                                        <Loader2 className="w-8 h-8 animate-spin text-white" />
+                                    </div>
+                                ) : generationError ? (
+                                    /* Mint failed */
+                                    <div className="flex flex-col items-center justify-center py-20 space-y-6">
+                                        <div className="w-16 h-16 rounded-full flex items-center justify-center">
+                                            <AlertTriangle className="w-8 h-8 text-red-400" />
+                                        </div>
+                                        <h2 className="text-xl font-bold text-white">Transaction Failed</h2>
+                                        <p className="text-red-400 text-center max-w-sm">{generationError}</p>
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => router.push('/dashboard')}
+                                            onClick={() => {
+                                                setGenerationError(null);
+                                                setStep('intro');
+                                                setMintStep('idle');
+                                            }}
                                             className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
                                         >
-                                            <Home className="w-4 h-4 mr-1.5" />
-                                            Back to Home
+                                            <ArrowLeft className="w-4 h-4 mr-1.5" />
+                                            Back
                                         </Button>
                                     </div>
+                                ) : generationFailed ? (
+                                    /* Generation timed out/failed, allow retry */
+                                    <div className="flex flex-col items-center justify-center py-20 space-y-6">
+                                        <div className="w-20 h-20 rounded-full flex items-center justify-center">
+                                            <AlertTriangle className="w-10 h-10 text-amber-400" />
+                                        </div>
+                                        <h2 className="text-2xl font-bold text-white">Generation Timed Out</h2>
+                                        <p className="text-white text-center max-w-sm leading-relaxed">
+                                            AI image generation didn&apos;t complete in time. Your Mint has been confirmed — tap Retry to regenerate at no extra cost.
+                                        </p>
 
-                                    <p className="text-xs text-white pt-2">
-                                        Mint already paid · Retry is free
-                                    </p>
-                                </div>
-                            ) : (
-                                /* Generating in progress */
-                                <div className="flex flex-col min-h-[600px]">
-                                    <div className="flex-1">
-                                        <DrawingLoading characterTitle="Mini Me" />
-                                    </div>
-
-                                    <div className="flex flex-col items-center gap-3 pb-6 pt-2">
-                                        <div className="flex flex-wrap items-center justify-center gap-3">
+                                        <div className="flex items-center gap-3 pt-4">
                                             <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={handleManualRefresh}
-                                                className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                                                onClick={handleRetryGeneration}
+                                                disabled={isRetrying}
+                                                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold gap-2 px-8"
                                             >
-                                                <RefreshCw className="w-4 h-4 mr-1.5" />
-                                                Refresh
+                                                {isRetrying ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                                                ) : (
+                                                    <RotateCw className="w-4 h-4" />
+                                                )}
+                                                {isRetrying ? 'Retrying...' : 'Retry Generation'}
                                             </Button>
                                             <Button
                                                 variant="outline"
@@ -429,25 +404,58 @@ export default function CreateMiniMePage() {
                                                 Back to Home
                                             </Button>
                                         </div>
-                                        <p className="text-xs text-white">
-                                            Auto-refreshing every 5s · You can safely close this page
+
+                                        <p className="text-xs text-white pt-2">
+                                            Mint already paid · Retry is free
                                         </p>
                                     </div>
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
+                                ) : (
+                                    /* Generating in progress */
+                                    <div className="flex flex-col min-h-[600px]">
+                                        <div className="flex-1">
+                                            <DrawingLoading characterTitle="Mini Me" />
+                                        </div>
 
-                    {/* Result Step */}
-                    {step === 'result' && characterData && (
-                        <SoulmateDetailPage
-                            character={characterData}
-                            onNext={() => router.push(`/chat/${characterData.id}`)}
-                            onBack={() => router.push('/dashboard')}
-                            onCharacterUpdate={setCharacterData}
-                            onUnlockSuccess={() => { }}
-                        />
-                    )}
+                                        <div className="flex flex-col items-center gap-3 pb-6 pt-2">
+                                            <div className="flex flex-wrap items-center justify-center gap-3">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleManualRefresh}
+                                                    className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                                                >
+                                                    <RefreshCw className="w-4 h-4 mr-1.5" />
+                                                    Refresh
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => router.push('/dashboard')}
+                                                    className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                                                >
+                                                    <Home className="w-4 h-4 mr-1.5" />
+                                                    Back to Home
+                                                </Button>
+                                            </div>
+                                            <p className="text-xs text-white">
+                                                Auto-refreshing every 5s · You can safely close this page
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+
+                        {/* Result Step */}
+                        {step === 'result' && characterData && (
+                            <SoulmateDetailPage
+                                character={characterData}
+                                onNext={() => router.push(`/chat/${characterData.id}`)}
+                                onBack={() => router.push('/dashboard')}
+                                onCharacterUpdate={setCharacterData}
+                                onUnlockSuccess={() => { }}
+                            />
+                        )}
                     </AnimatePresence>
                 </main>
             </div>

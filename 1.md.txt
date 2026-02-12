@@ -1,0 +1,146 @@
+<div class="wrapper">
+      <div class="overlay"></div>
+      <div class="circles">
+        <div class="circle circle--blue"></div>
+        <div class="circle circle--purple"></div>
+        <div class="circle circle--pink"></div>
+        <div class="circle circle--orange"></div>
+        <div class="circle circle--teal"></div>
+      </div>
+    </div>
+
+
+    <!-- filters -->
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <defs>
+    <filter id="shadowed-goo">
+        
+        <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="10" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+        <feGaussianBlur in="goo" stdDeviation="3" result="shadow" />
+        <feColorMatrix in="shadow" mode="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 -0.2" result="shadow" />
+        <feOffset in="shadow" dx="1" dy="1" result="shadow" />
+        <feBlend in2="shadow" in="goo" result="goo" />
+        <feBlend in2="goo" in="SourceGraphic" result="mix" />
+    </filter>
+    <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="10" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+        <feBlend in2="goo" in="SourceGraphic" result="mix" />
+    </filter>
+  </defs>
+</svg>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100vh;
+  background-color: #ffffff;
+  color: aliceblue;
+  font-family: "Poppins", sans-serif;
+  isolation: isolate;
+}
+body {
+  overflow-x: clip;
+}
+
+.wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000000;
+  backdrop-filter: blur(120px);
+}
+.circles {
+  filter: url(#shadowed-goo);
+}
+.circle {
+  width: 300px;
+  aspect-ratio: 1 / 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  filter: blur(5rem);
+}
+.circle--blue {
+  background-color: #192644;
+}
+.circle--purple {
+  background-color: #412e55;
+}
+.circle--orange {
+  background-color: #ee9f5b;
+}
+.circle--pink {
+  background-color: #c04b52;
+}
+.circle--teal {
+  background-color: #ebf8fa;
+}
+svg {
+  width: 0;
+  height: 0;
+}
+const randomNumber = (min, max) => {
+    return Math.floor(Math.random() * (max - min) + min);
+}
+window.onload = function () {
+    addAnimation()
+}
+class Circle {
+    constructor(el) {
+        this.el = el;
+        this.size = el.getBoundingClientRect().width;
+        this.x = randomNumber(0, window.innerWidth - this.size);
+        this.y = randomNumber(0, window.innerHeight - this.size);
+        this.vx = randomNumber(2, 2.5) * Math.random() > 0.5 ? -1 : 1;
+        this.vy = randomNumber(2, 2.5) * Math.random() > 0.5 ? -1 : 1;
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if(this.x >= window.innerWidth - this.size) {
+            this.vx *= -1;
+            this.x = window.innerWidth - this.size;
+        }
+        if(this.y >= window.innerHeight - this.size) {
+            this.vy *= -1;
+            this.y = window.innerHeight - this.size;
+        }
+        if(this.x <= 0) {
+            this.vx *= -1;
+            this.x = 0;
+        }
+        if(this.y <= 0) {
+            this.vy *= -1;
+            this.y = 0;
+        }
+    }
+    move() {
+        this.el.style.transform = `translate(${this.x}px, ${this.y}px)`;
+    }
+}
+function addAnimation() {
+    const circlesElement = document.querySelectorAll('.circle');
+    const circles = Array.from(circlesElement).map((circle) => new Circle(circle))
+
+    function update() {
+        circles.forEach(circle => {
+            circle.update()
+            circle.move()
+        })
+        requestAnimationFrame(update)
+    }
+
+    requestAnimationFrame(update)
+}
