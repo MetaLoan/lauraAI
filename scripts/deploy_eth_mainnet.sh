@@ -13,8 +13,29 @@ if [[ ! -f "$ENV_FILE" ]]; then
   exit 1
 fi
 
-# shellcheck source=/dev/null
-source "$ENV_FILE"
+load_env_file() {
+  local file="$1"
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    [[ -z "$line" ]] && continue
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    if [[ "$line" != *"="* ]]; then
+      continue
+    fi
+    local key="${line%%=*}"
+    local val="${line#*=}"
+    key="$(echo "$key" | tr -d '[:space:]')"
+    # Trim surrounding quotes, keep inner spaces
+    if [[ "$val" =~ ^\".*\"$ ]]; then
+      val="${val:1:${#val}-2}"
+    elif [[ "$val" =~ ^\'.*\'$ ]]; then
+      val="${val:1:${#val}-2}"
+    fi
+    export "$key=$val"
+  done < "$file"
+}
+
+load_env_file "$ENV_FILE"
 
 required_vars=(
   ETH_MAINNET_RPC_URL

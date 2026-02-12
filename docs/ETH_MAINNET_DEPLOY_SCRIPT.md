@@ -12,6 +12,7 @@ Fill `scripts/.env.mainnet`:
 - `FF_TOKEN_ADDRESS`
 - `MINT_TREASURY_WALLET`
 - `MINT_PRICE_WEI` (default `1e18` for 1 FF)
+- `DEPLOY_GAS_LIMIT` (optional, default `5000000`; useful when public RPC limits `eth_estimateGas`)
 
 ## 2) Run deploy
 
@@ -38,5 +39,5 @@ git push lauradesktop DESKTOP-BSC
 
 ## Notes
 - Script uses `contracts/scripts/deploy.js`.
-- It deploys a fresh `LauraAIToken`, `LauraAISoulmate`, marketplace, staking as current deploy script behavior.
-- If you want to reuse an existing FF token, update deploy script first to avoid token redeploy.
+- If `FF_TOKEN_ADDRESS` is provided in env, deploy script reuses that token and skips new token deployment.
+- If `FF_TOKEN_ADDRESS` is empty, script deploys a fresh `LauraAIToken`.
