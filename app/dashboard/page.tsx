@@ -167,10 +167,10 @@ export default function DashboardPage() {
                     <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">Create New</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Link href="/create/minime">
-                            <div className="group relative liquid-glass-card rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer overflow-visible">
+                            <div className="group relative liquid-glass-card rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer overflow-hidden">
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/10 rounded-full blur-[60px] transition-all duration-700" />
-                                <div className="absolute right-5 top-1/2 -translate-y-1/2 h-[calc((100%+10px)*0.6667)] aspect-[3/4] pointer-events-none z-10 origin-bottom-right rotate-[7deg] transition-all duration-500 ease-out group-hover:-translate-y-[calc(50%+4px)] group-hover:translate-x-0.5 group-hover:scale-[1.03] group-hover:rotate-[8deg]">
-                                    <img src="/minime.jpg" className="w-full h-full object-cover rounded-2xl" alt="" />
+                                <div className="absolute right-5 top-1/2 -translate-y-1/2 h-[66.67%] aspect-[3/4] pointer-events-none z-10 origin-bottom-right rotate-[7deg] transition-all duration-500 ease-out group-hover:-translate-y-[calc(50%+4px)] group-hover:translate-x-0.5 group-hover:scale-[1.03] group-hover:rotate-[8deg]">
+                                    <img src="/minime.jpg" className="w-full h-full object-cover rounded-2xl transition-all duration-500 group-hover:drop-shadow-[0_0_18px_rgba(244,114,182,0.45)]" alt="" />
                                 </div>
                                 <div className="relative z-30 pr-20 md:pr-24">
                                     <div className="flex items-center justify-between mb-3">
@@ -185,10 +185,10 @@ export default function DashboardPage() {
                             </div>
                         </Link>
                         <Link href="/create">
-                            <div className="group relative liquid-glass-card rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer overflow-visible">
+                            <div className="group relative liquid-glass-card rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer overflow-hidden">
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full blur-[60px] transition-all duration-700" />
-                                <div className="absolute right-5 top-1/2 -translate-y-1/2 h-[calc((100%+10px)*0.6667)] aspect-[3/4] pointer-events-none z-10 origin-bottom-right rotate-[7deg] transition-all duration-500 ease-out group-hover:-translate-y-[calc(50%+4px)] group-hover:translate-x-0.5 group-hover:scale-[1.03] group-hover:rotate-[8deg]">
-                                    <img src="/presets/soulmate.jpg" className="w-full h-full object-cover rounded-2xl" alt="" />
+                                <div className="absolute right-5 top-1/2 -translate-y-1/2 h-[66.67%] aspect-[3/4] pointer-events-none z-10 origin-bottom-right rotate-[7deg] transition-all duration-500 ease-out group-hover:-translate-y-[calc(50%+4px)] group-hover:translate-x-0.5 group-hover:scale-[1.03] group-hover:rotate-[8deg]">
+                                    <img src="/presets/soulmate.jpg" className="w-full h-full object-cover rounded-2xl transition-all duration-500 group-hover:drop-shadow-[0_0_18px_rgba(139,92,246,0.45)]" alt="" />
                                 </div>
                                 <div className="relative z-30 pr-20 md:pr-24">
                                     <div className="flex items-center justify-between mb-3">
