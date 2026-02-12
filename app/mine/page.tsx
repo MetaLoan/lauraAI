@@ -298,11 +298,11 @@ export default function MinePage() {
                                         <h3 className="text-base font-bold text-white truncate">
                                             {char.title}
                                         </h3>
-                                        <div className={`mt-1 inline-flex items-center h-7 px-2.5 rounded-full text-xs font-bold ${char.dailyRemaining > 3
-                                            ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                                        <div className={`mt-1 text-xs font-bold ${char.dailyRemaining > 3
+                                            ? 'text-green-300'
                                             : char.dailyRemaining > 0
-                                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                                : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                                                ? 'text-amber-300'
+                                                : 'text-red-300'
                                             }`}>
                                             {char.dailyRemaining}/{char.dailyLimit}
                                         </div>
