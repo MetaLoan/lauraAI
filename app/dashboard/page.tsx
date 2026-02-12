@@ -168,9 +168,9 @@ export default function DashboardPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Link href="/create/minime">
                             <div className="group relative liquid-glass-card rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer overflow-visible">
-                                <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/10 rounded-full blur-[60px] group-hover:bg-pink-500/30 group-hover:scale-125 transition-all duration-700" />
-                                <div className="absolute right-5 top-1/2 -translate-y-1/2 h-[calc((100%+10px)*0.6667)] aspect-[3/4] pointer-events-none z-10 origin-bottom-right rotate-[7deg] transition-all duration-500 ease-out group-hover:-translate-y-[calc(50%+8px)] group-hover:translate-x-1 group-hover:scale-105 group-hover:rotate-[10deg] drop-shadow-[0_14px_30px_rgba(244,114,182,0.38)]">
-                                    <img src="/minime.jpg" className="w-full h-full object-cover rounded-2xl border border-white/20" alt="" />
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/10 rounded-full blur-[60px] transition-all duration-700" />
+                                <div className="absolute right-5 top-1/2 -translate-y-1/2 h-[calc((100%+10px)*0.6667)] aspect-[3/4] pointer-events-none z-10 origin-bottom-right rotate-[7deg] transition-all duration-500 ease-out group-hover:-translate-y-[calc(50%+4px)] group-hover:translate-x-0.5 group-hover:scale-[1.03] group-hover:rotate-[8deg]">
+                                    <img src="/minime.jpg" className="w-full h-full object-cover rounded-2xl" alt="" />
                                 </div>
                                 <div className="relative z-30 pr-20 md:pr-24">
                                     <div className="flex items-center justify-between mb-3">
@@ -186,9 +186,9 @@ export default function DashboardPage() {
                         </Link>
                         <Link href="/create">
                             <div className="group relative liquid-glass-card rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer overflow-visible">
-                                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full blur-[60px] group-hover:bg-purple-500/35 group-hover:scale-125 transition-all duration-700" />
-                                <div className="absolute right-5 top-1/2 -translate-y-1/2 h-[calc((100%+10px)*0.6667)] aspect-[3/4] pointer-events-none z-10 origin-bottom-right rotate-[7deg] transition-all duration-500 ease-out group-hover:-translate-y-[calc(50%+8px)] group-hover:translate-x-1 group-hover:scale-105 group-hover:rotate-[10deg] drop-shadow-[0_14px_30px_rgba(139,92,246,0.4)]">
-                                    <img src="/presets/soulmate.jpg" className="w-full h-full object-cover rounded-2xl border border-white/20" alt="" />
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full blur-[60px] transition-all duration-700" />
+                                <div className="absolute right-5 top-1/2 -translate-y-1/2 h-[calc((100%+10px)*0.6667)] aspect-[3/4] pointer-events-none z-10 origin-bottom-right rotate-[7deg] transition-all duration-500 ease-out group-hover:-translate-y-[calc(50%+4px)] group-hover:translate-x-0.5 group-hover:scale-[1.03] group-hover:rotate-[8deg]">
+                                    <img src="/presets/soulmate.jpg" className="w-full h-full object-cover rounded-2xl" alt="" />
                                 </div>
                                 <div className="relative z-30 pr-20 md:pr-24">
                                     <div className="flex items-center justify-between mb-3">
