@@ -223,6 +223,9 @@ func main() {
 
 		// Mint webhook callback (HMAC + anti-replay)
 		api.POST("/mint/webhook/confirm", mintOrderHandler.WebhookConfirm)
+		api.GET("/admin/mint/verify-jobs/stats", mintOrderHandler.AdminGetVerifyJobStats)
+		api.GET("/admin/mint/verify-jobs", mintOrderHandler.AdminListVerifyJobs)
+		api.POST("/admin/mint/verify-jobs/:orderId/retry", mintOrderHandler.AdminRetryVerifyJob)
 
 		// Share link public endpoint (no auth required)
 		unlockHandler := handler.NewUnlockHandler(reportService)

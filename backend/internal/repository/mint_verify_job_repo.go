@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -142,4 +143,62 @@ func (r *MintVerifyJobRepository) MarkDead(orderID uint64, errMsg string) error 
 func (r *MintVerifyJobRepository) CleanupFinished(olderThan time.Time) error {
 	return DB.Where("status IN ? AND updated_at < ?", []model.MintVerifyJobStatus{model.MintVerifyJobStatusDone, model.MintVerifyJobStatusDead}, olderThan).
 		Delete(&model.MintVerifyJob{}).Error
+}
+
+func (r *MintVerifyJobRepository) GetStats() (map[string]int64, error) {
+	rows := []struct {
+		Status string
+		Count  int64
+	}{}
+	if err := DB.Model(&model.MintVerifyJob{}).
+		Select("status, count(*) as count").
+		Group("status").
+		Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	stats := map[string]int64{
+		"pending": 0,
+		"running": 0,
+		"done":    0,
+		"dead":    0,
+		"total":   0,
+	}
+	for _, row := range rows {
+		stats[row.Status] = row.Count
+		stats["total"] += row.Count
+	}
+	return stats, nil
+}
+
+func (r *MintVerifyJobRepository) List(status string, limit int) ([]model.MintVerifyJob, error) {
+	if limit <= 0 || limit > 200 {
+		limit = 50
+	}
+	q := DB.Model(&model.MintVerifyJob{})
+	if status != "" {
+		q = q.Where("status = ?", strings.ToLower(strings.TrimSpace(status)))
+	}
+	var jobs []model.MintVerifyJob
+	if err := q.Order("next_retry_at asc").Limit(limit).Find(&jobs).Error; err != nil {
+		return nil, err
+	}
+	return jobs, nil
+}
+
+func (r *MintVerifyJobRepository) ForceRetry(orderID uint64) error {
+	res := DB.Model(&model.MintVerifyJob{}).
+		Where("order_id = ?", orderID).
+		Updates(map[string]interface{}{
+			"status":        model.MintVerifyJobStatusPending,
+			"next_retry_at": time.Now(),
+			"updated_at":    time.Now(),
+		})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return fmt.Errorf("job not found")
+	}
+	return nil
 }

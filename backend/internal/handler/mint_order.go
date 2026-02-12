@@ -238,6 +238,69 @@ func (h *MintOrderHandler) GetOrder(c *gin.Context) {
 	response.Success(c, gin.H{"order": order})
 }
 
+func (h *MintOrderHandler) requireAdmin(c *gin.Context) bool {
+	secret := strings.TrimSpace(config.AppConfig.AdminSecret)
+	if secret == "" {
+		response.Error(c, 503, "Admin secret is not configured")
+		return false
+	}
+	if strings.TrimSpace(c.GetHeader("X-Admin-Key")) != secret {
+		response.Error(c, 401, "Invalid admin key")
+		return false
+	}
+	return true
+}
+
+func (h *MintOrderHandler) AdminGetVerifyJobStats(c *gin.Context) {
+	if !h.requireAdmin(c) {
+		return
+	}
+	stats, err := h.mintVerifyJobRepo.GetStats()
+	if err != nil {
+		response.Error(c, 500, "Failed to query verify job stats")
+		return
+	}
+	response.Success(c, gin.H{
+		"stats": stats,
+		"now":   time.Now().UTC(),
+	})
+}
+
+func (h *MintOrderHandler) AdminListVerifyJobs(c *gin.Context) {
+	if !h.requireAdmin(c) {
+		return
+	}
+	status := strings.TrimSpace(c.Query("status"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "50"))
+	jobs, err := h.mintVerifyJobRepo.List(status, limit)
+	if err != nil {
+		response.Error(c, 500, "Failed to query verify jobs")
+		return
+	}
+	response.Success(c, gin.H{
+		"jobs": jobs,
+	})
+}
+
+func (h *MintOrderHandler) AdminRetryVerifyJob(c *gin.Context) {
+	if !h.requireAdmin(c) {
+		return
+	}
+	orderID, err := strconv.ParseUint(c.Param("orderId"), 10, 64)
+	if err != nil {
+		response.Error(c, 400, "Invalid order ID")
+		return
+	}
+	if err := h.mintVerifyJobRepo.ForceRetry(orderID); err != nil {
+		response.Error(c, 404, "Verify job not found")
+		return
+	}
+	response.Success(c, gin.H{
+		"status":   "queued",
+		"order_id": orderID,
+	})
+}
+
 // WebhookConfirm handles asynchronous mint confirmation callbacks from indexer/relayer.
 // Security:
 // - HMAC signature with shared secret
