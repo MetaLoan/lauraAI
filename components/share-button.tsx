@@ -64,7 +64,7 @@ export function ShareButton({
         align="center"
         sideOffset={12}
         className="z-[1400] w-[280px] liquid-glass-card rounded-2xl border-0 p-4"
-        style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)' }}
+        style={{ backgroundColor: 'rgba(73, 40, 67, 0.4)' }}
       >
         <h3 className="text-base font-bold text-white mb-1">Share LauraAI</h3>
         <p className="text-white/90 text-xs mb-3">Spread the word and invite others.</p>
