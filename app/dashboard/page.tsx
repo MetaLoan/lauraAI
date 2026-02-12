@@ -170,7 +170,7 @@ export default function DashboardPage() {
                             <div className="group relative liquid-glass-card rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer overflow-visible">
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/10 rounded-full blur-[60px] group-hover:bg-pink-500/30 group-hover:scale-125 transition-all duration-700" />
                                 <div className="absolute -right-5 -bottom-4 w-36 md:w-40 pointer-events-none z-20 transition-all duration-500 ease-out group-hover:-translate-y-2 group-hover:translate-x-1 group-hover:scale-110 group-hover:rotate-3 drop-shadow-[0_14px_30px_rgba(244,114,182,0.38)]">
-                                    <img src="/avatars/placeholders/mini_me.png" className="w-full h-full object-contain" alt="" />
+                                    <img src="/minime.jpg" className="w-full h-full object-cover rounded-2xl border border-white/20" alt="" />
                                 </div>
                                 <div className="relative z-10 pr-20 md:pr-24">
                                     <div className="flex items-center gap-4 mb-3">
@@ -191,7 +191,7 @@ export default function DashboardPage() {
                             <div className="group relative liquid-glass-card rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer overflow-visible">
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full blur-[60px] group-hover:bg-purple-500/35 group-hover:scale-125 transition-all duration-700" />
                                 <div className="absolute -right-5 -bottom-4 w-36 md:w-40 pointer-events-none z-20 transition-all duration-500 ease-out group-hover:-translate-y-2 group-hover:translate-x-1 group-hover:scale-110 group-hover:-rotate-3 drop-shadow-[0_14px_30px_rgba(139,92,246,0.4)]">
-                                    <img src="/avatars/placeholders/soulmate.png" className="w-full h-full object-contain" alt="" />
+                                    <img src="/presets/soulmate.jpg" className="w-full h-full object-cover rounded-2xl border border-white/20" alt="" />
                                 </div>
                                 <div className="relative z-10 pr-20 md:pr-24">
                                     <div className="flex items-center gap-4 mb-3">
