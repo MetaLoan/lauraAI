@@ -58,6 +58,22 @@ func InitDB() error {
 	DB.Exec("ALTER TABLE characters ALTER COLUMN image_url TYPE text")
 	log.Println("image_url 字段类型修复完成")
 
+	// Mint orders compatibility migration for new non-null fields
+	defaultTreasury := config.AppConfig.MintTreasuryWallet
+	if defaultTreasury == "" {
+		defaultTreasury = "0x636cf7bed3da64f93e5b79465fc04ed79bccfcac"
+	}
+	log.Println("Running mint_orders compatibility migration...")
+	DB.Exec("ALTER TABLE mint_orders ADD COLUMN IF NOT EXISTS token_amount_wei varchar(120)")
+	DB.Exec("UPDATE mint_orders SET token_amount_wei = '0' WHERE token_amount_wei IS NULL OR token_amount_wei = ''")
+	DB.Exec("ALTER TABLE mint_orders ALTER COLUMN token_amount_wei SET DEFAULT '0'")
+	DB.Exec("ALTER TABLE mint_orders ALTER COLUMN token_amount_wei SET NOT NULL")
+	DB.Exec("ALTER TABLE mint_orders ADD COLUMN IF NOT EXISTS treasury_wallet varchar(42)")
+	DB.Exec("UPDATE mint_orders SET treasury_wallet = ? WHERE treasury_wallet IS NULL OR treasury_wallet = ''", defaultTreasury)
+	DB.Exec("ALTER TABLE mint_orders ALTER COLUMN treasury_wallet SET DEFAULT '" + defaultTreasury + "'")
+	DB.Exec("ALTER TABLE mint_orders ALTER COLUMN treasury_wallet SET NOT NULL")
+	log.Println("mint_orders compatibility migration complete")
+
 	log.Println("数据库连接成功")
 	return nil
 }
