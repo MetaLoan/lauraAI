@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, ArrowLeft } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { getFullImageUrl, cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
 import { apiClient } from '@/lib/api'
@@ -297,17 +297,6 @@ export default function SoulmateDetailPage({
             />
           </div>
 
-          {isMiniMe && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onBack}
-              className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5 flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-          )}
         </div>
 
         {/* Divider - 只在非 Mini Me 时显示 */}

@@ -373,7 +373,7 @@ export default function DashboardPage() {
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.9, y: 20 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full max-w-2xl h-[90vh] liquid-glass-card rounded-3xl overflow-hidden relative flex flex-col"
+                            className="w-full max-w-2xl max-h-[90vh] liquid-glass-card rounded-3xl overflow-hidden relative flex flex-col"
                         >
                             <button
                                 type="button"
