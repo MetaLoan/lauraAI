@@ -84,6 +84,7 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 	log.Printf("[MiniMe] 用户 %d 图片分析完成: %s", user.ID, description)
 
 	// 3. 创建 Character 记录（image_status 为空，等前端 Mint 后再调 generate-image）
+	astroSign := getZodiacSignFromBirthDate(user.BirthDate)
 	character := &model.Character{
 		UserID:        user.ID,
 		Type:          model.CharacterTypeMiniMe,
@@ -91,6 +92,8 @@ func (h *MiniMeHandler) UploadAndGenerateMiniMe(c *gin.Context) {
 		DescriptionEn: fmt.Sprintf("Generated from selfie analysis: %s", description),
 		Gender:        "Unknown",
 		Ethnicity:     "Unknown",
+		Compatibility: 100,
+		AstroSign:     astroSign,
 		ImageStatus:   "", // 空状态，等待前端触发异步生图
 	}
 

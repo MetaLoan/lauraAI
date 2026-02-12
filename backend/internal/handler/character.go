@@ -135,6 +135,16 @@ func (h *CharacterHandler) List(c *gin.Context) {
 	locale := middleware.GetLocaleFromContext(c)
 	safeCharacters := make([]map[string]interface{}, len(characters))
 	for i, char := range characters {
+		// Mini Me 默认值兜底（兼容历史数据）
+		if char.Type == model.CharacterTypeMiniMe {
+			if char.Compatibility == 0 {
+				char.Compatibility = 100
+			}
+			if char.AstroSign == "" {
+				char.AstroSign = getZodiacSignFromBirthDate(user.BirthDate)
+			}
+		}
+
 		safeResponse := char.ToSafeResponse(string(locale))
 		// 记录返回的图片URL（包括原始值和规范化后的值）
 		if i < 3 { // 只记录前3个，避免日志过多
@@ -176,6 +186,16 @@ func (h *CharacterHandler) GetByID(c *gin.Context) {
 	if character.UserID != user.ID {
 		response.Error(c, 403, "Access denied")
 		return
+	}
+
+	// Mini Me 默认值兜底（兼容历史数据）
+	if character.Type == model.CharacterTypeMiniMe {
+		if character.Compatibility == 0 {
+			character.Compatibility = 100
+		}
+		if character.AstroSign == "" {
+			character.AstroSign = getZodiacSignFromBirthDate(user.BirthDate)
+		}
 	}
 
 	locale := middleware.GetLocaleFromContext(c)
