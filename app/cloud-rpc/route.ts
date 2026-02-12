@@ -2,7 +2,7 @@
  * 云端 RPC 代理：同源 POST 请求转发到 NEXT_PUBLIC_RPC_URL，避免浏览器 CORS。
  * 仅处理 JSON-RPC POST，超时 15s，失败时返回 502。
  */
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://lauraai-rpc.fly.dev'
+const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://data-seed-prebsc-1-s1.bnbchain.org:8545'
 const TIMEOUT_MS = 15000
 
 export async function POST(request: Request) {

@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createAppKit } from '@reown/appkit/react';
 import { WagmiProvider, type Config } from 'wagmi';
 import { bsc, bscTestnet } from '@reown/appkit/networks';
-import { defineChain } from 'viem';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { AutoSwitchChain } from '@/components/auto-switch-chain';
@@ -20,34 +19,13 @@ const metadata = {
   icons: ['https://laura-ai.com/logolaura.png']
 };
 
-// 3. 链 31337：浏览器内走同源代理，避免 CORS；Node/直连用原始 URL
-function getLocalHardhat() {
-  const envRpc = process.env.NEXT_PUBLIC_RPC_URL;
-  let rpcUrl: string;
-  if (typeof window !== 'undefined') {
-    // 浏览器：云端 RPC 走 /cloud-rpc 代理（避免 CORS），本地走 /hardhat-rpc
-    rpcUrl = envRpc && envRpc.startsWith('http')
-      ? `${window.location.origin}/cloud-rpc`
-      : `${window.location.origin}/hardhat-rpc`;
-  } else {
-    rpcUrl = envRpc && envRpc.startsWith('http') ? envRpc : 'http://127.0.0.1:8545';
-  }
-  return defineChain({
-    id: 31_337,
-    name: 'Hardhat',
-    nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
-    rpcUrls: { default: { http: [rpcUrl] } },
-  });
-}
-
 // 4. Create Wagmi Adapter - only on client
 let wagmiAdapter: WagmiAdapter | null = null;
 
 function getWagmiAdapter() {
   if (!wagmiAdapter && typeof window !== 'undefined') {
-    const localChain = getLocalHardhat();
     wagmiAdapter = new WagmiAdapter({
-      networks: [localChain, bsc, bscTestnet],
+      networks: [bscTestnet, bsc],
       projectId,
       ssr: true
     });
@@ -68,7 +46,8 @@ function initAppKit() {
     // Force wallet-only mode and bypass Reown remote auth-feature overrides.
     basic: true,
     adapters: [adapter],
-    networks: [getLocalHardhat(), bsc, bscTestnet],
+    networks: [bscTestnet, bsc],
+    defaultNetwork: bscTestnet,
     projectId,
     metadata,
     features: {
