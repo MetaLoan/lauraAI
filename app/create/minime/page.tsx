@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '@/lib/api';
 import imageCompression from 'browser-image-compression';
 import { formatEther } from 'viem';
+import { getAssetPath } from '@/lib/utils';
 
 // Contract info
 const LAURA_AI_SOULMATE_ADDRESS = process.env.NEXT_PUBLIC_LAURA_AI_SOULMATE_ADDRESS;
@@ -256,7 +257,7 @@ export default function CreateMiniMePage() {
             <AppLayout>
                 <div className="flex flex-col items-center justify-center h-full min-h-[60vh] space-y-6">
                     <div className="p-6 liquid-glass-card rounded-3xl">
-                        <img src="/icons/3d/profile.png" className="w-16 h-16 object-contain" alt="Wallet" />
+                        <img src={getAssetPath('/icons/3d/profile.png')} className="w-16 h-16 object-contain" alt="Wallet" />
                     </div>
                     <h2 className="text-2xl font-bold text-white">Connect Wallet</h2>
                     <p className="text-white max-w-md text-center">
@@ -301,7 +302,7 @@ export default function CreateMiniMePage() {
                                     <div className="order-2 md:order-1 mb-10 md:mb-0">
                                         <div className="relative w-full max-w-sm mx-auto aspect-[3/4] rounded-3xl overflow-hidden liquid-glass-card shadow-2xl">
                                             <img
-                                                src="/minime.jpg"
+                                                src={getAssetPath('/minime.jpg')}
                                                 className="w-full h-full object-cover"
                                                 alt="Mini Me Example"
                                             />
@@ -377,7 +378,7 @@ export default function CreateMiniMePage() {
                                     /* Waiting for wallet confirmation */
                                     <div className="flex flex-col items-center justify-center py-20 space-y-6">
                                         <div className="w-20 h-20 rounded-2xl flex items-center justify-center">
-                                            <img src="/icons/3d/gem_3d.png" alt="" className="w-10 h-10 object-contain animate-pulse" />
+                                            <img src={getAssetPath('/icons/3d/gem_3d.png')} alt="" className="w-10 h-10 object-contain animate-pulse" />
                                         </div>
                                         <h2 className="text-2xl font-bold text-white">Confirm in Wallet</h2>
                                         <p className="text-white text-center max-w-sm">

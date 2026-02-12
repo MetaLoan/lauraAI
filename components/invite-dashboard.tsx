@@ -6,6 +6,7 @@ import { Loader2, Copy, Check, Users, Gift, UserPlus, Trophy, ChevronDown, Chevr
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { getAssetPath } from '@/lib/utils';
 
 interface Referral {
     id: number;
@@ -121,7 +122,7 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                     className="w-full py-4 px-4 flex items-center justify-between hover:bg-white/[0.04] transition-colors"
                 >
                     <div className="flex items-center gap-3">
-                        <img src="/icons/3d/referral.png" className="w-10 h-10 object-contain flex-shrink-0" alt="Referral" />
+                        <img src={getAssetPath('/icons/3d/referral.png')} className="w-10 h-10 object-contain flex-shrink-0" alt="Referral" />
                         <div className="text-left">
                             <h3 className="text-white font-semibold">Referral Program</h3>
                             <p className="text-white text-sm mt-0.5">{referralCount} friends invited</p>
@@ -159,7 +160,7 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                                             {copied ? (
                                                 <Check className="w-5 h-5 text-green-400" />
                                             ) : (
-                                                <img src="/icons/3d/copy_3d.png" className="w-5 h-5 object-contain" alt="Copy" />
+                                                <img src={getAssetPath('/icons/3d/copy_3d.png')} className="w-5 h-5 object-contain" alt="Copy" />
                                             )}
                                         </button>
                                     </div>
@@ -172,7 +173,7 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                                         onClick={handleCopyLink}
                                         className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.08] hover:bg-white/12 border border-white/10 text-white text-sm font-medium transition-colors"
                                     >
-                                        <img src="/icons/3d/copy_3d.png" className="w-5 h-5 object-contain" alt="" />
+                                        <img src={getAssetPath('/icons/3d/copy_3d.png')} className="w-5 h-5 object-contain" alt="" />
                                         Copy Link
                                     </button>
                                     <button
@@ -180,7 +181,7 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                                         onClick={handleShareTwitter}
                                         className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.08] hover:bg-white/12 border border-white/10 text-white text-sm font-medium transition-colors"
                                     >
-                                        <img src="/icons/3d/share_3d.png" className="w-5 h-5 object-contain" alt="" />
+                                        <img src={getAssetPath('/icons/3d/share_3d.png')} className="w-5 h-5 object-contain" alt="" />
                                         Share on X
                                     </button>
                                 </div>
@@ -240,12 +241,12 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
             {/* Stats Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="liquid-glass-card rounded-2xl p-4 text-center">
-                    <img src="/icons/3d/referral.png" className="w-10 h-10 mx-auto mb-2 object-contain" alt="Referrals" />
+                    <img src={getAssetPath('/icons/3d/referral.png')} className="w-10 h-10 mx-auto mb-2 object-contain" alt="Referrals" />
                     <p className="text-2xl font-bold text-white">{referralCount}</p>
                     <p className="text-xs text-white">Total Referrals</p>
                 </div>
                 <div className="liquid-glass-card rounded-2xl p-4 text-center">
-                    <img src="/icons/3d/mint.png" className="w-10 h-10 mx-auto mb-2 object-contain" alt="Earned" />
+                    <img src={getAssetPath('/icons/3d/mint.png')} className="w-10 h-10 mx-auto mb-2 object-contain" alt="Earned" />
                     <p className="text-2xl font-bold text-white">{referralCount * 100}</p>
                     <p className="text-xs text-white">LRA Earned</p>
                 </div>
@@ -293,7 +294,7 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                         onClick={handleShareTwitter}
                         className="bg-black hover:bg-gray-900 text-white gap-2 border border-white/20"
                     >
-                        <img src="/icons/3d/share_3d.png" className="w-4 h-4 object-contain" alt="" />
+                        <img src={getAssetPath('/icons/3d/share_3d.png')} className="w-4 h-4 object-contain" alt="" />
                         Share on X
                     </Button>
                     <Button
@@ -301,7 +302,7 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
                         variant="outline"
                         className="border-white/20 hover:bg-white/10 text-white gap-2"
                     >
-                        <img src="/icons/3d/copy_3d.png" className="w-4 h-4 object-contain" alt="" />
+                        <img src={getAssetPath('/icons/3d/copy_3d.png')} className="w-4 h-4 object-contain" alt="" />
                         Copy Invite Link
                     </Button>
                 </div>
@@ -310,7 +311,7 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
             {/* Referrals List */}
             <div className="liquid-glass-card rounded-2xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <img src="/icons/3d/referral.png" className="w-6 h-6 object-contain" alt="Referrals" />
+                    <img src={getAssetPath('/icons/3d/referral.png')} className="w-6 h-6 object-contain" alt="Referrals" />
                     Your Referrals ({referralCount})
                 </h3>
 

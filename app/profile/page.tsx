@@ -6,7 +6,7 @@ import { apiClient } from '@/lib/api';
 import Image from 'next/image';
 import { Loader2, User, Wallet, Award, Clock, Bell, Share2, LogOut, Coins } from 'lucide-react';
 import { useAccount } from 'wagmi';
-import { cn } from '@/lib/utils';
+import { cn, getAssetPath } from '@/lib/utils';
 import { useAccount as useWagmiAccount } from 'wagmi';
 import { InviteDashboard } from '@/components/invite-dashboard';
 
@@ -38,7 +38,7 @@ export default function ProfilePage() {
             <AppLayout>
                 <div className="flex flex-col items-center justify-center h-[80vh] text-center px-4">
                     <div className="w-24 h-24 bg-white/5 rounded-3xl flex items-center justify-center mb-6 border border-white/10 backdrop-blur-md">
-                        <img src="/icons/3d/wallet.png" className="w-16 h-16 object-contain" alt="Wallet" />
+                        <img src={getAssetPath('/icons/3d/wallet.png')} className="w-16 h-16 object-contain" alt="Wallet" />
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
                     <p className="text-white mb-8 max-w-md">
@@ -76,7 +76,7 @@ export default function ProfilePage() {
                             <div className="w-full h-full rounded-full bg-black overflow-hidden relative">
                                 {/* 默认动物头像（花栗鼠） */}
                                 <div className="flex items-center justify-center h-full w-full bg-transparent relative">
-                                    <img src="/icons/3d/default_avatar.png" className="w-full h-full object-cover" alt="Avatar" />
+                                    <img src={getAssetPath('/icons/3d/default_avatar.png')} className="w-full h-full object-cover" alt="Avatar" />
                                 </div>
                             </div>
                         </div>
@@ -87,7 +87,7 @@ export default function ProfilePage() {
                             </h1>
                             <p className="text-white flex items-center justify-center md:justify-start gap-2 text-sm font-medium">
                                 <span className="truncate max-w-[200px]">{address}</span>
-                                <img src="/icons/3d/crown.png" className="w-5 h-5 object-contain" alt="Rank" /> {profile?.rank || 'Newcomer'}
+                                <img src={getAssetPath('/icons/3d/crown.png')} className="w-5 h-5 object-contain" alt="Rank" /> {profile?.rank || 'Newcomer'}
                             </p>
                         </div>
 
@@ -114,7 +114,7 @@ export default function ProfilePage() {
                 <div className="liquid-glass-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-white flex items-center gap-3">
-                            <img src="/icons/3d/mint.png" className="w-8 h-8 object-contain" alt="LRA" /> LRA Balance
+                            <img src={getAssetPath('/icons/3d/mint.png')} className="w-8 h-8 object-contain" alt="LRA" /> LRA Balance
                         </h3>
                     </div>
                     <div>
@@ -131,7 +131,7 @@ export default function ProfilePage() {
                     {/* Account Settings */}
                     <div className="liquid-glass-card rounded-2xl p-6">
                         <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
-                            <img src="/icons/3d/settings_3d.png" className="w-8 h-8 object-contain" alt="Settings" /> Account Settings
+                            <img src={getAssetPath('/icons/3d/settings_3d.png')} className="w-8 h-8 object-contain" alt="Settings" /> Account Settings
                         </h3>
                         <div className="space-y-4">
                             <div className="flex items-center justify-between py-2 border-b border-white/50">
@@ -150,7 +150,7 @@ export default function ProfilePage() {
                     {/* Support / Info */}
                     <div className="liquid-glass-card rounded-2xl p-6">
                         <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
-                            <img src="/icons/3d/bell_3d.png" className="w-12 h-12 object-contain" alt="Status" /> System Status
+                            <img src={getAssetPath('/icons/3d/bell_3d.png')} className="w-12 h-12 object-contain" alt="Status" /> System Status
                         </h3>
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">

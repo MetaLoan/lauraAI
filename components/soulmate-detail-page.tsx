@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronDown, ArrowLeft } from 'lucide-react'
-import { getFullImageUrl, cn } from '@/lib/utils'
+import { getAssetPath, getFullImageUrl, cn } from '@/lib/utils'
 import { ShareButton } from '@/components/share-button'
 import { apiClient } from '@/lib/api'
 import { useTranslations, useI18n } from '@/components/i18n-provider'
@@ -289,7 +289,7 @@ export default function SoulmateDetailPage({
               className="liquid-glass-card rounded-full w-14 h-14 p-0 flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform"
               title={t('startChat')}
             >
-              <img src="/icons/3d/message_chat.png" className="w-7 h-7 object-contain" alt="" />
+              <img src={getAssetPath('/icons/3d/message_chat.png')} className="w-7 h-7 object-contain" alt="" />
             </Button>
             <ShareButton
               title={`Meet my ${rawTitle}!`}

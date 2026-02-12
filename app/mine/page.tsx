@@ -8,7 +8,7 @@ import { Loader2, MessageCircle, Sparkles, ChevronRight, AlertTriangle, RotateCw
 import { motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@/components/wallet-button';
-import { getFullImageUrl } from '@/lib/utils';
+import { getAssetPath, getFullImageUrl } from '@/lib/utils';
 import Image from 'next/image';
 
 // Character type display names
@@ -193,7 +193,7 @@ export default function MinePage() {
             <AppLayout>
                 <div className="flex flex-col items-center justify-center h-full min-h-[60vh] space-y-6">
                     <div className="w-24 h-24 rounded-3xl bg-white/5 flex items-center justify-center border border-white/10 backdrop-blur-md">
-                        <img src="/icons/3d/mine.png" className="w-16 h-16 object-contain" alt="Mine" />
+                        <img src={getAssetPath('/icons/3d/mine.png')} className="w-16 h-16 object-contain" alt="Mine" />
                     </div>
                     <h2 className="text-2xl font-bold">Connect Wallet to View</h2>
                     <p className="text-white max-w-md text-center">
@@ -288,7 +288,7 @@ export default function MinePage() {
                                             />
                                         ) : (
                                             <div className="w-full h-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 flex items-center justify-center">
-                                                <img src="/icons/3d/message_chat.png" className="w-8 h-8 object-contain opacity-50" alt="Chat" />
+                                                <img src={getAssetPath('/icons/3d/message_chat.png')} className="w-8 h-8 object-contain opacity-50" alt="Chat" />
                                             </div>
                                         )}
                                     </div>

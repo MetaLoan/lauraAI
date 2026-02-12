@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, getAssetPath } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface ShareButtonProps {
@@ -51,7 +51,7 @@ export function ShareButton({
           className={cn('rounded-full border-white/10 hover:bg-white/10 text-white', className)}
         >
           <img
-            src="/icons/3d/share_3d.png"
+            src={getAssetPath('/icons/3d/share_3d.png')}
             className={size === 'icon' ? 'w-5 h-5 object-contain' : 'w-4 h-4 object-contain mr-2'}
             alt=""
           />
@@ -75,7 +75,7 @@ export function ShareButton({
             onClick={shareToTwitter}
             className="w-full bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white font-bold h-10 rounded-xl gap-2"
           >
-            <img src="/icons/3d/share_3d.png" className="w-4 h-4 object-contain" alt="" />
+            <img src={getAssetPath('/icons/3d/share_3d.png')} className="w-4 h-4 object-contain" alt="" />
             Share on Twitter
           </Button>
 
@@ -88,7 +88,7 @@ export function ShareButton({
             {copied ? (
               <Check className="w-4 h-4 text-green-400" />
             ) : (
-              <img src="/icons/3d/copy_3d.png" className="w-4 h-4 object-contain" alt="" />
+              <img src={getAssetPath('/icons/3d/copy_3d.png')} className="w-4 h-4 object-contain" alt="" />
             )}
             {copied ? 'Copied!' : 'Copy Link'}
           </Button>

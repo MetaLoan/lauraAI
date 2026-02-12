@@ -6,6 +6,7 @@ import { Camera, ImageIcon, Loader2 } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 import imageCompression from 'browser-image-compression'
 import { useTranslations } from '@/components/i18n-provider'
+import { getAssetPath } from '@/lib/utils'
 
 interface MiniMeUploadProps {
   onNext: (character: any) => void
@@ -130,7 +131,7 @@ export default function MiniMeUpload({ onNext, onBack }: MiniMeUploadProps) {
                     </span>
                   </div>
                 ) : (
-                  <img src="/icons/3d/profile.png" className="w-20 h-20 object-contain opacity-50" alt="Profile" />
+                  <img src={getAssetPath('/icons/3d/profile.png')} className="w-20 h-20 object-contain opacity-50" alt="Profile" />
                 )}
               </div>
             </div>
