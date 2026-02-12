@@ -112,6 +112,11 @@ export default function ChatPageClient({ characterId }: { characterId: string })
                 setMessagesLoaded(true);
             } catch (error) {
                 console.error('Failed to load chat data:', error);
+                const message = error instanceof Error ? error.message : '';
+                if (message.includes('Complete Mint') || message.includes('not ready for chat') || message.includes('Mint is not confirmed')) {
+                    router.push('/create');
+                    return;
+                }
             } finally {
                 setLoading(false);
             }

@@ -29,6 +29,7 @@ func escapeJSON(s string) string {
 
 type ChatHandler struct {
 	characterRepo *repository.CharacterRepository
+	mintOrderRepo *repository.MintOrderRepository
 	messageRepo   *repository.MessageRepository
 	chatService   service.ChatService
 }
@@ -36,9 +37,30 @@ type ChatHandler struct {
 func NewChatHandler(chatService service.ChatService) *ChatHandler {
 	return &ChatHandler{
 		characterRepo: repository.NewCharacterRepository(),
+		mintOrderRepo: repository.NewMintOrderRepository(),
 		messageRepo:   repository.NewMessageRepository(),
 		chatService:   chatService,
 	}
+}
+
+func (h *ChatHandler) ensureCharacterChatReady(userID uint64, character *model.Character) error {
+	if character == nil {
+		return fmt.Errorf("Character not found")
+	}
+	if character.UserID != userID {
+		return fmt.Errorf("Access denied")
+	}
+	if strings.TrimSpace(character.ImageStatus) != "done" || strings.TrimSpace(character.ImageURL) == "" {
+		return fmt.Errorf("Character is not ready for chat. Complete Mint/Generation first")
+	}
+	paid, err := h.mintOrderRepo.HasConfirmedForCharacter(userID, character.ID)
+	if err != nil {
+		return fmt.Errorf("Failed to verify mint order")
+	}
+	if !paid {
+		return fmt.Errorf("Mint is not confirmed yet. Complete Mint first")
+	}
+	return nil
 }
 
 // SendMessage 发送消息（流式响应）
@@ -67,9 +89,17 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 		return
 	}
 
-	// 验证角色属于当前用户
-	if character.UserID != user.ID {
-		response.Error(c, 403, "Access denied")
+	if err := h.ensureCharacterChatReady(user.ID, character); err != nil {
+		msg := err.Error()
+		if strings.Contains(msg, "Access denied") {
+			response.Error(c, 403, msg)
+			return
+		}
+		if strings.Contains(msg, "verify mint order") {
+			response.Error(c, 500, msg)
+			return
+		}
+		response.Error(c, 409, msg)
 		return
 	}
 
@@ -268,9 +298,17 @@ func (h *ChatHandler) GetMessages(c *gin.Context) {
 		return
 	}
 
-	// 验证角色属于当前用户
-	if character.UserID != user.ID {
-		response.Error(c, 403, "Access denied")
+	if err := h.ensureCharacterChatReady(user.ID, character); err != nil {
+		msg := err.Error()
+		if strings.Contains(msg, "Access denied") {
+			response.Error(c, 403, msg)
+			return
+		}
+		if strings.Contains(msg, "verify mint order") {
+			response.Error(c, 500, msg)
+			return
+		}
+		response.Error(c, 409, msg)
 		return
 	}
 

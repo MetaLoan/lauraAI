@@ -74,22 +74,13 @@ export default function DashboardPage() {
         }
     }, []);
 
-    // 当有 generating 状态的角色时，启动轮询
+    // Dashboard only shows completed roles now.
     useEffect(() => {
-        const hasGenerating = characters.some(c => c.image_status === 'generating' || (!c.image_url && !c.image && c.image_status !== 'done' && c.image_status !== 'failed' && c.image_status !== ''));
-        if (hasGenerating) {
-            if (!pollTimerRef.current) {
-                pollTimerRef.current = setInterval(() => {
-                    fetchCharactersSilent();
-                }, 5000); // 每5秒轮询一次
-            }
-        } else {
-            if (pollTimerRef.current) {
-                clearInterval(pollTimerRef.current);
-                pollTimerRef.current = null;
-            }
+        if (pollTimerRef.current) {
+            clearInterval(pollTimerRef.current);
+            pollTimerRef.current = null;
         }
-    }, [characters]);
+    }, []);
 
     const fetchCharacters = async () => {
         try {
@@ -136,18 +127,24 @@ export default function DashboardPage() {
 
     const mapCharacters = (data: any[], me?: any): Character[] => {
         const userAstroSign = getZodiacFromBirthDate(me?.birth_date);
-        return (data || []).map((char: any) => ({
-            id: char.id.toString(),
-            title: char.title || 'Soulmate',
-            image_url: char.image_url,
-            image: char.image,
-            type: char.type,
-            unlock_status: char.unlock_status,
-            compatibility: getCharacterCompatibility(char),
-            astro_sign: getCharacterAstroSign(char, userAstroSign),
-            description: char.description,
-            image_status: char.image_status || '',
-        }));
+        return (data || [])
+            .filter((char: any) =>
+                String(char.mint_ui_state || '').toLowerCase() === 'done' &&
+                char.image_status === 'done' &&
+                !!((char.clear_image_url && char.clear_image_url !== '') || (char.image_url && char.image_url !== ''))
+            )
+            .map((char: any) => ({
+                id: char.id.toString(),
+                title: char.title || 'Soulmate',
+                image_url: char.clear_image_url || char.image_url,
+                image: char.image,
+                type: char.type,
+                unlock_status: char.unlock_status,
+                compatibility: getCharacterCompatibility(char),
+                astro_sign: getCharacterAstroSign(char, userAstroSign),
+                description: char.description,
+                image_status: char.image_status || '',
+            }));
     };
 
     // 重试生图（已付过 Mint，后端直接允许 failed → generating）

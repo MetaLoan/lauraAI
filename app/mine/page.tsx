@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { apiClient } from '@/lib/api';
-import { Loader2, MessageCircle, Sparkles, ChevronRight, AlertTriangle, RotateCw, DollarSign, Plus } from 'lucide-react';
+import { Loader2, ChevronRight, DollarSign, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@/components/wallet-button';
@@ -33,6 +33,7 @@ interface CharacterChat {
     type: string;
     image_url?: string;
     image_status?: string;
+    mint_ui_state?: string;
     lastMessage?: string;
     lastMessageTime?: Date;
     dailyUsed: number;
@@ -73,9 +74,13 @@ export default function MinePage() {
                 }
             }
 
-            // Include characters with images, generating, or failed status
+            // Only include fully completed roles in Mine:
+            // mint done + image done. In-progress/failed states stay in Mint AI page.
             const validChars = (chars || []).filter(
-                (c: any) => (c.image_url && c.image_url !== '') || c.image_status === 'generating' || c.image_status === 'failed'
+                (c: any) =>
+                    String(c.mint_ui_state || '').toLowerCase() === 'done' &&
+                    c.image_status === 'done' &&
+                    !!((c.clear_image_url && c.clear_image_url !== '') || (c.image_url && c.image_url !== ''))
             );
 
             // Load last message for each character
@@ -109,6 +114,7 @@ export default function MinePage() {
                         type: char.type,
                         image_url: char.clear_image_url || char.image_url,
                         image_status: char.image_status || '',
+                        mint_ui_state: char.mint_ui_state || '',
                         lastMessage,
                         lastMessageTime,
                         dailyUsed: usage.used,
@@ -119,11 +125,8 @@ export default function MinePage() {
                 })
             );
 
-            // Sort: generating first, then by last message time
+            // Sort: by last message time only (all are completed roles)
             chatsWithMessages.sort((a, b) => {
-                // Generating characters go to top
-                if (a.image_status === 'generating' && b.image_status !== 'generating') return -1;
-                if (b.image_status === 'generating' && a.image_status !== 'generating') return 1;
                 if (!a.lastMessageTime && !b.lastMessageTime) return 0;
                 if (!a.lastMessageTime) return 1;
                 if (!b.lastMessageTime) return -1;
@@ -161,32 +164,13 @@ export default function MinePage() {
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [isConnected]);
 
-    // 轮询 generating 状态的角色
+    // Mine page no longer handles in-progress generation retry.
     useEffect(() => {
-        const hasGenerating = characters.some(c => c.image_status === 'generating');
-        if (hasGenerating) {
-            if (!pollTimerRef.current) {
-                pollTimerRef.current = setInterval(() => {
-                    loadData(true);
-                }, 5000);
-            }
-        } else {
-            if (pollTimerRef.current) {
-                clearInterval(pollTimerRef.current);
-                pollTimerRef.current = null;
-            }
+        if (pollTimerRef.current) {
+            clearInterval(pollTimerRef.current);
+            pollTimerRef.current = null;
         }
-    }, [characters]);
-
-    // 重试生图
-    const handleRetryGeneration = async (charId: string) => {
-        try {
-            await apiClient.generateImage(charId);
-        } catch {
-            // 请求可能超时但后端仍在处理
-        }
-        loadData(true);
-    };
+    }, []);
 
     if (!isConnected) {
         return (
@@ -240,38 +224,6 @@ export default function MinePage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.05, duration: 0.3 }}
                             >
-                                {char.image_status === 'generating' ? (
-                                    /* 生成中的角色条目 */
-                                    <div className="w-full flex items-center gap-4 p-4 bg-purple-500/5 border border-purple-500/20 rounded-2xl text-left">
-                                        <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border border-purple-500/30 bg-gradient-to-br from-purple-900/40 to-indigo-900/40 flex items-center justify-center">
-                                            <Loader2 className="w-6 h-6 text-white animate-spin" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="text-base font-bold text-white truncate">{char.title}</h3>
-                                            <p className="text-sm text-white animate-pulse">AI Generating...</p>
-                                        </div>
-                                        <span className="text-xs text-white bg-white/5 px-2 py-1 rounded-full">Auto-refresh</span>
-                                    </div>
-                                ) : char.image_status === 'failed' ? (
-                                    /* 生成失败的角色条目 */
-                                    <div className="w-full flex items-center gap-4 p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl text-left">
-                                        <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border border-amber-500/30 bg-gradient-to-br from-amber-900/20 to-red-900/20 flex items-center justify-center">
-                                            <AlertTriangle className="w-6 h-6 text-amber-400" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="text-base font-bold text-white truncate">{char.title}</h3>
-                                            <p className="text-sm text-amber-300">Generation timed out</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRetryGeneration(char.id)}
-                                            className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-all flex-shrink-0"
-                                        >
-                                            <RotateCw className="w-3.5 h-3.5" />
-                                            Retry
-                                        </button>
-                                    </div>
-                                ) : (
                                 <button
                                     type="button"
                                     onClick={() => router.push(`/chat/${char.id}`)}
@@ -321,7 +273,6 @@ export default function MinePage() {
                                         <ChevronRight className="w-5 h-5 text-white group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0" />
                                     </div>
                                 </button>
-                                )}
                             </motion.div>
                         ))}
                     </div>
