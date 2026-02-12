@@ -177,7 +177,7 @@ func (h *MintOrderHandler) ConfirmOrder(c *gin.Context) {
 		return
 	}
 	order.Status = model.MintOrderStatusVerifying
-	order.TxHash = txHash
+	order.TxHash = stringPtr(txHash)
 	order.FailReason = ""
 	_ = h.mintOrderRepo.Update(order)
 
@@ -310,7 +310,7 @@ func (h *MintOrderHandler) WebhookConfirm(c *gin.Context) {
 	}
 
 	order.Status = model.MintOrderStatusVerifying
-	order.TxHash = txHash
+	order.TxHash = stringPtr(txHash)
 	order.FailReason = ""
 	_ = h.mintOrderRepo.Update(order)
 
@@ -499,7 +499,7 @@ func (h *MintOrderHandler) finalizeMintOrderByTx(order *model.MintOrder, txHash 
 		if model.CanMintOrderTransition(order.Status, model.MintOrderStatusFailed) {
 			order.Status = model.MintOrderStatusFailed
 		}
-		order.TxHash = txHash
+		order.TxHash = stringPtr(txHash)
 		order.FailReason = verifyErr.Error()
 		_ = h.mintOrderRepo.Update(order)
 		return verifyErr
@@ -509,7 +509,7 @@ func (h *MintOrderHandler) finalizeMintOrderByTx(order *model.MintOrder, txHash 
 	if model.CanMintOrderTransition(order.Status, model.MintOrderStatusConfirmed) {
 		order.Status = model.MintOrderStatusConfirmed
 	}
-	order.TxHash = txHash
+	order.TxHash = stringPtr(txHash)
 	order.PayerWallet = strings.ToLower(payerWallet)
 	order.BlockNumber = blockNumber
 	order.VerifiedAt = &now
@@ -526,4 +526,8 @@ func verifyWebhookSignature(timestamp string, rawBody []byte, gotSignature strin
 	_, _ = mac.Write([]byte(payload))
 	expected := hex.EncodeToString(mac.Sum(nil))
 	return hmac.Equal([]byte(strings.ToLower(expected)), []byte(strings.ToLower(strings.TrimPrefix(gotSignature, "0x"))))
+}
+
+func stringPtr(value string) *string {
+	return &value
 }

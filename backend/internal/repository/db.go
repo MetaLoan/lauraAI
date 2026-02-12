@@ -44,6 +44,7 @@ func InitDB() error {
 	DB.Exec("UPDATE mint_orders SET token_amount_wei = '0' WHERE token_amount_wei IS NULL OR token_amount_wei = ''")
 	DB.Exec("ALTER TABLE mint_orders ADD COLUMN IF NOT EXISTS treasury_wallet varchar(42)")
 	DB.Exec("UPDATE mint_orders SET treasury_wallet = ? WHERE treasury_wallet IS NULL OR treasury_wallet = ''", defaultTreasury)
+	DB.Exec("UPDATE mint_orders SET tx_hash = NULL WHERE tx_hash = ''")
 	log.Println("pre-automigrate mint_orders compatibility migration complete")
 
 	// Auto-migrate models

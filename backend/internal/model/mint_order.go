@@ -27,7 +27,7 @@ type MintOrder struct {
 	TokenAmount    string          `gorm:"type:varchar(80);not null" json:"token_amount"`
 	TokenAmountWei string          `gorm:"type:varchar(120);not null;default:'0'" json:"token_amount_wei"`
 	TreasuryWallet string          `gorm:"type:varchar(42);not null" json:"treasury_wallet"`
-	TxHash         string          `gorm:"type:varchar(80);uniqueIndex" json:"tx_hash"`
+	TxHash         *string         `gorm:"type:varchar(80);uniqueIndex" json:"tx_hash,omitempty"`
 	PayerWallet    string          `gorm:"type:varchar(42)" json:"payer_wallet"`
 	BlockNumber    uint64          `json:"block_number"`
 	VerifiedAt     *time.Time      `json:"verified_at,omitempty"`
