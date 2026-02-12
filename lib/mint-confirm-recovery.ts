@@ -65,9 +65,12 @@ export async function confirmWithRecovery(
   upsertPendingMintConfirm({ orderId, txHash });
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      await confirmFn(orderId, txHash);
-      removePendingMintConfirm(orderId);
-      return true;
+      const result = await confirmFn(orderId, txHash);
+      const status = String(result?.order?.status || '').toLowerCase();
+      if (status === 'confirmed') {
+        removePendingMintConfirm(orderId);
+        return true;
+      }
     } catch {
       if (i < maxAttempts - 1) {
         await delay(1200 * (i + 1));
@@ -83,8 +86,11 @@ export async function flushPendingMintConfirms(
   const all = readAll();
   for (const item of all) {
     try {
-      await confirmFn(item.orderId, item.txHash);
-      removePendingMintConfirm(item.orderId);
+      const result = await confirmFn(item.orderId, item.txHash);
+      const status = String(result?.order?.status || '').toLowerCase();
+      if (status === 'confirmed') {
+        removePendingMintConfirm(item.orderId);
+      }
     } catch {
       // keep item for next retry
     }

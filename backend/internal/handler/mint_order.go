@@ -28,6 +28,11 @@ import (
 var safeMintSelectorHex = "40d097c3" // bytes4(keccak256("safeMint(address,string)"))
 var erc20TransferTopicHex = "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
+const (
+	asyncVerifyRetryAttempts = 20
+	asyncVerifyRetryInterval = 8 * time.Second
+)
+
 type MintOrderHandler struct {
 	mintOrderRepo     *repository.MintOrderRepository
 	characterRepo     *repository.CharacterRepository
@@ -86,6 +91,15 @@ func (h *MintOrderHandler) CreateOrder(c *gin.Context) {
 		response.Success(c, gin.H{
 			"already_paid": false,
 			"order":        pending,
+		})
+		return
+	}
+
+	verifying, err := h.mintOrderRepo.GetLatestVerifyingByCharacter(user.ID, req.CharacterID)
+	if err == nil && verifying != nil {
+		response.Success(c, gin.H{
+			"already_paid": false,
+			"order":        verifying,
 		})
 		return
 	}
@@ -182,6 +196,15 @@ func (h *MintOrderHandler) ConfirmOrder(c *gin.Context) {
 	_ = h.mintOrderRepo.Update(order)
 
 	if verifyErr := h.finalizeMintOrderByTx(order, txHash, strings.ToLower(user.WalletAddress)); verifyErr != nil {
+		if isTemporaryVerificationError(verifyErr) {
+			go h.retryFinalizeMintOrder(order.ID, txHash, strings.ToLower(user.WalletAddress))
+			response.Success(c, gin.H{
+				"status":  "verifying",
+				"order":   order,
+				"message": "Mint tx is propagating. Verification will retry automatically.",
+			})
+			return
+		}
 		response.Error(c, 400, "Mint tx verification failed: "+verifyErr.Error())
 		return
 	}
@@ -321,6 +344,15 @@ func (h *MintOrderHandler) WebhookConfirm(c *gin.Context) {
 	}
 
 	if err := h.finalizeMintOrderByTx(order, txHash, payer); err != nil {
+		if isTemporaryVerificationError(err) {
+			go h.retryFinalizeMintOrder(order.ID, txHash, payer)
+			response.Success(c, gin.H{
+				"status":  "verifying",
+				"order":   order,
+				"message": "Mint tx is propagating. Verification will retry automatically.",
+			})
+			return
+		}
 		response.Error(c, 400, "Mint tx verification failed: "+err.Error())
 		return
 	}
@@ -496,11 +528,18 @@ func isHexTxHash(txHash string) bool {
 func (h *MintOrderHandler) finalizeMintOrderByTx(order *model.MintOrder, txHash string, payerWallet string) error {
 	blockNumber, verifyErr := h.verifyMintTransaction(txHash, payerWallet, order)
 	if verifyErr != nil {
-		if model.CanMintOrderTransition(order.Status, model.MintOrderStatusFailed) {
-			order.Status = model.MintOrderStatusFailed
+		if isTemporaryVerificationError(verifyErr) {
+			if model.CanMintOrderTransition(order.Status, model.MintOrderStatusVerifying) {
+				order.Status = model.MintOrderStatusVerifying
+			}
+			order.FailReason = "verification pending: " + verifyErr.Error()
+		} else {
+			if model.CanMintOrderTransition(order.Status, model.MintOrderStatusFailed) {
+				order.Status = model.MintOrderStatusFailed
+			}
+			order.FailReason = verifyErr.Error()
 		}
 		order.TxHash = stringPtr(txHash)
-		order.FailReason = verifyErr.Error()
 		_ = h.mintOrderRepo.Update(order)
 		return verifyErr
 	}
@@ -518,6 +557,46 @@ func (h *MintOrderHandler) finalizeMintOrderByTx(order *model.MintOrder, txHash 
 		return fmt.Errorf("failed to update order status: %w", err)
 	}
 	return nil
+}
+
+func isTemporaryVerificationError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "tx not found on chain") ||
+		strings.Contains(msg, "tx is still pending") ||
+		strings.Contains(msg, "failed to get tx receipt") ||
+		strings.Contains(msg, "rpc dial failed")
+}
+
+func (h *MintOrderHandler) retryFinalizeMintOrder(orderID uint64, txHash string, payerWallet string) {
+	for i := 0; i < asyncVerifyRetryAttempts; i++ {
+		time.Sleep(asyncVerifyRetryInterval)
+
+		order, err := h.mintOrderRepo.GetByID(orderID)
+		if err != nil || order == nil {
+			return
+		}
+		if order.Status == model.MintOrderStatusConfirmed {
+			return
+		}
+		if order.Status == model.MintOrderStatusFailed && !strings.Contains(strings.ToLower(order.FailReason), "verification pending") {
+			return
+		}
+
+		if model.CanMintOrderTransition(order.Status, model.MintOrderStatusVerifying) {
+			order.Status = model.MintOrderStatusVerifying
+			order.TxHash = stringPtr(txHash)
+			_ = h.mintOrderRepo.Update(order)
+		}
+
+		if err := h.finalizeMintOrderByTx(order, txHash, payerWallet); err == nil {
+			return
+		} else if !isTemporaryVerificationError(err) {
+			return
+		}
+	}
 }
 
 func verifyWebhookSignature(timestamp string, rawBody []byte, gotSignature string, secret string) bool {
