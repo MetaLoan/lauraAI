@@ -13,13 +13,18 @@ async function main() {
     const tokenAddress = await token.getAddress();
     console.log("LauraAIToken deployed to:", tokenAddress);
 
-    // 2. Deploy NFT (Soulmate)
+    // 2. Deploy NFT (Soulmate) with FF payment settings
     console.log("\n--- Deploying LauraAISoulmate ---");
     const LauraAISoulmate = await hre.ethers.getContractFactory("LauraAISoulmate");
-    const soulmate = await LauraAISoulmate.deploy();
+    const treasury = process.env.MINT_TREASURY_WALLET || deployer.address;
+    const mintPrice = process.env.MINT_PRICE_WEI || hre.ethers.parseUnits("1", 18).toString(); // 1 FF default
+    const soulmate = await LauraAISoulmate.deploy(tokenAddress, treasury, mintPrice);
     await soulmate.waitForDeployment();
     const soulmateAddress = await soulmate.getAddress();
     console.log("LauraAISoulmate deployed to:", soulmateAddress);
+    console.log("Soulmate payment token:", tokenAddress);
+    console.log("Soulmate treasury:", treasury);
+    console.log("Soulmate mintPrice (wei):", mintPrice);
 
     // 3. Deploy Marketplace
     console.log("\n--- Deploying LauraAIMarketplace ---");
