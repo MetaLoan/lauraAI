@@ -61,7 +61,7 @@ export function ShareButton({
     };
 
     return (
-        <div className="relative" ref={wrapperRef}>
+        <div className="relative inline-flex shrink-0" ref={wrapperRef}>
             <Button
                 variant={variant}
                 size={size}
