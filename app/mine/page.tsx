@@ -291,7 +291,7 @@ export default function MinePage() {
                                 <button
                                     type="button"
                                     onClick={() => router.push(`/chat/${char.id}`)}
-                                    className="w-full flex items-center gap-4 p-4 liquid-glass-card rounded-2xl transition-all duration-300 group text-left"
+                                    className="w-full flex items-center gap-3 p-3 liquid-glass-card rounded-2xl transition-all duration-300 group text-left"
                                 >
                                     {/* Avatar */}
                                     <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border border-white/10">
@@ -311,17 +311,14 @@ export default function MinePage() {
 
                                     {/* Info */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between mb-1">
+                                        <div className="flex items-center justify-between">
                                             <h3 className="text-base font-bold text-white truncate">
                                                 {char.title}
                                             </h3>
-                                            <span className="text-xs text-white flex-shrink-0 ml-2">
+                                            <span className="text-xs text-white/80 flex-shrink-0 ml-2">
                                                 {formatTime(char.lastMessageTime)}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-white truncate">
-                                            {char.lastMessage || 'Start a conversation...'}
-                                        </p>
                                     </div>
 
                                     {/* 累积收益 - 与聊天页头部 LRA 徽章同款样式 */}
@@ -342,7 +339,6 @@ export default function MinePage() {
                                             }`}>
                                             {char.dailyRemaining}/{char.dailyLimit}
                                         </div>
-                                        <span className="text-[9px] text-white mt-0.5">today</span>
                                     </div>
 
                                     {/* Arrow */}
