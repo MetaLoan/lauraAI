@@ -1,4 +1,4 @@
-# LauraAI Backend
+# SoulFace Backend
 
 Go 语言后端服务，提供 Telegram Mini App 认证、Gemini AI 聊天和图片生成功能。
 
@@ -40,7 +40,7 @@ cp .env.example .env
 ```env
 TELEGRAM_BOT_TOKEN=your_bot_token
 GEMINI_API_KEY=your_gemini_api_key
-POSTGRES_DSN=host=localhost user=lauraai password=password dbname=lauraai port=5432 sslmode=disable
+POSTGRES_DSN=host=localhost user=soulface password=password dbname=soulface port=5432 sslmode=disable
 PORT=8080
 ```
 
@@ -50,11 +50,11 @@ PORT=8080
 
 ```bash
 # 创建数据库
-createdb lauraai
+createdb soulface
 
 # 或使用 psql
 psql -U postgres
-CREATE DATABASE lauraai;
+CREATE DATABASE soulface;
 ```
 
 ### 4. 运行服务
@@ -182,7 +182,7 @@ X-Telegram-Init-Data: <initData>
 
 **请求头:**
 ```
-X-Debug-Key: lauraai-clear-2026
+X-Debug-Key: soulface-clear-2026
 ```
 
 **响应:**
@@ -198,13 +198,13 @@ X-Debug-Key: lauraai-clear-2026
 
 **请求头:**
 ```
-X-Debug-Key: lauraai-clear-2026
+X-Debug-Key: soulface-clear-2026
 ```
 
 **示例:**
 ```bash
-curl -X POST https://lauraai-backend.fly.dev/debug/clear-all-data \
-  -H "X-Debug-Key: lauraai-clear-2026"
+curl -X POST https://soulface-backend.fly.dev/debug/clear-all-data \
+  -H "X-Debug-Key: soulface-clear-2026"
 ```
 
 **响应:**

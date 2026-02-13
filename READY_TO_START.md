@@ -15,7 +15,7 @@
 打开终端 1：
 
 ```bash
-cd /Users/leo/Documents/lauraai/backend
+cd /Users/leo/Documents/soulface/backend
 go run cmd/server/main.go
 ```
 
@@ -30,7 +30,7 @@ go run cmd/server/main.go
 打开终端 2：
 
 ```bash
-cd /Users/leo/Documents/lauraai
+cd /Users/leo/Documents/soulface
 npm run dev
 ```
 

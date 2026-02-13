@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"lauraai-backend/internal/config"
+	"soulface-backend/internal/config"
 
 	"google.golang.org/genai"
 )

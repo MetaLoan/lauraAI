@@ -9,5 +9,5 @@
 Makefile
 *.sh
 server
-lauraai-backend
+soulface-backend
 debug_hash.go

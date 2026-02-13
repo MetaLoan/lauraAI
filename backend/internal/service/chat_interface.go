@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"lauraai-backend/internal/i18n"
-	"lauraai-backend/internal/model"
+	"soulface-backend/internal/i18n"
+	"soulface-backend/internal/model"
 )
 
 // ChatService 文字对话接口，可由 Gemini 或 DeepSeek 实现

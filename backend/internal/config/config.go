@@ -39,7 +39,7 @@ func LoadConfig() {
 	// 优先使用 DATABASE_URL（fly.io 标准），其次使用 POSTGRES_DSN
 	dbDSN := getEnv("DATABASE_URL", "")
 	if dbDSN == "" {
-		dbDSN = getEnv("POSTGRES_DSN", "host=localhost user=lauraai password=password dbname=lauraai port=5432 sslmode=disable")
+		dbDSN = getEnv("POSTGRES_DSN", "host=localhost user=soulface password=password dbname=soulface port=5432 sslmode=disable")
 	}
 
 	AppConfig = &Config{
@@ -49,7 +49,7 @@ func LoadConfig() {
 		PostgresDSN:              dbDSN,
 		DevMode:                  getEnv("DEV_MODE", "false") == "true",
 		WebAppMode:               getEnv("WEB_APP_MODE", "false") == "true", // Default false for production safety
-		BaseURL:                  getEnv("BASE_URL", "https://lauraai-backend.fly.dev"),
+		BaseURL:                  getEnv("BASE_URL", "https://soulface-backend.fly.dev"),
 		UploadsDir:               getEnv("UPLOADS_DIR", "./uploads"),
 		AdminSecret:              getEnv("ADMIN_SECRET", ""),
 		TGELive:                  getEnv("TGE_LIVE", "false") == "true",

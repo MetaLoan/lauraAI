@@ -42,7 +42,7 @@ jobs:
         run: npm run build
         env:
           # 前端部署固定使用 fly.io 后端，不依赖 secrets
-          NEXT_PUBLIC_API_URL: 'https://lauraai-backend.fly.dev/api'
+          NEXT_PUBLIC_API_URL: 'https://soulface-backend.fly.dev/api'
           NEXT_PUBLIC_RPC_URL: 'https://eth.llamarpc.com'
           NEXT_PUBLIC_LAURA_AI_SOULMATE_ADDRESS: '0x9c2D6F27EC4F8438964Bb2e6540b4c8C735796DE'
           NEXT_PUBLIC_LAURA_AI_MARKETPLACE_ADDRESS: '0x798FA4D90E77C57dc9Bb390ACFe58b09dad9110e'

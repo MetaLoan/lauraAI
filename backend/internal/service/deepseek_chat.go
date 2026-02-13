@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"lauraai-backend/internal/config"
-	"lauraai-backend/internal/i18n"
-	"lauraai-backend/internal/model"
+	"soulface-backend/internal/config"
+	"soulface-backend/internal/i18n"
+	"soulface-backend/internal/model"
 )
 
 const deepSeekAPIURL = "https://api.deepseek.com/v1/chat/completions"

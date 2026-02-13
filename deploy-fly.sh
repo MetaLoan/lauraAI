@@ -15,27 +15,27 @@ usage() {
 }
 
 deploy_rpc() {
-  echo ">>> 部署 RPC 节点 (lauraai-rpc)..."
+  echo ">>> 部署 RPC 节点 (soulface-rpc)..."
   cd "$SCRIPT_DIR/rpc-node"
   if ! fly status 2>/dev/null; then
-    echo "首次需先: cd rpc-node && fly launch --no-deploy --name lauraai-rpc --region sin"
+    echo "首次需先: cd rpc-node && fly launch --no-deploy --name soulface-rpc --region sin"
     exit 1
   fi
   fly deploy
-  echo ">>> RPC 节点地址: https://lauraai-rpc.fly.dev"
+  echo ">>> RPC 节点地址: https://soulface-rpc.fly.dev"
 }
 
 deploy_backend() {
-  echo ">>> 部署后端 (lauraai-backend)..."
+  echo ">>> 部署后端 (soulface-backend)..."
   cd "$SCRIPT_DIR/backend"
   if ! fly status 2>/dev/null; then
-    echo "首次需先: cd backend && fly launch --no-deploy --name lauraai-backend --region sin"
+    echo "首次需先: cd backend && fly launch --no-deploy --name soulface-backend --region sin"
     echo "并创建 volume: fly volumes create uploads_data --size 10 --region sin"
     echo "并设置 secrets: fly secrets set DEEPSEEK_API_KEY=... GEMINI_API_KEY=... POSTGRES_DSN=... UPLOADS_DIR=/root/uploads"
     exit 1
   fi
   fly deploy
-  echo ">>> 后端 API 地址: https://lauraai-backend.fly.dev/api"
+  echo ">>> 后端 API 地址: https://soulface-backend.fly.dev/api"
 }
 
 case "${1:-all}" in

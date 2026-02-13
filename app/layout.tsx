@@ -18,21 +18,21 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'LauraAI | Sovereign Intelligence',
+  title: 'SoulFace | Sovereign Intelligence',
   description: 'The first Intent-based AI Asset Management. Deepen your bond, automate your wealth.',
   manifest: withBasePath('/manifest.json'),
   metadataBase: new URL('https://laura-ai.com'),
   openGraph: {
-    title: 'LauraAI: The Sovereign AI Protocol',
+    title: 'SoulFace: The Sovereign AI Protocol',
     description: 'Autonomous Intelligence meets DeFi. Mint your soulmate, secure your future.',
     url: 'https://laura-ai.com',
-    siteName: 'LauraAI',
+    siteName: 'SoulFace',
     images: [
       {
         url: '/og-image.png', // We'll need to ensure this or a good placeholder exists
         width: 1200,
         height: 630,
-        alt: 'LauraAI - AI Soulmate Experience',
+        alt: 'SoulFace - AI Soulmate Experience',
       },
     ],
     locale: 'en_US',
@@ -40,15 +40,15 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LauraAI | Sovereign AI Soulmate',
+    title: 'SoulFace | Sovereign AI Soulmate',
     description: 'The world\'s first Intent-based AI Asset Management Companion on Ethereum.',
-    creator: '@LauraAI_BSC',
+    creator: '@SoulFace_BSC',
     images: ['/og-image.png'],
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'LauraAI',
+    title: 'SoulFace',
   },
   icons: {
     icon: withBasePath('/logolaura.png'),

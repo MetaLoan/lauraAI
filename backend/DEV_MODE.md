@@ -77,7 +77,7 @@ TELEGRAM_BOT_TOKEN=
 GEMINI_API_KEY=your_gemini_api_key
 
 # PostgreSQL 数据库连接
-POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=lauraai port=5432 sslmode=disable
+POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=soulface port=5432 sslmode=disable
 
 # 服务器端口
 PORT=8080

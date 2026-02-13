@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 
-	"lauraai-backend/internal/model"
+	"soulface-backend/internal/model"
 )
 
 type CharacterRepository struct{}

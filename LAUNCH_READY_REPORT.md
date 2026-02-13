@@ -1,4 +1,4 @@
-# 🎉 LauraAI 生产就绪完成报告
+# 🎉 SoulFace 生产就绪完成报告
 
 **日期**: 2026-02-10 14:54  
 **状态**: ✅ 核心功能已完成并验证
@@ -82,7 +82,7 @@
 ```
 ✅ 后端服务: http://localhost:8081 (Running)
 ✅ 前端服务: http://localhost:3000 (Running)
-✅ 数据库: PostgreSQL (lauraai) (Connected)
+✅ 数据库: PostgreSQL (soulface) (Connected)
 ```
 
 ### 自动化测试结果
@@ -158,7 +158,7 @@ ps aux | grep -E "(server|next)"
 curl "http://localhost:8081/api/market/intelligence" | python3 -m json.tool
 
 # 3. 查看数据库
-psql -h localhost -U postgres -d lauraai -c "SELECT telegram_id, points, lra_balance FROM users LIMIT 5;"
+psql -h localhost -U postgres -d soulface -c "SELECT telegram_id, points, lra_balance FROM users LIMIT 5;"
 
 # 4. 查看后端日志
 tail -f backend/server.log
@@ -222,7 +222,7 @@ tail -f backend/server.log
 ```
 Host: localhost
 Port: 5432
-Database: lauraai
+Database: soulface
 User: postgres
 ```
 

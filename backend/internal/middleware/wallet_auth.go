@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"lauraai-backend/internal/config"
-	"lauraai-backend/internal/model"
-	"lauraai-backend/internal/repository"
-	"lauraai-backend/pkg/response"
+	"soulface-backend/internal/config"
+	"soulface-backend/internal/model"
+	"soulface-backend/internal/repository"
+	"soulface-backend/pkg/response"
 )
 
 const UserContextKey = "user"
@@ -81,7 +81,7 @@ func WalletAuthMiddleware() gin.HandlerFunc {
 			if walletAddr != "" && walletSig != "" {
 				normalizedAddress, err := NormalizeWalletAddress(walletAddr)
 				if err == nil {
-					message := "LauraAI Auth: " + normalizedAddress
+					message := "SoulFace Auth: " + normalizedAddress
 					if err := VerifyWalletSignatureMessage(normalizedAddress, walletSig, message); err == nil {
 						userRepo := repository.NewUserRepository()
 						user, err := userRepo.GetByWalletAddress(normalizedAddress)

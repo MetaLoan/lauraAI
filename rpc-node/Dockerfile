@@ -1,4 +1,4 @@
-# LauraAI 本地链 RPC 节点（Anvil，与 Hardhat 链兼容 31337）
+# SoulFace 本地链 RPC 节点（Anvil，与 Hardhat 链兼容 31337）
 FROM ghcr.io/foundry-rs/foundry:latest
 
 # 监听所有接口，供 Fly 转发

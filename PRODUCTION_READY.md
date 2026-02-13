@@ -1,4 +1,4 @@
-# LauraAI 生产就绪清单
+# SoulFace 生产就绪清单
 
 ## ✅ 已完成的核心功能
 
@@ -28,7 +28,7 @@
 ```bash
 # 执行迁移脚本
 cd backend
-psql -U your_user -d lauraai < migrations/add_user_balance.sql
+psql -U your_user -d soulface < migrations/add_user_balance.sql
 ```
 
 或者让 GORM 自动迁移:

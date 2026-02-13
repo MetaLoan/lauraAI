@@ -1,4 +1,4 @@
-module lauraai-backend
+module soulface-backend
 
 go 1.24.0
 

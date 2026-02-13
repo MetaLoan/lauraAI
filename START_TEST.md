@@ -14,14 +14,14 @@
 打开一个新的终端窗口，运行：
 
 ```bash
-cd /Users/leo/Documents/lauraai/backend
+cd /Users/leo/Documents/soulface/backend
 go run cmd/server/main.go
 ```
 
 或者使用启动脚本：
 
 ```bash
-cd /Users/leo/Documents/lauraai/backend
+cd /Users/leo/Documents/soulface/backend
 ./test-start.sh
 ```
 
@@ -66,7 +66,7 @@ pnpm dev
 使用测试脚本：
 
 ```bash
-cd /Users/leo/Documents/lauraai/backend
+cd /Users/leo/Documents/soulface/backend
 ./test-api.sh
 ```
 
@@ -97,7 +97,7 @@ cd /Users/leo/Documents/lauraai/backend
 ```env
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 GEMINI_API_KEY=AIzaSyAgMfnlyqV2T-tm0buF9VQEgafeffwFFc0
-POSTGRES_DSN=host=localhost user=postgres password= dbname=lauraai port=5432 sslmode=disable
+POSTGRES_DSN=host=localhost user=postgres password= dbname=soulface port=5432 sslmode=disable
 PORT=8081
 ```
 

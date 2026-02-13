@@ -10,7 +10,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-echo -e "${GREEN}🚀 启动 LauraAI 后端服务...${NC}"
+echo -e "${GREEN}🚀 启动 SoulFace 后端服务...${NC}"
 echo ""
 
 # 检查 .env 文件
@@ -20,7 +20,7 @@ if [ ! -f .env ]; then
     echo "请创建 .env 文件并配置以下变量："
     echo "  TELEGRAM_BOT_TOKEN=your_bot_token"
     echo "  GEMINI_API_KEY=your_gemini_api_key"
-    echo "  POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=lauraai port=5432 sslmode=disable"
+    echo "  POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=soulface port=5432 sslmode=disable"
     echo "  PORT=8081"
     echo "  DEV_MODE=true"
     echo ""

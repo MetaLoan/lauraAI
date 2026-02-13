@@ -56,7 +56,7 @@ if [[ -z "${PRIVATE_KEY:-}" && -z "${MNEMONIC:-}" ]]; then
   exit 1
 fi
 
-echo "==> Deploying LauraAISoulmate to Ethereum mainnet"
+echo "==> Deploying SoulFaceSoulmate to Ethereum mainnet"
 echo "    RPC: $ETH_MAINNET_RPC_URL"
 echo "    FF token: $FF_TOKEN_ADDRESS"
 echo "    Treasury: $MINT_TREASURY_WALLET"
@@ -83,10 +83,10 @@ extract_addr() {
   fi
 }
 
-TOKEN_ADDR="$(extract_addr "LauraAIToken deployed to:" "$DEPLOY_LOG")"
-SOULMATE_ADDR="$(extract_addr "LauraAISoulmate deployed to:" "$DEPLOY_LOG")"
-MARKET_ADDR="$(extract_addr "LauraAIMarketplace deployed to:" "$DEPLOY_LOG")"
-STAKING_ADDR="$(extract_addr "LauraAIStaking deployed to:" "$DEPLOY_LOG")"
+TOKEN_ADDR="$(extract_addr "SoulFaceToken deployed to:" "$DEPLOY_LOG")"
+SOULMATE_ADDR="$(extract_addr "SoulFaceSoulmate deployed to:" "$DEPLOY_LOG")"
+MARKET_ADDR="$(extract_addr "SoulFaceMarketplace deployed to:" "$DEPLOY_LOG")"
+STAKING_ADDR="$(extract_addr "SoulFaceStaking deployed to:" "$DEPLOY_LOG")"
 
 if [[ -z "${SOULMATE_ADDR:-}" ]]; then
   echo "Failed to parse deployed soulmate contract address."
@@ -103,7 +103,7 @@ echo "Staking: ${STAKING_ADDR:-<not parsed>}"
 
 echo
 echo "==> Next commands (copy/paste):"
-echo "flyctl secrets set -a ${FLY_APP:-lauraai-backend} \\"
+echo "flyctl secrets set -a ${FLY_APP:-soulface-backend} \\"
 echo "  MINT_CONTRACT_ADDRESS=$SOULMATE_ADDR \\"
 echo "  MINT_EXPECTED_CHAIN_ID=1 \\"
 echo "  CHAIN_RPC_URL=$ETH_MAINNET_RPC_URL \\"

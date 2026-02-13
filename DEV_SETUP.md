@@ -96,7 +96,7 @@ TELEGRAM_BOT_TOKEN=your_bot_token
 GEMINI_API_KEY=your_gemini_api_key
 
 # PostgreSQL 连接字符串
-POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=lauraai port=5432 sslmode=disable
+POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=soulface port=5432 sslmode=disable
 
 # 服务器端口
 PORT=8081
@@ -133,13 +133,13 @@ kill -9 <PID>
 
 - 检查 ngrok 是否已安装：`which ngrok`
 - 检查 authtoken 是否配置：`ngrok config check`
-- 查看 ngrok 日志：`cat /tmp/lauraai-dev/ngrok.log`
+- 查看 ngrok 日志：`cat /tmp/soulface-dev/ngrok.log`
 
 ### 3. 后端无法连接数据库
 
 - 检查 PostgreSQL 是否运行：`pg_isready`
 - 检查连接字符串是否正确
-- 检查数据库是否存在：`psql -l | grep lauraai`
+- 检查数据库是否存在：`psql -l | grep soulface`
 
 ### 4. 前端无法连接后端
 
@@ -178,9 +178,9 @@ pkill -f "ngrok"
    - 后端代码修改需要重启服务器
 
 3. **查看日志**
-   - 后端日志：`cat /tmp/lauraai-dev/backend.log`
-   - ngrok 日志：`cat /tmp/lauraai-dev/ngrok.log`
-   - ngrok URL：`cat /tmp/lauraai-dev/ngrok_url.txt`
+   - 后端日志：`cat /tmp/soulface-dev/backend.log`
+   - ngrok 日志：`cat /tmp/soulface-dev/ngrok.log`
+   - ngrok URL：`cat /tmp/soulface-dev/ngrok_url.txt`
 
 4. **测试**
    - 本地浏览器：http://localhost:3000

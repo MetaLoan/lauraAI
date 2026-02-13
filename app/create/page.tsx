@@ -486,7 +486,7 @@ export default function CreatePage() {
             if (!mintOrderResult?.already_paid) {
                 const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
                     ? 'http://localhost:8081'
-                    : 'https://lauraai-backend.fly.dev';
+                    : 'https://soulface-backend.fly.dev';
                 const metadataURI = `${baseUrl}/api/nft/metadata/${generatingCharacterId}`;
 
                 const approveTx = await writeContractAsync({
@@ -631,7 +631,7 @@ export default function CreatePage() {
             // Step 3: Mint NFT on-chain (pay mint fee)
             const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
                 ? 'http://localhost:8081'
-                : 'https://lauraai-backend.fly.dev';
+                : 'https://soulface-backend.fly.dev';
             const metadataURI = `${baseUrl}/api/nft/metadata/${character.id}`;
 
             console.log('Minting NFT with metadata URI:', metadataURI, 'mintPriceFF:', mintPrice.toString());

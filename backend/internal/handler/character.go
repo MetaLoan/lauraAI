@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"strings"
 
-	"lauraai-backend/internal/config"
-	"lauraai-backend/internal/i18n"
-	"lauraai-backend/internal/middleware"
-	"lauraai-backend/internal/model"
-	"lauraai-backend/internal/repository"
-	"lauraai-backend/pkg/response"
+	"soulface-backend/internal/config"
+	"soulface-backend/internal/i18n"
+	"soulface-backend/internal/middleware"
+	"soulface-backend/internal/model"
+	"soulface-backend/internal/repository"
+	"soulface-backend/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )
@@ -425,7 +425,7 @@ func (h *CharacterHandler) GetNFTMetadata(c *gin.Context) {
 	// can actually fetch the image (localhost is not accessible externally).
 	nftBaseURL := strings.TrimSpace(os.Getenv("NFT_IMAGE_BASE_URL"))
 	if nftBaseURL == "" {
-		nftBaseURL = "https://lauraai-backend.fly.dev"
+		nftBaseURL = "https://soulface-backend.fly.dev"
 	}
 	absoluteImageURL := imageURL
 	if absoluteImageURL != "" && !strings.HasPrefix(absoluteImageURL, "http") {
@@ -438,7 +438,7 @@ func (h *CharacterHandler) GetNFTMetadata(c *gin.Context) {
 	// ERC721 metadata standard
 	metadata := gin.H{
 		"name":        character.Title,
-		"description": fmt.Sprintf("LauraAI %s — %s %s, %s zodiac, %d%% compatibility", character.Title, character.Gender, character.Ethnicity, character.AstroSign, character.Compatibility),
+		"description": fmt.Sprintf("SoulFace %s — %s %s, %s zodiac, %d%% compatibility", character.Title, character.Gender, character.Ethnicity, character.AstroSign, character.Compatibility),
 		"image":       absoluteImageURL,
 		"attributes": []gin.H{
 			{"trait_type": "Type", "value": string(character.Type)},

@@ -3,7 +3,7 @@ package response
 import (
 	"net/http"
 
-	"lauraai-backend/internal/i18n"
+	"soulface-backend/internal/i18n"
 
 	"github.com/gin-gonic/gin"
 )

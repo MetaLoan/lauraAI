@@ -49,7 +49,7 @@ if lsof -Pi :3000 -sTCP:LISTEN -t >/dev/null 2>&1; then
 fi
 
 # 创建临时目录存储日志
-TMP_DIR="/tmp/lauraai-dev"
+TMP_DIR="/tmp/soulface-dev"
 mkdir -p "$TMP_DIR"
 
 # 启动后端服务器

@@ -6,7 +6,7 @@ export default function CookiePolicyPage() {
       <div className="mx-auto max-w-3xl space-y-6">
         <h1 className="text-3xl font-bold">Cookie Policy</h1>
         <p className="text-white/80">
-          LauraAI uses essential cookies and local storage to keep sessions stable, store language/UI preferences, and improve
+          SoulFace uses essential cookies and local storage to keep sessions stable, store language/UI preferences, and improve
           product reliability.
         </p>
         <p className="text-white/80">

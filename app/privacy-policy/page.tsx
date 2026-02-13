@@ -6,7 +6,7 @@ export default function PrivacyPolicyPage() {
       <div className="mx-auto max-w-3xl space-y-6">
         <h1 className="text-3xl font-bold">Privacy Policy</h1>
         <p className="text-white/80">
-          LauraAI collects only the information required to provide core features, including wallet address, profile data,
+          SoulFace collects only the information required to provide core features, including wallet address, profile data,
           and usage data needed to operate AI, chat, and rewards functionality.
         </p>
         <p className="text-white/80">

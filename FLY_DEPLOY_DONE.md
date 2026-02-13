@@ -4,15 +4,15 @@
 
 ## 1. RPC 节点（Anvil）
 
-- **应用名**: `lauraai-rpc`
-- **地址**: https://lauraai-rpc.fly.dev
+- **应用名**: `soulface-rpc`
+- **地址**: https://soulface-rpc.fly.dev
 - **状态**: 已部署，监听 0.0.0.0:8545
 - **链**: Chain ID 31337（与 Hardhat 兼容）
 
 ## 2. 后端（Go API）
 
-- **应用名**: `lauraai-backend`
-- **API 基础地址**: https://lauraai-backend.fly.dev/api
+- **应用名**: `soulface-backend`
+- **API 基础地址**: https://soulface-backend.fly.dev/api
 - **状态**: 已部署（沿用你之前的 volume 与 secrets）
 
 ---
@@ -24,8 +24,8 @@
 在项目根目录的 `.env.local` 里加上或改成：
 
 ```env
-NEXT_PUBLIC_API_URL=https://lauraai-backend.fly.dev/api
-NEXT_PUBLIC_RPC_URL=https://lauraai-rpc.fly.dev
+NEXT_PUBLIC_API_URL=https://soulface-backend.fly.dev/api
+NEXT_PUBLIC_RPC_URL=https://soulface-rpc.fly.dev
 ```
 
 保存后重启前端（`npm run dev`）。之后前端会请求云端 API 和云端 RPC，**本地不用再开后端和 Hardhat 节点**。
@@ -53,7 +53,7 @@ npx hardhat run scripts/deploy.js --network fly
 ### 三、钱包里添加「云端链」
 
 - 网络名称：随意，例如 `Laura Cloud`
-- RPC URL：`https://lauraai-rpc.fly.dev`
+- RPC URL：`https://soulface-rpc.fly.dev`
 - Chain ID：`31337`
 - 符号：`ETH` 或 `GO` 均可
 

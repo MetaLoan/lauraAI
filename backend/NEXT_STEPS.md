@@ -11,7 +11,7 @@
 7. ✅ Gemini Imagen 3 API 集成完成
 8. ✅ 前端 API 客户端已创建
 9. ✅ ChatWindow 组件已更新为使用真实 API
-10. ✅ 数据库已创建（lauraai）
+10. ✅ 数据库已创建（soulface）
 11. ✅ 后端代码编译成功
 
 ## 🚀 立即开始
@@ -33,7 +33,7 @@ TELEGRAM_BOT_TOKEN=your_bot_token_here
 GEMINI_API_KEY=AIzaSyAgMfnlyqV2T-tm0buF9VQEgafeffwFFc0
 
 # PostgreSQL 数据库连接
-POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=lauraai port=5432 sslmode=disable
+POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=soulface port=5432 sslmode=disable
 
 # 服务器端口
 PORT=8080
@@ -78,7 +78,7 @@ go run cmd/server/main.go
 在项目根目录创建 `.env.local` 文件：
 
 ```bash
-cd /Users/leo/Documents/lauraai
+cd /Users/leo/Documents/soulface
 cat > .env.local << 'EOF'
 NEXT_PUBLIC_API_URL=http://localhost:8080/api
 EOF

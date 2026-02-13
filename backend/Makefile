@@ -2,7 +2,7 @@
 
 # 构建项目
 build:
-	go build -o lauraai-backend cmd/server/main.go
+	go build -o soulface-backend cmd/server/main.go
 
 # 运行服务器
 run:
@@ -18,7 +18,7 @@ test:
 
 # 清理构建文件
 clean:
-	rm -f lauraai-backend
+	rm -f soulface-backend
 
 # 安装依赖
 deps:

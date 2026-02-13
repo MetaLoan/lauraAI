@@ -30,14 +30,14 @@ RPC 使用 Anvil（与 Hardhat 链兼容，Chain ID 31337），供前端/钱包�
 
 ```bash
 cd rpc-node
-fly launch --no-deploy --name lauraai-rpc --region sin
+fly launch --no-deploy --name soulface-rpc --region sin
 # 若提示 Copy configuration from existing app? 选 No
 fly deploy
 ```
 
 部署成功后记下 RPC 地址，例如：
 ```
-https://lauraai-rpc.fly.dev
+https://soulface-rpc.fly.dev
 ```
 
 **注意**：Anvil 当前为无状态运行，机器重启后链数据会清空，需重新在链上部署合约并打钱（见下文「首次/重启后：向云端 RPC 部署合约并打钱」）。
@@ -48,8 +48,8 @@ https://lauraai-rpc.fly.dev
 
 ```bash
 cd backend
-fly launch --no-deploy --name lauraai-backend --region sin
-# 若已存在 lauraai-backend，可跳过 launch，直接做下面步骤
+fly launch --no-deploy --name soulface-backend --region sin
+# 若已存在 soulface-backend，可跳过 launch，直接做下面步骤
 ```
 
 1. **创建 Volume（存上传文件）**  
@@ -63,23 +63,23 @@ fly launch --no-deploy --name lauraai-backend --region sin
    # 文字对话优先用 DeepSeek，未设置则回退 Gemini
    fly secrets set DEEPSEEK_API_KEY="你的_deepseek_api_key"
    fly secrets set GEMINI_API_KEY="你的_gemini_api_key"
-   fly secrets set POSTGRES_DSN="host=xxx user=xxx password=xxx dbname=lauraai port=5432 sslmode=require"
+   fly secrets set POSTGRES_DSN="host=xxx user=xxx password=xxx dbname=soulface port=5432 sslmode=require"
    fly secrets set UPLOADS_DIR="/root/uploads"
    ```
-   可选：`TELEGRAM_BOT_TOKEN`、`BASE_URL=https://lauraai-backend.fly.dev`
+   可选：`TELEGRAM_BOT_TOKEN`、`BASE_URL=https://soulface-backend.fly.dev`
 
 3. **部署**：
    ```bash
    fly deploy
    ```
 
-后端地址示例：`https://lauraai-backend.fly.dev`，API 基础路径：`https://lauraai-backend.fly.dev/api`。
+后端地址示例：`https://soulface-backend.fly.dev`，API 基础路径：`https://soulface-backend.fly.dev/api`。
 
 ---
 
 ## 三、首次/重启后：向云端 RPC 部署合约并打钱
 
-RPC 节点重启后链会重置，需要重新部署合约并给钱包地址打测试币。项目已配置 `fly` 网络（见 `contracts/hardhat.config.js`），默认指向 `https://lauraai-rpc.fly.dev`，也可用环境变量 `FLY_RPC_URL` 覆盖。
+RPC 节点重启后链会重置，需要重新部署合约并给钱包地址打测试币。项目已配置 `fly` 网络（见 `contracts/hardhat.config.js`），默认指向 `https://soulface-rpc.fly.dev`，也可用环境变量 `FLY_RPC_URL` 覆盖。
 
 1. **部署合约**（使用 fly 网络）：
    ```bash
@@ -99,16 +99,16 @@ RPC 节点重启后链会重置，需要重新部署合约并给钱包地址打�
    npx hardhat run scripts/fund-address.js --network fly
    ```
 
-完成后，前端连接 `https://lauraai-rpc.fly.dev` 即可看到余额并正常 Mint。
+完成后，前端连接 `https://soulface-rpc.fly.dev` 即可看到余额并正常 Mint。
 
 ---
 
 ## 四、前端配置
 
 - **API**：`.env.local` 或生产环境里设置  
-  `NEXT_PUBLIC_API_URL=https://lauraai-backend.fly.dev/api`
+  `NEXT_PUBLIC_API_URL=https://soulface-backend.fly.dev/api`
 - **RPC（使用云端链时）**：设置  
-  `NEXT_PUBLIC_RPC_URL=https://lauraai-rpc.fly.dev`  
+  `NEXT_PUBLIC_RPC_URL=https://soulface-rpc.fly.dev`  
   前端会优先用该地址作为 Chain ID 31337 的 RPC，无需本地节点。
 
 ---

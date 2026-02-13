@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract LauraAISoulmate is ERC721, ERC721URIStorage, Ownable {
+contract SoulFaceSoulmate is ERC721, ERC721URIStorage, Ownable {
     uint256 private _nextTokenId;
     IERC20 public paymentToken;
     address public treasury;
@@ -15,7 +15,7 @@ contract LauraAISoulmate is ERC721, ERC721URIStorage, Ownable {
     event SoulmateBorn(address indexed owner, uint256 indexed tokenId, string tokenURI);
     event MintPayment(address indexed payer, address indexed treasury, uint256 amount);
 
-    constructor(address tokenAddress, address treasuryAddress, uint256 initialMintPrice) ERC721("Laura AI Soulmate", "LRAI") Ownable(msg.sender) {
+    constructor(address tokenAddress, address treasuryAddress, uint256 initialMintPrice) ERC721("SoulFace Soulmate", "SOUL") Ownable(msg.sender) {
         require(tokenAddress != address(0), "Invalid token address");
         require(treasuryAddress != address(0), "Invalid treasury address");
         require(initialMintPrice > 0, "Invalid mint price");
@@ -25,7 +25,7 @@ contract LauraAISoulmate is ERC721, ERC721URIStorage, Ownable {
     }
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://api.lauraai.io/metadata/";
+        return "https://api.soulface.io/metadata/";
     }
 
     function safeMint(address to, string memory uri) public payable {

@@ -5,11 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"lauraai-backend/internal/config"
-	"lauraai-backend/internal/handler"
-	"lauraai-backend/internal/middleware"
-	"lauraai-backend/internal/repository"
-	"lauraai-backend/internal/service"
+	"soulface-backend/internal/config"
+	"soulface-backend/internal/handler"
+	"soulface-backend/internal/middleware"
+	"soulface-backend/internal/repository"
+	"soulface-backend/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -105,7 +105,7 @@ func main() {
 			c.JSON(404, gin.H{"error": "Not found"})
 			return
 		}
-		if c.GetHeader("X-Debug-Key") != "lauraai-clear-2026" {
+		if c.GetHeader("X-Debug-Key") != "soulface-clear-2026" {
 			c.JSON(403, gin.H{"error": "Forbidden"})
 			return
 		}
@@ -124,7 +124,7 @@ func main() {
 			c.JSON(404, gin.H{"error": "Not found"})
 			return
 		}
-		if c.GetHeader("X-Debug-Key") != "lauraai-clear-2026" {
+		if c.GetHeader("X-Debug-Key") != "soulface-clear-2026" {
 			c.JSON(403, gin.H{"error": "Forbidden"})
 			return
 		}
@@ -143,7 +143,7 @@ func main() {
 			c.JSON(404, gin.H{"error": "Not found"})
 			return
 		}
-		if c.GetHeader("X-Debug-Key") != "lauraai-clear-2026" {
+		if c.GetHeader("X-Debug-Key") != "soulface-clear-2026" {
 			c.JSON(403, gin.H{"error": "Forbidden"})
 			return
 		}

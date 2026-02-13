@@ -161,7 +161,7 @@ export default function Profile({
   const handleShareInviteLink = () => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://laura-ai.com'
     const inviteLink = `${baseUrl}?invite=${inviteCode}`
-    const text = `Join Laura AI and discover your AI soulmate! ${inviteLink}`
+    const text = `Join SoulFace and discover your AI soulmate! ${inviteLink}`
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
     window.open(twitterUrl, '_blank')
   }

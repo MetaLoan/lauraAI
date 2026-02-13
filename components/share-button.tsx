@@ -16,8 +16,8 @@ interface ShareButtonProps {
 }
 
 export function ShareButton({
-  title = 'Meet my AI Soulmate on LauraAI',
-  text = 'I just minted my sovereign AI companion on Ethereum. Start your Chat-to-Earn journey with LauraAI!',
+  title = 'Meet my AI Soulmate on SoulFace',
+  text = 'I just minted my sovereign AI companion on Ethereum. Start your Chat-to-Earn journey with SoulFace!',
   url = typeof window !== 'undefined' ? window.location.href : 'https://laura-ai.com',
   variant = 'outline',
   className,
@@ -37,7 +37,7 @@ export function ShareButton({
   };
 
   const shareToTwitter = () => {
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&via=LauraAI_BSC`;
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&via=SoulFace_BSC`;
     window.open(twitterUrl, '_blank');
   };
 
@@ -66,7 +66,7 @@ export function ShareButton({
         className="z-[1400] w-[280px] liquid-glass-card rounded-2xl border-0 p-4"
         style={{ backgroundColor: 'rgba(73, 40, 67, 0.4)' }}
       >
-        <h3 className="text-base font-bold text-white mb-1">Share LauraAI</h3>
+        <h3 className="text-base font-bold text-white mb-1">Share SoulFace</h3>
         <p className="text-white/90 text-xs mb-3">Spread the word and invite others.</p>
 
         <div className="space-y-2">

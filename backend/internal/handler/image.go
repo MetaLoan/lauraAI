@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"lauraai-backend/internal/middleware"
-	"lauraai-backend/internal/model"
-	"lauraai-backend/internal/repository"
-	"lauraai-backend/internal/service"
-	"lauraai-backend/pkg/response"
+	"soulface-backend/internal/middleware"
+	"soulface-backend/internal/model"
+	"soulface-backend/internal/repository"
+	"soulface-backend/internal/service"
+	"soulface-backend/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )

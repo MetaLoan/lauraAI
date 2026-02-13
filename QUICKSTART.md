@@ -1,4 +1,4 @@
-# LauraAI 快速启动指南
+# SoulFace 快速启动指南
 
 ## 前置要求
 
@@ -17,7 +17,7 @@ cd backend
 cat > .env << EOF
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 GEMINI_API_KEY=AIzaSyAgMfnlyqV2T-tm0buF9VQEgafeffwFFc0
-POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=lauraai port=5432 sslmode=disable
+POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=soulface port=5432 sslmode=disable
 PORT=8080
 EOF
 
@@ -75,7 +75,7 @@ curl http://localhost:8080/health
 
 1. 检查 PostgreSQL 是否运行：`pg_isready`
 2. 检查 `.env` 中的 `POSTGRES_DSN` 配置
-3. 确认数据库已创建：`psql -l | grep lauraai`
+3. 确认数据库已创建：`psql -l | grep soulface`
 
 ### 前端无法连接后端
 

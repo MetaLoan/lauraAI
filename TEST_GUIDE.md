@@ -2,7 +2,7 @@
 
 ## 当前配置状态
 
-- ✅ PostgreSQL 数据库已创建 (`lauraai`)
+- ✅ PostgreSQL 数据库已创建 (`soulface`)
 - ✅ 后端配置文件已创建 (`.env`)
 - ✅ 前端配置文件已创建 (`.env.local`)
 - ⚠️  端口 8080 被占用，已改为 8081
@@ -119,12 +119,12 @@ curl -X POST \
 
 3. 测试数据库连接：
    ```bash
-   psql -h localhost -U postgres -d lauraai -c "SELECT 1;"
+   psql -h localhost -U postgres -d soulface -c "SELECT 1;"
    ```
 
 4. 如果使用密码，确保 `.env` 中的密码正确：
    ```env
-   POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=lauraai port=5432 sslmode=disable
+   POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=soulface port=5432 sslmode=disable
    ```
 
 ### Q: 端口被占用

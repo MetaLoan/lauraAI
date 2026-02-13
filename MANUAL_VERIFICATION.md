@@ -1,4 +1,4 @@
-# 🎯 LauraAI 生产就绪 - 手动验证清单
+# 🎯 SoulFace 生产就绪 - 手动验证清单
 
 ## ✅ 自动化测试结果
 
@@ -80,7 +80,7 @@ curl -s "http://localhost:8081/api/market/intelligence" | python3 -m json.tool
 #### 步骤 4.2: 数据库直接查询
 ```bash
 # 在终端执行
-psql -h localhost -U postgres -d lauraai -c "SELECT telegram_id, points, lra_balance FROM users LIMIT 5;"
+psql -h localhost -U postgres -d soulface -c "SELECT telegram_id, points, lra_balance FROM users LIMIT 5;"
 ```
 确认数据库中有真实的积分和余额数据
 
@@ -126,4 +126,4 @@ curl "http://localhost:8081/health"
 **当前服务状态:**
 - 后端: ✅ Running on http://localhost:8081
 - 前端: ✅ Running on http://localhost:3000
-- 数据库: ✅ PostgreSQL (lauraai)
+- 数据库: ✅ PostgreSQL (soulface)

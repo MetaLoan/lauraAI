@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"lauraai-backend/internal/middleware"
-	"lauraai-backend/internal/repository"
-	"lauraai-backend/pkg/response"
+	"soulface-backend/internal/middleware"
+	"soulface-backend/internal/repository"
+	"soulface-backend/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )

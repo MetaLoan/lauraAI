@@ -1,5 +1,5 @@
 -- 修复 birth_time 字段类型的 SQL 脚本
--- 使用方法: psql -h localhost -U postgres -d lauraai -f fix-birth-time.sql
+-- 使用方法: psql -h localhost -U postgres -d soulface -f fix-birth-time.sql
 
 -- 方法1: 直接修改字段类型（如果字段为空或可以转换）
 ALTER TABLE users ALTER COLUMN birth_time TYPE time without time zone USING birth_time::text::time;

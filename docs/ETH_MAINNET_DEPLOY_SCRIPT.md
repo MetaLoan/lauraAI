@@ -40,4 +40,4 @@ git push lauradesktop DESKTOP-BSC
 ## Notes
 - Script uses `contracts/scripts/deploy.js`.
 - If `FF_TOKEN_ADDRESS` is provided in env, deploy script reuses that token and skips new token deployment.
-- If `FF_TOKEN_ADDRESS` is empty, script deploys a fresh `LauraAIToken`.
+- If `FF_TOKEN_ADDRESS` is empty, script deploys a fresh `SoulFaceToken`.

@@ -1,4 +1,4 @@
-# 🎮 LauraAI 完整体验流程指南
+# 🎮 SoulFace 完整体验流程指南
 
 **环境状态**: ✅ 全新数据库 (已清空)  
 **开始时间**: 2026-02-10 14:58  
@@ -12,7 +12,7 @@
 ```
 ✅ 后端: http://localhost:8081 (Go Server)
 ✅ 前端: http://localhost:3000 (Next.js)
-✅ 数据库: PostgreSQL (lauraai) - 已清空
+✅ 数据库: PostgreSQL (soulface) - 已清空
 ```
 
 ### 数据库状态
@@ -31,8 +31,8 @@ Uploaded Files: 已清空 (72 个文件已删除)
 
 #### 步骤 1.1: 访问首页
 1. 打开浏览器访问: `http://localhost:3000`
-2. **预期结果**: 看到 LauraAI 欢迎页面
-3. **检查点**: 页面标题应该是 "LauraAI | Sovereign Intelligence"
+2. **预期结果**: 看到 SoulFace 欢迎页面
+3. **检查点**: 页面标题应该是 "SoulFace | Sovereign Intelligence"
 
 #### 步骤 1.2: 连接钱包
 1. 点击右上角 "Connect Wallet" 按钮
@@ -47,7 +47,7 @@ Uploaded Files: 已清空 (72 个文件已删除)
 #### 步骤 1.3: 验证用户创建
 ```bash
 # 在终端执行
-psql -h localhost -U postgres -d lauraai -c "SELECT id, telegram_id, points, lra_balance FROM users;"
+psql -h localhost -U postgres -d soulface -c "SELECT id, telegram_id, points, lra_balance FROM users;"
 ```
 **预期结果**: 看到一条新用户记录,`points=0`, `lra_balance=0`
 
@@ -83,7 +83,7 @@ psql -h localhost -U postgres -d lauraai -c "SELECT id, telegram_id, points, lra
 
 #### 步骤 2.4: 验证角色创建
 ```bash
-psql -h localhost -U postgres -d lauraai -c "SELECT id, type, title, unlock_status FROM characters;"
+psql -h localhost -U postgres -d soulface -c "SELECT id, type, title, unlock_status FROM characters;"
 ```
 **预期结果**: 看到新创建的角色记录
 
@@ -112,7 +112,7 @@ psql -h localhost -U postgres -d lauraai -c "SELECT id, type, title, unlock_stat
 2. **预期**: 总积分应该达到 25 LRA
 3. **验证积分同步**:
 ```bash
-psql -h localhost -U postgres -d lauraai -c "SELECT points FROM users WHERE id=1;"
+psql -h localhost -U postgres -d soulface -c "SELECT points FROM users WHERE id=1;"
 ```
 **预期结果**: `points = 25`
 
@@ -159,7 +159,7 @@ psql -h localhost -U postgres -d lauraai -c "SELECT points FROM users WHERE id=1
 
 #### 步骤 5.3: 验证数据库更新
 ```bash
-psql -h localhost -U postgres -d lauraai -c "SELECT points, lra_balance FROM users WHERE id=1;"
+psql -h localhost -U postgres -d soulface -c "SELECT points, lra_balance FROM users WHERE id=1;"
 ```
 **预期结果**: 
 ```
@@ -219,7 +219,7 @@ tail -f backend/server.log
 
 ### 实时查看数据库变化
 ```bash
-watch -n 2 'psql -h localhost -U postgres -d lauraai -c "SELECT id, points, lra_balance FROM users;"'
+watch -n 2 'psql -h localhost -U postgres -d soulface -c "SELECT id, points, lra_balance FROM users;"'
 ```
 
 ### 测试单个 API
@@ -314,4 +314,4 @@ curl "http://localhost:8081/health"
 
 **准备好了吗?** 🚀
 
-从 `http://localhost:3000` 开始你的 LauraAI 之旅!
+从 `http://localhost:3000` 开始你的 SoulFace 之旅!

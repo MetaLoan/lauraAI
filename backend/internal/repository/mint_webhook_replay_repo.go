@@ -3,7 +3,7 @@ package repository
 import (
 	"time"
 
-	"lauraai-backend/internal/model"
+	"soulface-backend/internal/model"
 
 	"gorm.io/gorm/clause"
 )

@@ -4,16 +4,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"lauraai-backend/internal/config"
-	"lauraai-backend/internal/repository"
+	"soulface-backend/internal/config"
+	"soulface-backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
 
-const debugClearKey = "lauraai-clear-2026"
+const debugClearKey = "soulface-clear-2026"
 
 // ClearAllData 清空所有用户数据：messages、characters、users，以及 uploads 目录下的文件；重置自增 ID。
-// 认证方式二选一：X-Admin-Key: <ADMIN_SECRET>（生产），或 X-Debug-Key: lauraai-clear-2026（开发，仅在 ADMIN_SECRET 未配置时可用）。
+// 认证方式二选一：X-Admin-Key: <ADMIN_SECRET>（生产），或 X-Debug-Key: soulface-clear-2026（开发，仅在 ADMIN_SECRET 未配置时可用）。
 func ClearAllData(c *gin.Context) {
 	adminKey := c.GetHeader("X-Admin-Key")
 	debugKey := c.GetHeader("X-Debug-Key")

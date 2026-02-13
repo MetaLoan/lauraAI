@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	"lauraai-backend/internal/config"
+	"soulface-backend/internal/config"
 )
 
 type AuthTokenClaims struct {

@@ -34,7 +34,7 @@ next-env.d.ts
 
 # backend
 backend/server
-backend/lauraai-backend
+backend/soulface-backend
 backend/server.log
 backend/*.log
 backend/uploads/*.jpg

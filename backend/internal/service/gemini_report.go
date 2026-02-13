@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"lauraai-backend/internal/config"
-	"lauraai-backend/internal/model"
+	"soulface-backend/internal/config"
+	"soulface-backend/internal/model"
 
 	"google.golang.org/genai"
 )

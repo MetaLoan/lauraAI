@@ -4,7 +4,7 @@
 
 BASE_URL="http://localhost:8081"
 
-echo "=== LauraAI 后端 API 测试 ==="
+echo "=== SoulFace 后端 API 测试 ==="
 echo ""
 
 # 测试健康检查

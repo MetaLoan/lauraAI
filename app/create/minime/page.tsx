@@ -206,7 +206,7 @@ export default function CreateMiniMePage() {
             if (!mintOrderResult?.already_paid) {
                 const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
                     ? 'http://localhost:8081'
-                    : 'https://lauraai-backend.fly.dev';
+                    : 'https://soulface-backend.fly.dev';
                 const metadataURI = `${baseUrl}/api/nft/metadata/${generatingCharacterId}`;
 
                 const approveTx = await writeContractAsync({
@@ -345,7 +345,7 @@ export default function CreateMiniMePage() {
 
             const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
                 ? 'http://localhost:8081'
-                : 'https://lauraai-backend.fly.dev';
+                : 'https://soulface-backend.fly.dev';
             const metadataURI = `${baseUrl}/api/nft/metadata/${character.id}`;
 
             // 3. Create mint order

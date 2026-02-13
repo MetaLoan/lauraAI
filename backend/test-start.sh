@@ -15,7 +15,7 @@ fi
 
 # 检查数据库连接
 echo "检查数据库连接..."
-psql -h localhost -U postgres -d lauraai -c "SELECT 1;" > /dev/null 2>&1
+psql -h localhost -U postgres -d soulface -c "SELECT 1;" > /dev/null 2>&1
 if [ $? -eq 0 ]; then
     echo "✅ 数据库连接正常"
 else

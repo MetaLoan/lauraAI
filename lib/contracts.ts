@@ -1,9 +1,9 @@
 // =============================================================================
-// LauraAI Smart Contract ABIs and Addresses
+// SoulFace Smart Contract ABIs and Addresses
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-// LauraAISoulmate NFT Contract
+// SoulFaceSoulmate NFT Contract
 // -----------------------------------------------------------------------------
 export const LAURA_AI_SOULMATE_ABI = [
     {
@@ -87,7 +87,7 @@ export const LAURA_AI_SOULMATE_ABI = [
 ] as const;
 
 // -----------------------------------------------------------------------------
-// LauraAI Token (LRA) ERC20 Contract
+// SoulFace Token (LRA) ERC20 Contract
 // -----------------------------------------------------------------------------
 export const LAURA_AI_TOKEN_ABI = [
     {
@@ -165,7 +165,7 @@ export const LAURA_AI_TOKEN_ABI = [
 ] as const;
 
 // -----------------------------------------------------------------------------
-// LauraAI Marketplace Contract
+// SoulFace Marketplace Contract
 // -----------------------------------------------------------------------------
 export const LAURA_AI_MARKETPLACE_ABI = [
     {
@@ -276,7 +276,7 @@ export const LAURA_AI_MARKETPLACE_ABI = [
 ] as const;
 
 // -----------------------------------------------------------------------------
-// LauraAI Staking Contract
+// SoulFace Staking Contract
 // -----------------------------------------------------------------------------
 export const LAURA_AI_STAKING_ABI = [
     {

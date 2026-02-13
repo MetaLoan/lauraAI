@@ -55,10 +55,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     {/* Logo + 文字（始终可见） */}
                     <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity px-5 h-full flex-shrink-0">
                         <div className="relative w-10 h-10">
-                            <img src={getAssetPath('/logo1.png')} alt="LauraAI Logo" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                            <img src={getAssetPath('/logo1.png')} alt="SoulFace Logo" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
                         </div>
                         <span className="text-xl font-thin text-white tracking-tight whitespace-nowrap">
-                            LauraAI
+                            SoulFace
                         </span>
                     </Link>
 
@@ -80,10 +80,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <header className="md:hidden h-14 glass-bar rounded-full flex items-center justify-between pl-5 pr-2.5 absolute top-3 left-3 right-3 z-40">
                     <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
                         <div className="relative w-10 h-10">
-                            <img src={getAssetPath('/logo1.png')} alt="LauraAI Logo" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                            <img src={getAssetPath('/logo1.png')} alt="SoulFace Logo" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
                         </div>
                         <span className="text-xl font-thin text-white tracking-tight">
-                            LauraAI
+                            SoulFace
                         </span>
                     </Link>
                     <div className="ml-auto flex items-center gap-3">

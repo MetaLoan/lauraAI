@@ -6,7 +6,7 @@ import (
 	"errors"
 	"strings"
 
-	"lauraai-backend/internal/model"
+	"soulface-backend/internal/model"
 
 	"gorm.io/gorm"
 )

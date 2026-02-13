@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# LauraAI Backend + Frontend 完整启动脚本
+# SoulFace Backend + Frontend 完整启动脚本
 
-echo "🚀 Starting LauraAI Full Stack..."
+echo "🚀 Starting SoulFace Full Stack..."
 
 # 1. 启动后端
 echo "📡 Starting Backend Server..."
@@ -22,7 +22,7 @@ FRONTEND_PID=$!
 echo "Frontend PID: $FRONTEND_PID"
 
 echo ""
-echo "✅ LauraAI is now running!"
+echo "✅ SoulFace is now running!"
 echo "📡 Backend: http://localhost:8080"
 echo "🎨 Frontend: http://localhost:3000"
 echo ""

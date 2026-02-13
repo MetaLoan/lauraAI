@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"lauraai-backend/internal/model"
+	"soulface-backend/internal/model"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

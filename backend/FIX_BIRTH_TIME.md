@@ -20,7 +20,7 @@
 
 ```sql
 -- 连接到数据库
-psql -h localhost -U postgres -d lauraai
+psql -h localhost -U postgres -d soulface
 
 -- 修复字段类型
 ALTER TABLE users ALTER COLUMN birth_time TYPE time without time zone USING birth_time::text::time;
@@ -40,7 +40,7 @@ ALTER TABLE users ADD COLUMN birth_time time without time zone;
 
 ```bash
 cd backend
-psql -h localhost -U postgres -d lauraai -f fix-birth-time.sql
+psql -h localhost -U postgres -d soulface -f fix-birth-time.sql
 ```
 
 ## 验证修复

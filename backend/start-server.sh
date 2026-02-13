@@ -2,7 +2,7 @@
 
 # 后端服务器启动脚本
 
-echo "正在启动 LauraAI 后端服务..."
+echo "正在启动 SoulFace 后端服务..."
 
 # 检查 .env 文件
 if [ ! -f .env ]; then
@@ -10,7 +10,7 @@ if [ ! -f .env ]; then
     echo "请创建 .env 文件并配置以下变量："
     echo "  TELEGRAM_BOT_TOKEN=your_bot_token"
     echo "  GEMINI_API_KEY=your_gemini_api_key"
-    echo "  POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=lauraai port=5432 sslmode=disable"
+    echo "  POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=soulface port=5432 sslmode=disable"
     echo "  PORT=8080"
     echo ""
 fi

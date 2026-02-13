@@ -2,7 +2,7 @@
 
 ## Endpoint
 - Method: `POST`
-- URL: `https://lauraai-backend.fly.dev/api/mint/webhook/confirm`
+- URL: `https://soulface-backend.fly.dev/api/mint/webhook/confirm`
 - Content-Type: `application/json`
 
 ## Purpose
@@ -59,7 +59,7 @@ or
 
 ## Example (bash + curl)
 ```bash
-WEBHOOK_URL="https://lauraai-backend.fly.dev/api/mint/webhook/confirm"
+WEBHOOK_URL="https://soulface-backend.fly.dev/api/mint/webhook/confirm"
 WEBHOOK_SECRET="REPLACE_WITH_YOUR_MINT_WEBHOOK_SECRET"
 
 WEBHOOK_ID="mint-callback-$(date +%s)-001"

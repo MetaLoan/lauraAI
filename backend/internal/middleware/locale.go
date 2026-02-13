@@ -3,7 +3,7 @@ package middleware
 import (
 	"strings"
 
-	"lauraai-backend/internal/i18n"
+	"soulface-backend/internal/i18n"
 
 	"github.com/gin-gonic/gin"
 )

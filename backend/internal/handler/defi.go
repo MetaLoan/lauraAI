@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"lauraai-backend/internal/config"
-	"lauraai-backend/internal/middleware"
-	"lauraai-backend/internal/model"
-	"lauraai-backend/internal/repository"
-	"lauraai-backend/pkg/response"
+	"soulface-backend/internal/config"
+	"soulface-backend/internal/middleware"
+	"soulface-backend/internal/model"
+	"soulface-backend/internal/repository"
+	"soulface-backend/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )

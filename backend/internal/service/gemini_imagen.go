@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"lauraai-backend/internal/config"
-	"lauraai-backend/internal/model"
-	"lauraai-backend/internal/repository"
+	"soulface-backend/internal/config"
+	"soulface-backend/internal/model"
+	"soulface-backend/internal/repository"
 
 	"github.com/disintegration/imaging"
 	"google.golang.org/genai"

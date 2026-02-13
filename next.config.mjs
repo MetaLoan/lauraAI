@@ -51,7 +51,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
     // API URL 由 .env.local 或环境变量控制，生产环境默认使用 fly.dev
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://soulface-backend.fly.dev/api',
   },
   // 静态导出时不能用 rewrites；仅非 Pages 时代理本地 Hardhat
   ...(!isGitHubPages && {

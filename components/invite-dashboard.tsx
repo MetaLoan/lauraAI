@@ -88,7 +88,7 @@ export function InviteDashboard({ isExpanded = false, onToggle, compact = false 
         if (!inviteCode) return;
 
         const inviteLink = getInviteLink();
-        const text = `Create your AI Soulmate on @LauraAI_BSC! Join with my invite code: ${inviteCode}`;
+        const text = `Create your AI Soulmate on @SoulFace_BSC! Join with my invite code: ${inviteCode}`;
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(inviteLink)}`;
 
         window.open(twitterUrl, '_blank');

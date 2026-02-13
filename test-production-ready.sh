@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# LauraAI 生产就绪验证脚本
+# SoulFace 生产就绪验证脚本
 # 测试积分系统、DeFi数据和余额同步
 
-echo "🧪 LauraAI Production Readiness Test Suite"
+echo "🧪 SoulFace Production Readiness Test Suite"
 echo "=========================================="
 echo ""
 
@@ -88,7 +88,7 @@ echo "------------------------"
 
 # 4. 数据库字段验证
 echo -n "Testing: Database Schema (points & lra_balance) ... "
-DB_CHECK=$(psql -h localhost -U postgres -d lauraai -t -c "SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name IN ('points', 'lra_balance');" 2>/dev/null | wc -l)
+DB_CHECK=$(psql -h localhost -U postgres -d soulface -t -c "SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name IN ('points', 'lra_balance');" 2>/dev/null | wc -l)
 
 if [ "$DB_CHECK" -eq 2 ]; then
     echo -e "${GREEN}✓ PASS${NC} (Both fields exist)"
@@ -108,7 +108,7 @@ echo -e "${RED}Failed: $FAILED${NC}"
 echo ""
 
 if [ $FAILED -eq 0 ]; then
-    echo -e "${GREEN}🎉 All tests passed! LauraAI is production ready!${NC}"
+    echo -e "${GREEN}🎉 All tests passed! SoulFace is production ready!${NC}"
     exit 0
 else
     echo -e "${YELLOW}⚠️  Some tests failed. Please review the output above.${NC}"

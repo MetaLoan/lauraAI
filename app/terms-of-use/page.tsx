@@ -6,7 +6,7 @@ export default function TermsOfUsePage() {
       <div className="mx-auto max-w-3xl space-y-6">
         <h1 className="text-3xl font-bold">Terms of Use</h1>
         <p className="text-white/80">
-          By using LauraAI, you agree to use the service lawfully, protect your account access, and accept responsibility
+          By using SoulFace, you agree to use the service lawfully, protect your account access, and accept responsibility
           for actions performed through your connected wallet.
         </p>
         <p className="text-white/80">

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"lauraai-backend/internal/middleware"
-	"lauraai-backend/internal/model"
-	"lauraai-backend/internal/repository"
-	"lauraai-backend/pkg/response"
+	"soulface-backend/internal/middleware"
+	"soulface-backend/internal/model"
+	"soulface-backend/internal/repository"
+	"soulface-backend/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )
@@ -49,7 +49,7 @@ func (h *AuthHandler) GetNonce(c *gin.Context) {
 	}
 
 	issuedAt := time.Now().UTC().Format(time.RFC3339)
-	message := fmt.Sprintf("LauraAI Login\nAddress: %s\nNonce: %s\nIssued At: %s", walletAddress, nonce, issuedAt)
+	message := fmt.Sprintf("SoulFace Login\nAddress: %s\nNonce: %s\nIssued At: %s", walletAddress, nonce, issuedAt)
 	expiresAt := time.Now().Add(10 * time.Minute)
 
 	challenge := &model.AuthNonce{

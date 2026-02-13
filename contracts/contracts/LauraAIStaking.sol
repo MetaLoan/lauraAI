@@ -7,11 +7,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
- * @title LauraAIStaking
+ * @title SoulFaceStaking
  * @dev Staking contract for LRA tokens
  * Features: stake, unstake with 7-day lock, multiplier calculation for Chat-to-Earn
  */
-contract LauraAIStaking is Ownable, ReentrancyGuard {
+contract SoulFaceStaking is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // LRA Token contract

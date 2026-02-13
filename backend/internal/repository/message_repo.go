@@ -3,7 +3,7 @@ package repository
 import (
 	"time"
 
-	"lauraai-backend/internal/model"
+	"soulface-backend/internal/model"
 )
 
 type MessageRepository struct{}

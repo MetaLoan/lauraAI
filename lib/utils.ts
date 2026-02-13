@@ -51,7 +51,7 @@ export function getFullImageUrl(path: string) {
   // 如果是 uploads 目录，说明是后端上传的图片，需要拼接后端地址
   if (path.startsWith('/uploads/') || path.startsWith('uploads/')) {
     // 获取 API Base URL，并去掉末尾的 /api
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api'
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://soulface-backend.fly.dev/api'
     const origin = apiBaseUrl.replace(/\/api\/?$/, '')
     const normalizedPath = path.startsWith('/') ? path : `/${path}`
     const finalUrl = `${origin}${normalizedPath}`

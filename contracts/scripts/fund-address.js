@@ -23,7 +23,7 @@ async function main() {
   console.log("Sent 10 native (ETH/BNB) for gas. Tx:", tx1.hash);
 
   // 2. 转 LRA 测试代币
-  const token = await hre.ethers.getContractAt("LauraAIToken", LRA_TOKEN_ADDRESS);
+  const token = await hre.ethers.getContractAt("SoulFaceToken", LRA_TOKEN_ADDRESS);
   const lraAmount = hre.ethers.parseUnits("100000", 18); // 100,000 LRA
   const tx2 = await token.transfer(target, lraAmount);
   await tx2.wait();

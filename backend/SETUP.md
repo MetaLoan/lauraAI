@@ -19,7 +19,7 @@ GEMINI_API_KEY=AIzaSyAgMfnlyqV2T-tm0buF9VQEgafeffwFFc0
 
 # PostgreSQL 数据库连接字符串
 # 格式: host=localhost user=用户名 password=密码 dbname=数据库名 port=5432 sslmode=disable
-POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=lauraai port=5432 sslmode=disable
+POSTGRES_DSN=host=localhost user=postgres password=your_password dbname=soulface port=5432 sslmode=disable
 
 # 服务器端口
 PORT=8080
@@ -37,10 +37,10 @@ PORT=8080
 
 ```bash
 # 使用 postgres 用户
-psql -U postgres -c "CREATE DATABASE lauraai;"
+psql -U postgres -c "CREATE DATABASE soulface;"
 
 # 或使用 createdb 命令
-createdb lauraai
+createdb soulface
 ```
 
 ## 3. 启动服务器

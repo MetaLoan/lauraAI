@@ -1,6 +1,6 @@
 // API URL: 仅本地开发允许直连 :8081，线上一律使用 HTTPS API
 function getApiBaseUrl(): string {
-  const envApi = process.env.NEXT_PUBLIC_API_URL || 'https://lauraai-backend.fly.dev/api'
+  const envApi = process.env.NEXT_PUBLIC_API_URL || 'https://soulface-backend.fly.dev/api'
   if (typeof window !== 'undefined') {
     const host = window.location.hostname
     if (host === 'localhost' || host === '127.0.0.1') {

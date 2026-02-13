@@ -3,8 +3,8 @@ package repository
 import (
 	"log"
 
-	"lauraai-backend/internal/config"
-	"lauraai-backend/internal/model"
+	"soulface-backend/internal/config"
+	"soulface-backend/internal/model"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

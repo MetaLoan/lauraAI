@@ -13,7 +13,7 @@ export default {
     networks: {
         // Fly.io 上的 Anvil RPC（与 Hardhat/Anvil 默认测试账户一致，无需 PRIVATE_KEY）
         fly: {
-            url: process.env.FLY_RPC_URL || "https://lauraai-rpc.fly.dev",
+            url: process.env.FLY_RPC_URL || "https://soulface-rpc.fly.dev",
             chainId: 31337,
             accounts: process.env.PRIVATE_KEY
                 ? [process.env.PRIVATE_KEY]

@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
-contract LauraAIToken is ERC20, ERC20Burnable, Ownable, ERC20Permit {
+contract SoulFaceToken is ERC20, ERC20Burnable, Ownable, ERC20Permit {
     constructor()
-        ERC20("Laura AI Token", "LRA")
+        ERC20("SoulFace Token", "LRA")
         Ownable(msg.sender)
-        ERC20Permit("Laura AI Token")
+        ERC20Permit("SoulFace Token")
     {
         _mint(msg.sender, 1000000000 * 10 ** decimals()); // Initial supply: 1 Billion
     }

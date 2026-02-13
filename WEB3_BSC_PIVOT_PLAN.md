@@ -1,7 +1,7 @@
-# LauraAI - BSC Web3 转型与开发功能清单
+# SoulFace - BSC Web3 转型与开发功能清单
 
 ## 📅 项目目标
-将 LauraAI 从 Telegram Mini App 转型为基于 BSC (Binance Smart Chain) 的响应式 Web3 应用。核心叙事为“基于 Intent 的 AI 资产管理伴侣”。
+将 SoulFace 从 Telegram Mini App 转型为基于 BSC (Binance Smart Chain) 的响应式 Web3 应用。核心叙事为“基于 Intent 的 AI 资产管理伴侣”。
 
 ---
 

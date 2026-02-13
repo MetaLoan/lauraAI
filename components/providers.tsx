@@ -13,7 +13,7 @@ const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJ
 
 // 2. Create a metadata object - optional
 const metadata = {
-  name: 'LauraAI',
+  name: 'SoulFace',
   description: 'AI Soulmate & DeFi Asset Management',
   url: typeof window !== 'undefined' ? window.location.origin : 'https://laura-ai.com',
   icons: ['https://laura-ai.com/logolaura.png']
@@ -38,7 +38,7 @@ let appKitInitialized = false;
 
 function initAppKit() {
   if (appKitInitialized || typeof window === 'undefined') return;
-  
+
   const adapter = getWagmiAdapter();
   if (!adapter) return;
 
@@ -77,7 +77,7 @@ function initAppKit() {
     ],
     allWallets: 'SHOW', // 显示所有支持的钱包
   });
-  
+
   appKitInitialized = true;
 }
 
@@ -95,7 +95,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   const adapter = getWagmiAdapter();
-  
+
   // During SSR or before mounting, return null
   if (!mounted || !adapter) {
     return null;

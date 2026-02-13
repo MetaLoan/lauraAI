@@ -12,8 +12,8 @@
 
 **构建时已写死为 fly.io，无需配置 Secrets：**
 
-- **后端 API**：`https://lauraai-backend.fly.dev/api`
-- **RPC**：`https://lauraai-rpc.fly.dev`
+- **后端 API**：`https://soulface-backend.fly.dev/api`
+- **RPC**：`https://soulface-rpc.fly.dev`
 
 部署出的前端会固定请求上述后端，保证与 fly.io 一致。
 

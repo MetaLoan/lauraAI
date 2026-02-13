@@ -24,7 +24,7 @@ fly launch --no-deploy
 ```
 
 按提示操作：
-- App name: `lauraai-backend`（或自定义名称）
+- App name: `soulface-backend`（或自定义名称）
 - Region: 选择 `hkg`（香港）或其他亚洲区域
 - 不需要 PostgreSQL（使用外部数据库）
 - 不需要 Redis
@@ -48,7 +48,7 @@ fly secrets set TELEGRAM_BOT_TOKEN="你的_bot_token"
 fly secrets set GEMINI_API_KEY="你的_gemini_api_key"
 
 # 设置 PostgreSQL 连接字符串（使用外部数据库如 Supabase、Neon 等）
-fly secrets set POSTGRES_DSN="host=xxx user=xxx password=xxx dbname=lauraai port=5432 sslmode=require"
+fly secrets set POSTGRES_DSN="host=xxx user=xxx password=xxx dbname=soulface port=5432 sslmode=require"
 
 # 设置上传目录路径（必须与 fly.toml 中的 volume 挂载路径一致）
 fly secrets set UPLOADS_DIR="/root/uploads"
@@ -58,13 +58,13 @@ fly secrets set WEB_APP_MODE="true"
 
 # 可选：清空所有用户数据的 API 密钥（见下方「管理端点」）
 # 若未设置，清空接口会返回 503。可用下面固定值，生产环境建议改为随机密钥：
-fly secrets set ADMIN_SECRET="lauraai-clear-all-2026"
+fly secrets set ADMIN_SECRET="soulface-clear-all-2026"
 ```
 
 **数据库**：若使用 Fly Postgres，可先创建并绑定：
 ```bash
-fly postgres create --name lauraai-db --region sin
-fly postgres attach lauraai-db --app lauraai-backend
+fly postgres create --name soulface-db --region sin
+fly postgres attach soulface-db --app soulface-backend
 ```
 绑定后会自动设置 `DATABASE_URL`。后端优先使用 `DATABASE_URL`，其次 `POSTGRES_DSN`。
 
@@ -84,14 +84,14 @@ fly logs
 
 部署成功后，你的 API 地址是：
 ```
-https://lauraai-backend.fly.dev/api
+https://soulface-backend.fly.dev/api
 ```
 
 ## 9. 更新前端配置
 
 创建 `.env.production` 文件：
 ```bash
-NEXT_PUBLIC_API_URL=https://lauraai-backend.fly.dev/api
+NEXT_PUBLIC_API_URL=https://soulface-backend.fly.dev/api
 ```
 
 ## 管理端点：清空所有用户数据
@@ -102,11 +102,11 @@ NEXT_PUBLIC_API_URL=https://lauraai-backend.fly.dev/api
 
 若你已按上文用固定密钥设置过，可直接执行：
 ```bash
-curl -X POST https://lauraai-backend.fly.dev/api/admin/clear-all-data \
-  -H "X-Admin-Key: lauraai-clear-all-2026"
+curl -X POST https://soulface-backend.fly.dev/api/admin/clear-all-data \
+  -H "X-Admin-Key: soulface-clear-all-2026"
 ```
 
-否则把 `lauraai-clear-all-2026` 换成你在 Fly 上设置的 `ADMIN_SECRET`。
+否则把 `soulface-clear-all-2026` 换成你在 Fly 上设置的 `ADMIN_SECRET`。
 
 会清空表：`messages`、`characters`、`users`，以及 uploads 目录下的文件，并重置自增 ID。若未设置 `ADMIN_SECRET`，该接口返回 503。
 

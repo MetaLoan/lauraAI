@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
- * @title LauraAIMarketplace
- * @dev NFT Marketplace for LauraAI Soulmate NFTs
+ * @title SoulFaceMarketplace
+ * @dev NFT Marketplace for SoulFace Soulmate NFTs
  * Features: list, buy, delist with 2.5% platform fee
  */
-contract LauraAIMarketplace is Ownable, ReentrancyGuard {
+contract SoulFaceMarketplace is Ownable, ReentrancyGuard {
     // NFT contract reference
     IERC721 public immutable nftContract;
 
