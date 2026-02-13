@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SpaceTravelBg } from '@/components/space-travel-bg';
+import { getAssetPath } from '@/lib/utils';
 
 export default function LandingPage() {
   const { isConnected } = useAccount();
@@ -31,7 +32,7 @@ export default function LandingPage() {
               className="relative w-48 h-48 sm:w-56 sm:h-56 mb-8"
             >
               <img
-                src="/logolaura.png"
+                src={getAssetPath('/logolaura.png')}
                 alt="LauraAI Logo"
                 className="w-full h-full object-contain"
               />
