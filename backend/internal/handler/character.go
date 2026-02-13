@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 
@@ -326,16 +327,16 @@ func (h *CharacterHandler) GetByID(c *gin.Context) {
 			_ = h.characterRepo.Update(character)
 		}
 		locale := middleware.GetLocaleFromContext(c)
-			resp := character.ToSafeResponse(string(locale))
-			if latestOrder != nil {
-				resp["mint_order_status"] = string(latestOrder.Status)
-			}
-			resp["mint_ui_state"] = computeMintUIState(*character, latestOrder)
-			resp["mint_paid"] = latestOrder != nil && latestOrder.Status == model.MintOrderStatusConfirmed
-			resp["mint_has_tx"] = latestOrder != nil && latestOrder.TxHash != nil && strings.TrimSpace(*latestOrder.TxHash) != ""
-			response.Success(c, resp)
-			return
+		resp := character.ToSafeResponse(string(locale))
+		if latestOrder != nil {
+			resp["mint_order_status"] = string(latestOrder.Status)
 		}
+		resp["mint_ui_state"] = computeMintUIState(*character, latestOrder)
+		resp["mint_paid"] = latestOrder != nil && latestOrder.Status == model.MintOrderStatusConfirmed
+		resp["mint_has_tx"] = latestOrder != nil && latestOrder.TxHash != nil && strings.TrimSpace(*latestOrder.TxHash) != ""
+		response.Success(c, resp)
+		return
+	}
 
 	if ensureCharacterMetaDefaults(character, user) {
 		_ = h.characterRepo.Update(character)
@@ -419,8 +420,20 @@ func (h *CharacterHandler) GetNFTMetadata(c *gin.Context) {
 		imageURL = character.FullBlurImageURL
 	}
 
-	// Convert to absolute URL for NFT wallets/marketplaces
-	absoluteImageURL := toAbsoluteURL(imageURL)
+	// Convert to absolute URL for NFT wallets/marketplaces.
+	// Always use the production base URL so that wallets and marketplaces
+	// can actually fetch the image (localhost is not accessible externally).
+	nftBaseURL := strings.TrimSpace(os.Getenv("NFT_IMAGE_BASE_URL"))
+	if nftBaseURL == "" {
+		nftBaseURL = "https://lauraai-backend.fly.dev"
+	}
+	absoluteImageURL := imageURL
+	if absoluteImageURL != "" && !strings.HasPrefix(absoluteImageURL, "http") {
+		if !strings.HasPrefix(absoluteImageURL, "/") {
+			absoluteImageURL = "/" + absoluteImageURL
+		}
+		absoluteImageURL = strings.TrimRight(nftBaseURL, "/") + absoluteImageURL
+	}
 
 	// ERC721 metadata standard
 	metadata := gin.H{

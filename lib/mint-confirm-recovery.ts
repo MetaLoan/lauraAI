@@ -60,7 +60,7 @@ export async function confirmWithRecovery(
   orderId: string,
   txHash: string,
   confirmFn: (orderId: string, txHash: string) => Promise<any>,
-  maxAttempts: number = 4
+  maxAttempts: number = 10
 ): Promise<boolean> {
   upsertPendingMintConfirm({ orderId, txHash });
   for (let i = 0; i < maxAttempts; i++) {
@@ -71,10 +71,17 @@ export async function confirmWithRecovery(
         removePendingMintConfirm(orderId);
         return true;
       }
-    } catch {
-      if (i < maxAttempts - 1) {
-        await delay(1200 * (i + 1));
+      // "verifying" means backend accepted the tx but is still waiting for
+      // on-chain confirmation — keep retrying after a delay.
+      if (status === 'verifying' && i < maxAttempts - 1) {
+        await delay(3000 * (i + 1));
+        continue;
       }
+    } catch {
+      // Network / transient errors — retry after delay
+    }
+    if (i < maxAttempts - 1) {
+      await delay(3000 * (i + 1));
     }
   }
   return false;

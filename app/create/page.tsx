@@ -8,7 +8,8 @@ import { apiClient } from '@/lib/api';
 import { Loader2, ArrowLeft, Check, Sparkles, ChevronRight, User, Heart, Users, Baby, Crown, Compass, BookOpen, Ghost, Star, Moon, X, RefreshCw, Home, AlertTriangle, RotateCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConnectButton } from '@/components/wallet-button';
-import { useAccount, useWriteContract } from 'wagmi';
+import { useAccount, useWriteContract, useConfig } from 'wagmi';
+import { waitForTransactionReceipt } from '@wagmi/core';
 import { parseUnits } from 'viem';
 import Image from 'next/image';
 import { getAssetPath, getFullImageUrl } from '@/lib/utils';
@@ -262,6 +263,7 @@ export default function CreatePage() {
     const searchParams = useSearchParams();
     const { isConnected, address, chainId } = useAccount();
     const { writeContractAsync } = useWriteContract();
+    const config = useConfig();
     const mintPrice = parseUnits(MINT_PRICE_FF, MINT_PRICE_FF_DECIMALS);
 
     // Mint state
@@ -487,12 +489,13 @@ export default function CreatePage() {
                     : 'https://lauraai-backend.fly.dev';
                 const metadataURI = `${baseUrl}/api/nft/metadata/${generatingCharacterId}`;
 
-                await writeContractAsync({
+                const approveTx = await writeContractAsync({
                     address: FF_TOKEN_ADDRESS as `0x${string}`,
                     abi: LAURA_AI_TOKEN_ABI,
                     functionName: 'approve',
                     args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
                 });
+                await waitForTransactionReceipt(config, { hash: approveTx });
                 setMintStep('awaiting_mint');
 
                 const txHash = await writeContractAsync({
@@ -509,7 +512,11 @@ export default function CreatePage() {
                     (id, hash) => apiClient.confirmMintOrder(id, hash)
                 );
                 if (!confirmed) {
-                    throw new Error('Payment sent on-chain. Confirmation is pending and will auto-retry.');
+                    // Payment sent but confirmation still pending — enter polling
+                    setMintStep('mint_verifying');
+                    setMintRetryMode(true);
+                    startPolling(generatingCharacterId);
+                    return;
                 }
             }
 
@@ -630,12 +637,13 @@ export default function CreatePage() {
             console.log('Minting NFT with metadata URI:', metadataURI, 'mintPriceFF:', mintPrice.toString());
 
             // Step 3a: Approve FF token spending (1 FF)
-            await writeContractAsync({
+            const approveTx = await writeContractAsync({
                 address: FF_TOKEN_ADDRESS as `0x${string}`,
                 abi: LAURA_AI_TOKEN_ABI,
                 functionName: 'approve',
                 args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
             });
+            await waitForTransactionReceipt(config, { hash: approveTx });
             setMintStep('awaiting_mint');
 
             // Step 3b: Mint NFT (contract charges FF via transferFrom)
@@ -653,19 +661,20 @@ export default function CreatePage() {
                 txHash as string,
                 (id, hash) => apiClient.confirmMintOrder(id, hash)
             );
-            if (!confirmed) {
-                throw new Error('Payment sent on-chain. Confirmation is pending and will auto-retry.');
-            }
 
-            // Step 4: Mint succeeded → 触发后台生图（后端异步，客户端关闭不影响）
-            setMintStep('generating');
+            // Step 4: Enter generating/polling mode.
+            // Even if confirmation timed out, the backend verify worker will
+            // keep retrying. The poll loop will detect the final state.
+            setMintStep(confirmed ? 'generating' : 'mint_verifying');
             const charId = character.id.toString();
             setGeneratingCharacterId(charId);
-            setMintRetryMode(false);
+            setMintRetryMode(!confirmed);
 
-            apiClient.generateImage(charId).catch((err: any) => {
-                console.warn('Generate image request sent (continues in background):', err);
-            });
+            if (confirmed) {
+                apiClient.generateImage(charId).catch((err: any) => {
+                    console.warn('Generate image request sent (continues in background):', err);
+                });
+            }
 
             // Step 5: 启动轮询，每5秒检查一次
             startPolling(charId);
@@ -732,30 +741,30 @@ export default function CreatePage() {
 
     return (
         <>
-        <AppLayout>
-            <div className="max-w-4xl mx-auto w-full px-4 py-6">
-                <AnimatePresence mode="wait">
-                    {/* ============ 资料收集步骤 ============ */}
-                    {currentStep === 'profile' && (
-                        <motion.div
-                            key="profile"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="space-y-0"
-                        >
-                            {/* Back Button - 放在步骤内部，跟随步骤一起动画 */}
-                            <div className="mb-4">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleBack}
-                                    className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
-                                >
-                                    <ArrowLeft className="w-4 h-4 mr-1.5" />
-                                    Back
-                                </Button>
-                            </div>
+            <AppLayout>
+                <div className="max-w-4xl mx-auto w-full px-4 py-6">
+                    <AnimatePresence mode="wait">
+                        {/* ============ 资料收集步骤 ============ */}
+                        {currentStep === 'profile' && (
+                            <motion.div
+                                key="profile"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="space-y-0"
+                            >
+                                {/* Back Button - 放在步骤内部，跟随步骤一起动画 */}
+                                <div className="mb-4">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleBack}
+                                        className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                                    >
+                                        <ArrowLeft className="w-4 h-4 mr-1.5" />
+                                        Back
+                                    </Button>
+                                </div>
                                 {/* Header */}
                                 <div className="text-center mb-6">
                                     <h2 className="text-2xl md:text-3xl font-bold text-white">Complete Your Profile</h2>
@@ -875,158 +884,158 @@ export default function CreatePage() {
                                         </span>
                                     </Button>
                                 </div>
-                        </motion.div>
-                    )}
+                            </motion.div>
+                        )}
 
-                    {/* ============ 预设角色选择 ============ */}
-                    {currentStep === 'preset' && (
-                        <motion.div
-                            key="preset"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="space-y-6"
-                        >
-                            {/* Header */}
-                            <div className="text-center space-y-3">
-                                <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">Choose Your AI Character</h2>
-                                <p className="text-white text-lg font-light">
-                                    Pick a character type. AI will generate a unique avatar for you.
-                                </p>
-                            </div>
+                        {/* ============ 预设角色选择 ============ */}
+                        {currentStep === 'preset' && (
+                            <motion.div
+                                key="preset"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="space-y-6"
+                            >
+                                {/* Header */}
+                                <div className="text-center space-y-3">
+                                    <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">Choose Your AI Character</h2>
+                                    <p className="text-white text-lg font-light">
+                                        Pick a character type. AI will generate a unique avatar for you.
+                                    </p>
+                                </div>
 
-                            {/* Grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                                {PRESET_TYPES.map((preset, index) => {
-                                    const isCreated = existingTypes.includes(preset.type);
-                                    const existingChar = existingCharacters.find((c: any) => c.type === preset.type);
-                                    const hasImage = !!(existingChar && (existingChar.image_url || existingChar.clear_image_url));
-                                    const uiState = getCardUiState(existingChar, hasImage);
-                                    const statusMeta = getCardStatusMeta(uiState);
-                                    return (
-                                        <motion.div
-                                            key={preset.type}
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.05, duration: 0.3 }}
-                                            role="button"
-                                            tabIndex={0}
-                                            onClick={() => {
-                                                if (isCreated && existingChar) {
-                                                    if (hasImage) {
-                                                        setSelectedCharacterForDetail(existingChar);
-                                                    } else if (existingChar.type === 'mini_me') {
-                                                        router.push(`/create/minime?resume=1&characterId=${existingChar.id}`);
+                                {/* Grid */}
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                                    {PRESET_TYPES.map((preset, index) => {
+                                        const isCreated = existingTypes.includes(preset.type);
+                                        const existingChar = existingCharacters.find((c: any) => c.type === preset.type);
+                                        const hasImage = !!(existingChar && (existingChar.image_url || existingChar.clear_image_url));
+                                        const uiState = getCardUiState(existingChar, hasImage);
+                                        const statusMeta = getCardStatusMeta(uiState);
+                                        return (
+                                            <motion.div
+                                                key={preset.type}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.05, duration: 0.3 }}
+                                                role="button"
+                                                tabIndex={0}
+                                                onClick={() => {
+                                                    if (isCreated && existingChar) {
+                                                        if (hasImage) {
+                                                            setSelectedCharacterForDetail(existingChar);
+                                                        } else if (existingChar.type === 'mini_me') {
+                                                            router.push(`/create/minime?resume=1&characterId=${existingChar.id}`);
+                                                        } else {
+                                                            router.push(`/create?resume=1&characterId=${existingChar.id}&type=${existingChar.type}`);
+                                                        }
+                                                    } else if (preset.type === 'mini_me') {
+                                                        router.push('/create/minime');
                                                     } else {
-                                                        router.push(`/create?resume=1&characterId=${existingChar.id}&type=${existingChar.type}`);
+                                                        setSelectedType(preset.type);
+                                                        setCurrentStep('gender');
                                                     }
-                                                } else if (preset.type === 'mini_me') {
-                                                    router.push('/create/minime');
-                                                } else {
-                                                    setSelectedType(preset.type);
-                                                    setCurrentStep('gender');
-                                                }
-                                            }}
-                                            onKeyDown={(e) => {
-                                                if (e.key !== 'Enter' && e.key !== ' ') return;
-                                                if (isCreated && existingChar) {
-                                                    if (hasImage) {
-                                                        setSelectedCharacterForDetail(existingChar);
-                                                    } else if (existingChar.type === 'mini_me') {
-                                                        router.push(`/create/minime?resume=1&characterId=${existingChar.id}`);
-                                                    } else {
-                                                        router.push(`/create?resume=1&characterId=${existingChar.id}&type=${existingChar.type}`);
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                                                    if (isCreated && existingChar) {
+                                                        if (hasImage) {
+                                                            setSelectedCharacterForDetail(existingChar);
+                                                        } else if (existingChar.type === 'mini_me') {
+                                                            router.push(`/create/minime?resume=1&characterId=${existingChar.id}`);
+                                                        } else {
+                                                            router.push(`/create?resume=1&characterId=${existingChar.id}&type=${existingChar.type}`);
+                                                        }
                                                     }
-                                                }
-                                                else if (preset.type === 'mini_me') router.push('/create/minime');
-                                                else { setSelectedType(preset.type); setCurrentStep('gender'); }
-                                            }}
-                                            className={`group relative rounded-2xl text-left transition-all duration-300 overflow-hidden aspect-[3/4] cursor-pointer ${isCreated
-                                                ? 'hover:opacity-90 hover:-translate-y-1 hover:shadow-xl'
-                                                : 'hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10'
-                                                }`}
-                                        >
-                                            {/* Card Image: generated image when created, else preset at 50% opacity */}
-                                            {isCreated && existingChar && (existingChar.image_url || existingChar.clear_image_url) ? (
-                                                <Image
-                                                    src={getFullImageUrl(existingChar.image_url || existingChar.clear_image_url || '')}
-                                                    alt={preset.label}
-                                                    fill
-                                                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                                                />
-                                            ) : preset.presetImage ? (
-                                                <Image
-                                                    src={getAssetPath(preset.presetImage)}
-                                                    alt={preset.label}
-                                                    fill
-                                                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-50"
-                                                />
-                                            ) : null}
+                                                    else if (preset.type === 'mini_me') router.push('/create/minime');
+                                                    else { setSelectedType(preset.type); setCurrentStep('gender'); }
+                                                }}
+                                                className={`group relative rounded-2xl text-left transition-all duration-300 overflow-hidden aspect-[3/4] cursor-pointer ${isCreated
+                                                    ? 'hover:opacity-90 hover:-translate-y-1 hover:shadow-xl'
+                                                    : 'hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10'
+                                                    }`}
+                                            >
+                                                {/* Card Image: generated image when created, else preset at 50% opacity */}
+                                                {isCreated && existingChar && (existingChar.image_url || existingChar.clear_image_url) ? (
+                                                    <Image
+                                                        src={getFullImageUrl(existingChar.image_url || existingChar.clear_image_url || '')}
+                                                        alt={preset.label}
+                                                        fill
+                                                        className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                                    />
+                                                ) : preset.presetImage ? (
+                                                    <Image
+                                                        src={getAssetPath(preset.presetImage)}
+                                                        alt={preset.label}
+                                                        fill
+                                                        className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-50"
+                                                    />
+                                                ) : null}
 
-                                            {/* Gradient Overlay */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-80 transition-opacity" />
+                                                {/* Gradient Overlay */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-80 transition-opacity" />
 
-                                            {/* Created Badge - more visible */}
-                                            {isCreated && (
-                                                <>
-                                                    <div
-                                                        className={`absolute top-3 right-3 z-20 px-3 py-2 rounded-xl backdrop-blur-md text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 shadow-lg ${statusMeta.badgeClass}`}
-                                                    >
-                                                        {uiState === 'retry_mint' || uiState === 'retry_generation' ? (
-                                                            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                                                        ) : uiState === 'minting' || uiState === 'generating' ? (
-                                                            <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin" />
-                                                        ) : (
-                                                            <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                                        )}
-                                                        {statusMeta.label}
+                                                {/* Created Badge - more visible */}
+                                                {isCreated && (
+                                                    <>
+                                                        <div
+                                                            className={`absolute top-3 right-3 z-20 px-3 py-2 rounded-xl backdrop-blur-md text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 shadow-lg ${statusMeta.badgeClass}`}
+                                                        >
+                                                            {uiState === 'retry_mint' || uiState === 'retry_generation' ? (
+                                                                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                                                            ) : uiState === 'minting' || uiState === 'generating' ? (
+                                                                <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin" />
+                                                            ) : (
+                                                                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                                            )}
+                                                            {statusMeta.label}
+                                                        </div>
+                                                        <div className="absolute inset-0 z-15" />
+                                                    </>
+                                                )}
+
+                                                {/* Content at Bottom */}
+                                                <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                                                    {/* Icon Badge */}
+                                                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${preset.gradient} flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                                                        <div className="text-white scale-75">{preset.icon}</div>
                                                     </div>
-                                                    <div className="absolute inset-0 z-15" />
-                                                </>
-                                            )}
 
-                                            {/* Content at Bottom */}
-                                            <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-                                                {/* Icon Badge */}
-                                                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${preset.gradient} flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                                                    <div className="text-white scale-75">{preset.icon}</div>
+                                                    {/* Text */}
+                                                    <h3 className="text-base font-bold text-white mb-0.5 flex items-center gap-1">
+                                                        {preset.label}
+                                                        <ChevronRight className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                                                    </h3>
+                                                    <p className="text-[11px] text-white leading-relaxed line-clamp-2">
+                                                        {isCreated ? statusMeta.helper : preset.description}
+                                                    </p>
                                                 </div>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
 
-                                                {/* Text */}
-                                                <h3 className="text-base font-bold text-white mb-0.5 flex items-center gap-1">
-                                                    {preset.label}
-                                                    <ChevronRight className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                                                </h3>
-                                                <p className="text-[11px] text-white leading-relaxed line-clamp-2">
-                                                    {isCreated ? statusMeta.helper : preset.description}
-                                                </p>
-                                            </div>
-                                        </motion.div>
-                                    );
-                                })}
-                            </div>
+                                {/* Profile Edit Link */}
+                                <div className="text-center pt-2">
+                                    <button
+                                        onClick={() => setCurrentStep('profile')}
+                                        className="text-sm liquid-glass-card rounded-full px-4 py-2 text-white hover:text-white transition-colors"
+                                    >
+                                        Edit Profile
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
 
-                            {/* Profile Edit Link */}
-                            <div className="text-center pt-2">
-                                <button
-                                    onClick={() => setCurrentStep('profile')}
-                                    className="text-sm liquid-glass-card rounded-full px-4 py-2 text-white hover:text-white transition-colors"
-                                >
-                                    Edit Profile
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* ============ 性别选择 ============ */}
-                    {currentStep === 'gender' && (
-                        <motion.div
-                            key="gender"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="space-y-8"
-                        >
+                        {/* ============ 性别选择 ============ */}
+                        {currentStep === 'gender' && (
+                            <motion.div
+                                key="gender"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="space-y-8"
+                            >
                                 {/* Back Button */}
                                 <div className="mb-4">
                                     <Button
@@ -1068,18 +1077,18 @@ export default function CreatePage() {
                                         </button>
                                     ))}
                                 </div>
-                        </motion.div>
-                    )}
+                            </motion.div>
+                        )}
 
-                    {/* ============ 族裔选择 ============ */}
-                    {currentStep === 'ethnicity' && (
-                        <motion.div
-                            key="ethnicity"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="space-y-8"
-                        >
+                        {/* ============ 族裔选择 ============ */}
+                        {currentStep === 'ethnicity' && (
+                            <motion.div
+                                key="ethnicity"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="space-y-8"
+                            >
                                 {/* Back Button */}
                                 <div className="mb-4">
                                     <Button
@@ -1143,121 +1152,84 @@ export default function CreatePage() {
                                         </span>
                                     </Button>
                                 </div>
-                        </motion.div>
-                    )}
+                            </motion.div>
+                        )}
 
-                    {/* ============ 生成中（Mint + 生图） ============ */}
-                    {currentStep === 'generating' && (
-                        <motion.div
-                            key="generating"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="min-h-[600px]"
-                        >
-                            {isWalletMintStep(mintStep) ? (
-                                /* ===== 阶段 1：等待钱包确认 ===== */
-                                <div className="flex flex-col items-center justify-center py-20 space-y-6">
-                                    <div className="w-20 h-20 rounded-2xl flex items-center justify-center">
-                                        <Image src={getAssetPath('/icons/3d/gem_3d.png')} alt="" width={40} height={40} className="w-10 h-10 object-contain animate-pulse" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-white">{getMintStageContent(mintStep).title}</h2>
-                                    <p className="text-white text-center max-w-sm">
-                                        {getMintStageContent(mintStep).desc}
-                                        <span className="block mt-1 text-amber-400 font-medium">Fee: {MINT_PRICE_FF} FF</span>
-                                    </p>
-                                    <Loader2 className="w-8 h-8 animate-spin text-white" />
-                                    {mintRetryMode && (
-                                        <Button
-                                            onClick={handleRetryMintForExisting}
-                                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold gap-2 px-8"
-                                        >
-                                            <RotateCw className="w-4 h-4" />
-                                            Retry Mint
-                                        </Button>
-                                    )}
-                                </div>
-                            ) : generationError ? (
-                                /* ===== Mint 阶段失败（钱包拒绝等） ===== */
-                                <div className="flex flex-col items-center justify-center py-20 space-y-6">
-                                    <div className="w-16 h-16 rounded-full flex items-center justify-center">
-                                        <AlertTriangle className="w-8 h-8 text-red-400" />
-                                    </div>
-                                    <h2 className="text-xl font-bold text-white">Transaction Failed</h2>
-                                    <p className="text-red-400 text-center max-w-sm">{generationError}</p>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            setGenerationError(null);
-                                            setCurrentStep('ethnicity');
-                                        }}
-                                        className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
-                                    >
-                                        <ArrowLeft className="w-4 h-4 mr-1.5" />
-                                        Back
-                                    </Button>
-                                </div>
-                            ) : generationFailed ? (
-                                /* ===== 阶段 3：生图超时/失败，允许重试 ===== */
-                                <div className="flex flex-col items-center justify-center py-20 space-y-6">
-                                    <div className="w-20 h-20 rounded-full flex items-center justify-center">
-                                        <AlertTriangle className="w-10 h-10 text-amber-400" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-white">Generation Timed Out</h2>
-                                    <p className="text-white text-center max-w-sm leading-relaxed">
-                                        AI image generation didn&apos;t complete in time. Your Mint has been confirmed — tap Retry to regenerate at no extra cost.
-                                    </p>
-
-                                    <div className="flex items-center gap-3 pt-4">
-                                        <Button
-                                            onClick={handleRetryGeneration}
-                                            disabled={isRetrying}
-                                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold gap-2 px-8"
-                                        >
-                                            {isRetrying ? (
-                                                <Loader2 className="w-4 h-4 animate-spin text-white" />
-                                            ) : (
+                        {/* ============ 生成中（Mint + 生图） ============ */}
+                        {currentStep === 'generating' && (
+                            <motion.div
+                                key="generating"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="min-h-[600px]"
+                            >
+                                {isWalletMintStep(mintStep) ? (
+                                    /* ===== 阶段 1：等待钱包确认 ===== */
+                                    <div className="flex flex-col items-center justify-center py-20 space-y-6">
+                                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center">
+                                            <Image src={getAssetPath('/icons/3d/gem_3d.png')} alt="" width={40} height={40} className="w-10 h-10 object-contain animate-pulse" />
+                                        </div>
+                                        <h2 className="text-2xl font-bold text-white">{getMintStageContent(mintStep).title}</h2>
+                                        <p className="text-white text-center max-w-sm">
+                                            {getMintStageContent(mintStep).desc}
+                                            <span className="block mt-1 text-amber-400 font-medium">Fee: {MINT_PRICE_FF} FF</span>
+                                        </p>
+                                        <Loader2 className="w-8 h-8 animate-spin text-white" />
+                                        {mintRetryMode && (
+                                            <Button
+                                                onClick={handleRetryMintForExisting}
+                                                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold gap-2 px-8"
+                                            >
                                                 <RotateCw className="w-4 h-4" />
-                                            )}
-                                            {isRetrying ? 'Retrying...' : 'Retry Generation'}
-                                        </Button>
+                                                Retry Mint
+                                            </Button>
+                                        )}
+                                    </div>
+                                ) : generationError ? (
+                                    /* ===== Mint 阶段失败（钱包拒绝等） ===== */
+                                    <div className="flex flex-col items-center justify-center py-20 space-y-6">
+                                        <div className="w-16 h-16 rounded-full flex items-center justify-center">
+                                            <AlertTriangle className="w-8 h-8 text-red-400" />
+                                        </div>
+                                        <h2 className="text-xl font-bold text-white">Transaction Failed</h2>
+                                        <p className="text-red-400 text-center max-w-sm">{generationError}</p>
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => router.push('/dashboard')}
+                                            onClick={() => {
+                                                setGenerationError(null);
+                                                setCurrentStep('ethnicity');
+                                            }}
                                             className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
                                         >
-                                            <Home className="w-4 h-4 mr-1.5" />
-                                            Back to Home
+                                            <ArrowLeft className="w-4 h-4 mr-1.5" />
+                                            Back
                                         </Button>
                                     </div>
+                                ) : generationFailed ? (
+                                    /* ===== 阶段 3：生图超时/失败，允许重试 ===== */
+                                    <div className="flex flex-col items-center justify-center py-20 space-y-6">
+                                        <div className="w-20 h-20 rounded-full flex items-center justify-center">
+                                            <AlertTriangle className="w-10 h-10 text-amber-400" />
+                                        </div>
+                                        <h2 className="text-2xl font-bold text-white">Generation Timed Out</h2>
+                                        <p className="text-white text-center max-w-sm leading-relaxed">
+                                            AI image generation didn&apos;t complete in time. Your Mint has been confirmed — tap Retry to regenerate at no extra cost.
+                                        </p>
 
-                                    <p className="text-xs text-white pt-2">
-                                        Mint already paid · Retry is free
-                                    </p>
-                                </div>
-                            ) : (
-                                /* ===== 阶段 2：生图进行中（完整动画） ===== */
-                                <div className="flex flex-col min-h-[600px]">
-                                    {/* DrawingLoading 动画主体 */}
-                                    <div className="flex-1">
-                                        <DrawingLoading
-                                            characterTitle={PRESET_TYPES.find(p => p.type === selectedType)?.label || 'Character'}
-                                        />
-                                    </div>
-
-                                    {/* 底部操作栏 */}
-                                    <div className="flex flex-col items-center gap-3 pb-6 pt-2">
-                                        <div className="flex flex-wrap items-center justify-center gap-3">
+                                        <div className="flex items-center gap-3 pt-4">
                                             <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={handleManualRefresh}
-                                                className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                                                onClick={handleRetryGeneration}
+                                                disabled={isRetrying}
+                                                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold gap-2 px-8"
                                             >
-                                                <RefreshCw className="w-4 h-4 mr-1.5" />
-                                                Refresh
+                                                {isRetrying ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                                                ) : (
+                                                    <RotateCw className="w-4 h-4" />
+                                                )}
+                                                {isRetrying ? 'Retrying...' : 'Retry Generation'}
                                             </Button>
                                             <Button
                                                 variant="outline"
@@ -1269,47 +1241,84 @@ export default function CreatePage() {
                                                 Back to Home
                                             </Button>
                                         </div>
-                                        <p className="text-xs text-white">
-                                            Auto-refreshing every 5s · You can safely close this page
+
+                                        <p className="text-xs text-white pt-2">
+                                            Mint already paid · Retry is free
                                         </p>
                                     </div>
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
+                                ) : (
+                                    /* ===== 阶段 2：生图进行中（完整动画） ===== */
+                                    <div className="flex flex-col min-h-[600px]">
+                                        {/* DrawingLoading 动画主体 */}
+                                        <div className="flex-1">
+                                            <DrawingLoading
+                                                characterTitle={PRESET_TYPES.find(p => p.type === selectedType)?.label || 'Character'}
+                                            />
+                                        </div>
 
-                    {/* ============ 生成结果 ============ */}
-                    {currentStep === 'result' && createdCharacter && (
-                        <motion.div
-                            key="result"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                        >
-                            <SoulmateDetailPage
-                                character={createdCharacter}
-                                onNext={() => router.push(`/chat/${createdCharacter.id}`)}
-                                onBack={() => {
-                                    setCreatedCharacter(null);
-                                    setCurrentStep('preset');
-                                    // Refresh existing types and full list (only with images count)
-                                    apiClient.getCharacters().then((chars: any) => {
-                                        if (Array.isArray(chars)) {
-                                            const created = chars.filter((c: any) => c.image_url && c.image_url !== '');
-                                            setExistingTypes(created.map((c: any) => c.type));
-                                            setExistingCharacters(created.map((c: any) => ({ ...c, id: c.id?.toString?.() ?? String(c.id) })));
-                                        }
-                                    });
-                                }}
-                                onCharacterUpdate={setCreatedCharacter}
-                                onUnlockSuccess={() => { }}
-                            />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
+                                        {/* 底部操作栏 */}
+                                        <div className="flex flex-col items-center gap-3 pb-6 pt-2">
+                                            <div className="flex flex-wrap items-center justify-center gap-3">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleManualRefresh}
+                                                    className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                                                >
+                                                    <RefreshCw className="w-4 h-4 mr-1.5" />
+                                                    Refresh
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => router.push('/dashboard')}
+                                                    className="rounded-full border border-white/20 text-white hover:bg-white/10 h-9 px-5"
+                                                >
+                                                    <Home className="w-4 h-4 mr-1.5" />
+                                                    Back to Home
+                                                </Button>
+                                            </div>
+                                            <p className="text-xs text-white">
+                                                Auto-refreshing every 5s · You can safely close this page
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
 
-        </AppLayout>
+                        {/* ============ 生成结果 ============ */}
+                        {currentStep === 'result' && createdCharacter && (
+                            <motion.div
+                                key="result"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                            >
+                                <SoulmateDetailPage
+                                    character={createdCharacter}
+                                    onNext={() => router.push(`/chat/${createdCharacter.id}`)}
+                                    onBack={() => {
+                                        setCreatedCharacter(null);
+                                        setCurrentStep('preset');
+                                        // Refresh existing types and full list (only with images count)
+                                        apiClient.getCharacters().then((chars: any) => {
+                                            if (Array.isArray(chars)) {
+                                                const created = chars.filter((c: any) => c.image_url && c.image_url !== '');
+                                                setExistingTypes(created.map((c: any) => c.type));
+                                                setExistingCharacters(created.map((c: any) => ({ ...c, id: c.id?.toString?.() ?? String(c.id) })));
+                                            }
+                                        });
+                                    }}
+                                    onCharacterUpdate={setCreatedCharacter}
+                                    onUnlockSuccess={() => { }}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+            </AppLayout>
 
             {/* Detail modal for "Created" characters — 放在 AppLayout 外，确保 backdrop-blur 覆盖所有层 */}
             <AnimatePresence>
@@ -1326,36 +1335,36 @@ export default function CreatePage() {
 
                         {/* 内容居中层：严格与视口对齐 */}
                         <div className="relative w-full h-full flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full max-w-2xl max-h-[90vh] liquid-glass-card rounded-3xl overflow-hidden relative flex flex-col"
-                        >
-                            <button
-                                type="button"
-                                onClick={() => setSelectedCharacterForDetail(null)}
-                                className="!absolute top-4 right-4 z-50 w-10 h-10 rounded-full liquid-glass-card flex items-center justify-center transition-colors"
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.9, y: 20 }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-full max-w-2xl max-h-[90vh] liquid-glass-card rounded-3xl overflow-hidden relative flex flex-col"
                             >
-                                <X className="w-5 h-5 text-white" />
-                            </button>
-                            <SoulmateDetailPage
-                                character={selectedCharacterForDetail}
-                                onNext={() => {
-                                    setSelectedCharacterForDetail(null);
-                                    router.push(`/chat/${selectedCharacterForDetail.id}`);
-                                }}
-                                onBack={() => setSelectedCharacterForDetail(null)}
-                                showMiniMeBackButton={false}
-                                onCharacterUpdate={(updated) => {
-                                    setSelectedCharacterForDetail(updated);
-                                    setExistingCharacters((prev) =>
-                                        prev.map((c: any) => (c.id === updated?.id ? { ...c, ...updated } : c))
-                                    );
-                                }}
-                            />
-                        </motion.div>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedCharacterForDetail(null)}
+                                    className="!absolute top-4 right-4 z-50 w-10 h-10 rounded-full liquid-glass-card flex items-center justify-center transition-colors"
+                                >
+                                    <X className="w-5 h-5 text-white" />
+                                </button>
+                                <SoulmateDetailPage
+                                    character={selectedCharacterForDetail}
+                                    onNext={() => {
+                                        setSelectedCharacterForDetail(null);
+                                        router.push(`/chat/${selectedCharacterForDetail.id}`);
+                                    }}
+                                    onBack={() => setSelectedCharacterForDetail(null)}
+                                    showMiniMeBackButton={false}
+                                    onCharacterUpdate={(updated) => {
+                                        setSelectedCharacterForDetail(updated);
+                                        setExistingCharacters((prev) =>
+                                            prev.map((c: any) => (c.id === updated?.id ? { ...c, ...updated } : c))
+                                        );
+                                    }}
+                                />
+                            </motion.div>
                         </div>
                     </motion.div>
                 )}

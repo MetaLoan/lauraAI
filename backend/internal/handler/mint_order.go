@@ -26,7 +26,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var safeMintSelectorHex = "40d097c3" // bytes4(keccak256("safeMint(address,string)"))
+var safeMintSelectorHex = "d204c45e" // bytes4(keccak256("safeMint(address,string)"))
 var erc20TransferTopicHex = "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 var soulmateBornTopicHash = crypto.Keccak256Hash([]byte("SoulmateBorn(address,uint256,string)"))
 

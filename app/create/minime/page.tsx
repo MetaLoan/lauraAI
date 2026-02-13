@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import SoulmateDetailPage from '@/components/soulmate-detail-page';
 import DrawingLoading from '@/components/drawing-loading';
 import { ArrowLeft, Loader2, Upload, AlertTriangle, RefreshCw, Home, RotateCw } from 'lucide-react';
-import { useAccount, useWriteContract } from 'wagmi';
+import { useAccount, useWriteContract, useConfig } from 'wagmi';
 import { ConnectButton } from '@/components/wallet-button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '@/lib/api';
 import imageCompression from 'browser-image-compression';
 import { parseUnits } from 'viem';
+import { waitForTransactionReceipt } from '@wagmi/core';
 import { getAssetPath } from '@/lib/utils';
 import { toMintUserMessage } from '@/lib/mint-error';
 import {
@@ -91,6 +92,7 @@ export default function CreateMiniMePage() {
 
     // Mint contract
     const { writeContractAsync } = useWriteContract();
+    const config = useConfig();
 
     // 轮询检查生图结果
     const pollForResult = useCallback(async (charId: string) => {
@@ -207,12 +209,13 @@ export default function CreateMiniMePage() {
                     : 'https://lauraai-backend.fly.dev';
                 const metadataURI = `${baseUrl}/api/nft/metadata/${generatingCharacterId}`;
 
-                await writeContractAsync({
+                const approveTx = await writeContractAsync({
                     address: FF_TOKEN_ADDRESS as `0x${string}`,
                     abi: LAURA_AI_TOKEN_ABI,
                     functionName: 'approve',
                     args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
                 });
+                await waitForTransactionReceipt(config, { hash: approveTx });
                 setMintStep('awaiting_mint');
 
                 const txHash = await writeContractAsync({
@@ -229,7 +232,10 @@ export default function CreateMiniMePage() {
                     (id, hash) => apiClient.confirmMintOrder(id, hash)
                 );
                 if (!confirmed) {
-                    throw new Error('Payment sent on-chain. Confirmation is pending and will auto-retry.');
+                    setMintStep('mint_verifying');
+                    setMintRetryMode(true);
+                    startPolling(generatingCharacterId);
+                    return;
                 }
             }
 
@@ -380,12 +386,13 @@ export default function CreateMiniMePage() {
 
             if (!mintOrderResult?.already_paid) {
                 // 3a. Approve FF token spending (1 FF)
-                await writeContractAsync({
+                const approveTx = await writeContractAsync({
                     address: FF_TOKEN_ADDRESS as `0x${string}`,
                     abi: LAURA_AI_TOKEN_ABI,
                     functionName: 'approve',
                     args: [LAURA_AI_SOULMATE_ADDRESS as `0x${string}`, mintPrice],
                 });
+                await waitForTransactionReceipt(config, { hash: approveTx });
                 setMintStep('awaiting_mint');
 
                 // 3b. Mint NFT
@@ -404,7 +411,14 @@ export default function CreateMiniMePage() {
                     (id, hash) => apiClient.confirmMintOrder(id, hash)
                 );
                 if (!confirmed) {
-                    throw new Error('Payment sent on-chain. Confirmation is pending and will auto-retry.');
+                    // Payment sent — enter polling; backend verify worker will
+                    // keep retrying and the poll loop will detect the state.
+                    const charId = character.id.toString();
+                    setGeneratingCharacterId(charId);
+                    setMintStep('mint_verifying');
+                    setMintRetryMode(true);
+                    startPolling(charId);
+                    return;
                 }
             }
 
@@ -584,7 +598,7 @@ export default function CreateMiniMePage() {
                                         <div className="w-20 h-20 rounded-2xl flex items-center justify-center">
                                             <img src={getAssetPath('/icons/3d/gem_3d.png')} alt="" className="w-10 h-10 object-contain animate-pulse" />
                                         </div>
-                                    <h2 className="text-2xl font-bold text-white">{getMintStageContent(mintStep).title}</h2>
+                                        <h2 className="text-2xl font-bold text-white">{getMintStageContent(mintStep).title}</h2>
                                         <p className="text-white text-center max-w-sm">
                                             {getMintStageContent(mintStep).desc}
                                             <span className="block mt-1 text-amber-400 font-medium">Fee: {MINT_PRICE_FF} FF</span>
