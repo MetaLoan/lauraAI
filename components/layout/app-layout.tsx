@@ -42,29 +42,29 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
                 {/* ───── Desktop Header（md+）：展开时沉浸式无玻璃，收缩时玻璃卡片 ───── */}
                 <motion.header
-                    className={`hidden md:flex items-center justify-center rounded-full absolute top-3 z-40 h-14 overflow-hidden ${expanded ? 'bg-transparent shadow-none' : 'glass-bar'}`}
-                    animate={{
-                        left: expanded ? '0.75rem' : '50%',
-                        x: expanded ? '0%' : '-50%',
-                        width: expanded ? 'calc(100% - 1.5rem)' : '180px',
-                    }}
+                    layout
+                    className={`hidden md:flex items-center justify-center rounded-full absolute top-3 z-40 h-14 overflow-hidden ${expanded ? 'bg-transparent shadow-none left-3 right-3 w-auto' : 'glass-bar left-1/2 -translate-x-1/2 w-[180px]'}`}
                     transition={{ type: 'spring', stiffness: 200, damping: 24, mass: 0.8 }}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
                     {/* Logo + 文字（始终可见） */}
-                    <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity px-5 h-full flex-shrink-0">
-                        <div className="relative w-10 h-10">
-                            <img src={getAssetPath('/logo1.png')} alt="SoulFace Logo" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
-                        </div>
-                        <span className="text-xl font-thin text-white tracking-tight whitespace-nowrap">
-                            SoulFace
-                        </span>
-                    </Link>
+                    <motion.div layout="position" className="flex items-center h-full">
+                        <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity px-5 h-full flex-shrink-0">
+                            <motion.div layout className="relative w-10 h-10">
+                                <img src={getAssetPath('/logo1.png')} alt="SoulFace Logo" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                            </motion.div>
+                            <motion.span layout className="text-xl font-thin text-white tracking-tight whitespace-nowrap">
+                                SoulFace
+                            </motion.span>
+                        </Link>
+                    </motion.div>
 
                     {/* 钱包按钮（始终挂载，收缩时隐藏避免卡顿） */}
                     <motion.div
+                        layout
                         className="flex items-center gap-3 pr-2.5 flex-shrink-0 overflow-hidden"
+                        initial={false}
                         animate={{
                             opacity: expanded ? 1 : 0,
                             width: expanded ? 'auto' : 0,

@@ -16,9 +16,9 @@ const ORBS: OrbConfig[] = [
 ];
 
 const ORBS_SAFARI: OrbConfig[] = [
-  { sizeVmax: 44, color: 'rgba(168, 85, 247, 1)', blurPx: 76, opacity: 0.34 },
-  { sizeVmax: 40, color: 'rgba(250, 204, 21, 1)', blurPx: 70, opacity: 0.28 },
-  { sizeVmax: 42, color: 'rgba(59, 130, 246, 1)', blurPx: 76, opacity: 0.32 },
+  { sizeVmax: 44, color: 'rgba(168, 85, 247, 1)', blurPx: 50, opacity: 0.34 },
+  { sizeVmax: 40, color: 'rgba(250, 204, 21, 1)', blurPx: 45, opacity: 0.28 },
+  { sizeVmax: 42, color: 'rgba(59, 130, 246, 1)', blurPx: 50, opacity: 0.32 },
 ];
 
 type OrbState = {
@@ -80,6 +80,11 @@ export function AmbientOrbsBg() {
       height = container.clientHeight;
       states.forEach((s, i) => {
         s.size = (Math.min(width, height) * orbConfig[i].sizeVmax) / 100;
+        const el = orbRefs.current[i];
+        if (el) {
+          el.style.width = `${s.size}px`;
+          el.style.height = `${s.size}px`;
+        }
       });
     };
 
@@ -106,8 +111,6 @@ export function AmbientOrbsBg() {
         s.x += (s.tx - s.x) * (isSafari ? 0.0022 : 0.0035);
         s.y += (s.ty - s.y) * (isSafari ? 0.0022 : 0.0035);
 
-        el.style.width = `${s.size}px`;
-        el.style.height = `${s.size}px`;
         el.style.transform = `translate3d(${s.x}px, ${s.y}px, 0)`;
       }
 
