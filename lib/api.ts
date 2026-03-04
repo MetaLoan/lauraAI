@@ -17,7 +17,7 @@ const REQUEST_TIMEOUT = 15000
 const STORAGE_KEY_TOKEN = 'auth_token'
 
 // localStorage key for storing user's language preference
-const LOCALE_STORAGE_KEY = 'laura-ai-locale'
+const LOCALE_STORAGE_KEY = 'soulface-locale'
 
 // 获取当前语言（用于 API 请求）
 // FIXED: Always return 'en' to ensure consistent English UI and API responses

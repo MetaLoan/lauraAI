@@ -18,18 +18,18 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'SoulFace | Sovereign Intelligence',
-  description: 'The first Intent-based AI Asset Management. Deepen your bond, automate your wealth.',
+  title: 'SoulFace | Sovereign AI Soulmate',
+  description: 'The world\'s first Intent-based AI Asset Management Companion on BSC.',
   manifest: withBasePath('/manifest.json'),
-  metadataBase: new URL('https://laura-ai.com'),
+  metadataBase: new URL('https://soulface.ai'),
   openGraph: {
-    title: 'SoulFace: The Sovereign AI Protocol',
-    description: 'Autonomous Intelligence meets DeFi. Mint your soulmate, secure your future.',
-    url: 'https://laura-ai.com',
+    title: 'SoulFace | Sovereign AI Soulmate',
+    description: 'The world\'s first Intent-based AI Asset Management Companion on BSC.',
+    url: 'https://soulface.ai',
     siteName: 'SoulFace',
     images: [
       {
-        url: '/og-image.png', // We'll need to ensure this or a good placeholder exists
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'SoulFace - AI Soulmate Experience',
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'SoulFace | Sovereign AI Soulmate',
-    description: 'The world\'s first Intent-based AI Asset Management Companion on Ethereum.',
+    description: 'The world\'s first Intent-based AI Asset Management Companion on BSC.',
     creator: '@SoulFace_BSC',
     images: ['/og-image.png'],
   },

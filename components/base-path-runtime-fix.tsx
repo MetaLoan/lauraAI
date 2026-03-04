@@ -24,14 +24,14 @@ export function BasePathRuntimeFix() {
     const scriptWithNext = Array.from(document.scripts).find((script) => script.src.includes('/_next/static/'));
     const runtimeBasePath = scriptWithNext
       ? (() => {
-          try {
-            const pathname = new URL(scriptWithNext.src, window.location.origin).pathname;
-            const nextIndex = pathname.indexOf('/_next/');
-            return nextIndex > 0 ? pathname.slice(0, nextIndex) : '';
-          } catch {
-            return '';
-          }
-        })()
+        try {
+          const pathname = new URL(scriptWithNext.src, window.location.origin).pathname;
+          const nextIndex = pathname.indexOf('/_next/');
+          return nextIndex > 0 ? pathname.slice(0, nextIndex) : '';
+        } catch {
+          return '';
+        }
+      })()
       : '';
     const pathDerivedBasePath = (() => {
       if (typeof window === 'undefined') return '';
@@ -42,7 +42,7 @@ export function BasePathRuntimeFix() {
       return `/${segments[0]}`;
     })();
     const basePath = (runtimeBasePath || envBasePath || pathDerivedBasePath).replace(/\/+$/, '');
-    (window as any).__LAURA_BASE_PATH = basePath;
+    (window as any).__SOULFACE_BASE_PATH = basePath;
     if (debugEnabled) {
       console.info('[asset-debug] init', {
         envBasePath,

@@ -14,7 +14,7 @@ export function getAssetPath(path: string) {
   const runtimeBasePath = (() => {
     if (typeof window === 'undefined') return ''
 
-    const fromWindow = ((window as any).__LAURA_BASE_PATH || '').replace(/\/+$/, '')
+    const fromWindow = ((window as any).__SOULFACE_BASE_PATH || '').replace(/\/+$/, '')
     if (fromWindow) return fromWindow
 
     const scriptWithNext = Array.from(document.scripts).find((script) => script.src.includes('/_next/static/'))
@@ -47,7 +47,7 @@ export function getFullImageUrl(path: string) {
   if (path.startsWith('http') || path.startsWith('data:') || path.startsWith('blob:')) {
     return path
   }
-  
+
   // 如果是 uploads 目录，说明是后端上传的图片，需要拼接后端地址
   if (path.startsWith('/uploads/') || path.startsWith('uploads/')) {
     // 获取 API Base URL，并去掉末尾的 /api
@@ -57,7 +57,7 @@ export function getFullImageUrl(path: string) {
     const finalUrl = `${origin}${normalizedPath}`
     return finalUrl
   }
-  
+
   // 其他情况（如 /avatars/），视为前端静态资源，使用 getAssetPath 处理
   const assetPath = getAssetPath(path)
   return assetPath

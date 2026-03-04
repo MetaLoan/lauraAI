@@ -15,8 +15,8 @@ const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJ
 const metadata = {
   name: 'SoulFace',
   description: 'AI Soulmate & DeFi Asset Management',
-  url: typeof window !== 'undefined' ? window.location.origin : 'https://laura-ai.com',
-  icons: ['https://laura-ai.com/logolaura.png']
+  url: typeof window !== 'undefined' ? window.location.origin : 'https://soulface.ai',
+  icons: ['https://soulface.ai/logolaura.png']
 };
 
 // 4. Create Wagmi Adapter - only on client
